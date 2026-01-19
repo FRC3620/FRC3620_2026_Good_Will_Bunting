@@ -1,0 +1,3 @@
+org.usfirst.frc3620.logger.tinylog.FrcFileWriter
+org.usfirst.frc3620.logger.tinylog.DogLogWriter
+org.tinylog.writers.ConsoleWriter
