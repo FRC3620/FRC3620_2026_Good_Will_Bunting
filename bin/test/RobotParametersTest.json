@@ -1,0 +1,19 @@
+[
+  {
+    "offset": 4.4,
+    "serialNumber": "aa:bb:cc:dd:ee:ff",
+    "makeAllCANDevices": true,
+    "competitionRobot": true
+  },
+  {
+    "offset": 5.5,
+    "serialNumber": ["00:11:22:33:44:55", "zed"],
+    "makeAllCANDevices": false,
+    "competitionRobot": false
+  },
+  {
+    "offset": 1.1,
+    "serialNumber": "(simulation)",
+    "competitionRobot": false
+  }
+]

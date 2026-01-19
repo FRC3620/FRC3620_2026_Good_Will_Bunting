@@ -1,0 +1,27 @@
+[
+  {
+    "name": "2022 competition",
+    "macAddress": "00-80-2F-21-E4-EA",
+    "makeAllCANDevices": true
+  },
+  {
+    "name": "2021 competition",
+    "macAddress": "00-80-2F-17-EB-08",
+    "makeAllCANDevices": false
+  },
+  {
+    "name": "TOAD",
+    "macAddress": "00-80-2F-18-5C-5F",
+    "makeAllCANDevices": false
+  },
+  {
+    "name": "Fancy Mule Board",
+    "macAddress": "00-80-2F-21-B0-58",
+    "makeAllCANDevices": false
+  },
+  {
+    "name": "simulator",
+    "macAddress": "(simulation)",
+    "makeAllCANDevices": true
+  }
+]
