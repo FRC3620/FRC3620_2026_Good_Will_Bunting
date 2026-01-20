@@ -15,8 +15,6 @@ package org.usfirst.frc3620.logger.tinylog;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Collections;
@@ -24,8 +22,6 @@ import java.util.Date;
 import java.util.Map;
 
 import org.tinylog.core.LogEntry;
-import org.tinylog.runtime.RuntimeProvider;
-import org.tinylog.runtime.Timestamp;
 import org.tinylog.writers.AbstractFormatPatternWriter;
 import org.tinylog.writers.raw.ByteArrayWriter;
 import org.usfirst.frc3620.logger.LoggingMaster;
