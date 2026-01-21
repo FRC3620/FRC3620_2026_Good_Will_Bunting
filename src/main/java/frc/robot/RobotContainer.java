@@ -16,6 +16,12 @@ import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.fsm.StateMachine;
+import frc.robot.fsm.states.PassingState;
+import frc.robot.fsm.states.ScoringState;
+
+// frc.robot.FSM.States;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -26,6 +32,14 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 public class RobotContainer {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
   
+  // States
+  private PassingState passingState;
+  private ScoringState scoringState;
+
+  private StateMachine stateMachine;
+
+
+
   // need this
   public static CANDeviceFinder canDeviceFinder;
   public static RobotParameters robotParameters;
@@ -64,6 +78,8 @@ public class RobotContainer {
     }
 
     makeSubsystems();
+    makeStates();
+    makeStateMachine();
 
     if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
       missingDevicesAlert.set(true);
@@ -79,6 +95,15 @@ public class RobotContainer {
   }
 
   private void makeSubsystems() {
+  }
+
+  private void makeStates() {
+    passingState = new PassingState(new Trigger(() -> driverJoystick.button(XBoxConstants.BUTTON_A, null).getAsBoolean()), scoringState);
+    scoringState = new ScoringState(new Trigger(() -> driverJoystick.button(XBoxConstants.BUTTON_B, null).getAsBoolean()), passingState);
+  }
+
+  private void makeStateMachine() {
+    stateMachine = new StateMachine(passingState);
   }
 
   /**
