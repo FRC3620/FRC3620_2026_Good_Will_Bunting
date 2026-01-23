@@ -63,9 +63,9 @@ public class TurretSubsystem extends SubsystemBase {
 
   Pivot turretPivot = new Pivot(pivot_config);
 
-  public Command setAngle(Angle angle){
-  return turretPivot.setAngle(angle);
-}
+  public Command setAngle(Angle angle) {
+    return turretPivot.setAngle(angle);
+  }
 
   @Override
   public void periodic() {
@@ -73,7 +73,7 @@ public class TurretSubsystem extends SubsystemBase {
     turretPivot.updateTelemetry();
   }
 
-  public void simulationPeriodic(){
+  public void simulationPeriodic() {
     turretPivot.simIterate();
 
   }
