@@ -12,12 +12,18 @@ import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.XBoxConstants;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
+import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.PassingState;
 import frc.robot.fsm.states.ScoringState;
 
@@ -56,6 +62,7 @@ public class RobotContainer {
   // joysticks here....
   public static Joystick driverJoystick;
   public static Joystick operatorJoystick;
+  public static Joystick operatorKeyboard;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -76,9 +83,11 @@ public class RobotContainer {
     } else if (canDeviceFinder.isDevicePresent(CANDeviceType.CTRE_PCM, 0, "CTRE PCM")) {
       pneumaticModuleType = PneumaticsModuleType.CTREPCM;
     }
+    makeJoysticks();
 
     makeSubsystems();
     makeStates();
+    makeStateTransitions();
     makeStateMachine();
 
     if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
@@ -98,12 +107,37 @@ public class RobotContainer {
   }
 
   private void makeStates() {
-    passingState = new PassingState(new Trigger(() -> driverJoystick.button(XBoxConstants.BUTTON_A, null).getAsBoolean()), scoringState);
-    scoringState = new ScoringState(new Trigger(() -> driverJoystick.button(XBoxConstants.BUTTON_B, null).getAsBoolean()), passingState);
+    passingState = new PassingState();
+    scoringState = new ScoringState(); 
+  }
+  private void makeStateTransitions() {
+    Trigger passToScoreTrigger = new JoystickButton(operatorKeyboard, 1);
+    
+    passingState.addTransition(new StateTransition(
+      passToScoreTrigger,
+      scoringState
+    ));
+
+    Trigger scoreToPassTrigger = new JoystickButton(operatorKeyboard, 2);
+    
+    scoringState.addTransition(new StateTransition(
+      scoreToPassTrigger,
+      passingState
+    ));
   }
 
   private void makeStateMachine() {
     stateMachine = new StateMachine(passingState);
+  }
+
+  public StateMachine getStateMachine() {
+    return stateMachine;
+  }
+
+  private void makeJoysticks() {
+    driverJoystick = new Joystick(0);
+    operatorJoystick = new Joystick(1);
+    operatorKeyboard = new Joystick(2);
   }
 
   /**
@@ -113,11 +147,13 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    driverJoystick = new Joystick(0);
-    operatorJoystick = new Joystick(1);
+
 
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
       .onTrue(new LogCommand("'A' button hit"));
+
+    new JoystickButton(operatorKeyboard, 1)
+      .onTrue(new LogCommand("'Z' key hit"));
 
   }
 
