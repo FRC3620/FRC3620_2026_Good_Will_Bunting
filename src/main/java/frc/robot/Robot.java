@@ -42,17 +42,8 @@ public class Robot extends TimedRobot {
     logger.info ("I'm alive! {}", GitNess.gitDescription());
     Utilities.logMetadataToDataLog();
 
-    logger.info("Timestamp test: FPGAtime: {} FPGATimestamp: {}", RobotController.getFPGATime(), Timer.getFPGATimestamp());
-
     Utilities.addDataLogForNT("frc3620");
     Utilities.addDataLogForNT("SmartDashboard/frc3620");
-
-    PortForwarder.add (10080, "wpilibpi.local", 80);
-    PortForwarder.add (10022, "wpilibpi.local", 22);
-    
-    for (int port = 5800; port <= 5809; port++) {
-      PortForwarder.add(port, "limelight.local", port);
-    }
 
     // whenever a command initializes, the function declared below will run.
     CommandScheduler.getInstance().onCommandInitialize(command ->

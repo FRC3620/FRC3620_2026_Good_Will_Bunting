@@ -1,8 +1,9 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2026.2.1"    
+    id "edu.wpi.first.GradleRIO" version "2026.2.1"
     // FRC3620 ****************************************************************
-    id "com.gorylenko.gradle-git-properties" version "2.4.1"
+    id "com.gorylenko.gradle-git-properties" version "2.4.1" // 2.5.4 breaks
+    id "name.remal.merge-resources" version "5.0.1"  // see note on tinylog
     // later:
     // id 'com.diffplug.spotless' version '6.12.0'
     // ************************************************************************
@@ -85,6 +86,10 @@ dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
+    // if using tinylog, you need to either set the duplicatesStrategy to false, or
+    // use a plugin to consolidate the META-INF/services files. otherwise it's a crap 
+    // shoot if tinylog will pick up the embedded service files or the ones in
+    // our source tree
     implementation 'org.tinylog:tinylog-api:2.7.0' // Replace with the latest version
     implementation 'org.tinylog:tinylog-impl:2.7.0' // Replace with the latest version
 
@@ -146,7 +151,7 @@ jar {
     from('vendordeps') { into 'backup/vendordeps' }
     from('build.gradle') { into 'backup' }
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE // see note on tinylog
 }
 
 // Configure jar and deploy tasks
@@ -165,13 +170,13 @@ tasks.withType(JavaCompile) {
 task printGitProperties {
     dependsOn generateGitProperties
     doLast {
-        println "Project:    " + project.ext.gitProps["project.dir"]
-        println "Branch:     " + project.ext.gitProps["git.branch"]
-        println "Describe:   " + project.ext.gitProps["git.commit.id.describe"]
-        println "Dirty:      " + project.ext.gitProps["git.dirty"]
-        println "Git time:   " + project.ext.gitProps["git.commit.time"]
-        println "Build time: " + project.ext.gitProps["build.time"]
-        println "Build host: " + project.ext.gitProps["git.build.host"]
+        println "Project:    ${project.ext.gitProps["project.dir"]}"
+        println "Branch:     ${project.ext.gitProps["git.branch"]}"
+        println "Describe:   ${project.ext.gitProps["git.commit.id.describe"]}"
+        println "Dirty:      ${project.ext.gitProps["git.dirty"]}"
+        println "Git time:   ${project.ext.gitProps["git.commit.time"]}"
+        println "Build time: ${project.ext.gitProps["build.time"]}"
+        println "Build host: ${project.ext.gitProps["git.build.host"]}"
     }
 }
 
@@ -191,6 +196,7 @@ gitProperties {
     gitPropertiesResourceDir = file("${project.rootDir}/src/main/deploy")
     extProperty = 'gitProps'
 }
+// following line blows up with 2.5.4
 generateGitProperties.finalizedBy printGitProperties // make sure we do things in the correct order
 generateGitProperties.outputs.upToDateWhen { false } // make sure the generateGitProperties task always executes (even when git.properties is not changed)
 
@@ -276,5 +282,12 @@ if (false) {
             }
         }
     } 
+}
+
+// keep name.remal.merge-resources happy
+mergeResources {
+    moduleInfo {
+        enabled = false
+    }
 }
 // ****************************************************************************
