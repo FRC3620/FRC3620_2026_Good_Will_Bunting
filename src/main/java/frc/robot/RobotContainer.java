@@ -13,6 +13,9 @@ import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.XBoxConstants;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 
@@ -20,6 +23,14 @@ import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.fsm.StateMachine;
+import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.states.IState;
+import frc.robot.fsm.states.PassingState;
+import frc.robot.fsm.states.ScoringState;
+
+// frc.robot.FSM.States;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 
@@ -34,6 +45,14 @@ import frc.robot.Subsystems.TurretSubsystem;
  */
 public class RobotContainer {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
+  
+  // States
+  private PassingState passingState;
+  private ScoringState scoringState;
+
+  private StateMachine stateMachine;
+
+
 
   // need this
   public static CANDeviceFinder canDeviceFinder;
@@ -51,6 +70,7 @@ public class RobotContainer {
   // joysticks here....
   public static Joystick driverJoystick;
   public static Joystick operatorJoystick;
+  public static Joystick operatorKeyboard;
 
   public TurretSubsystem turretSubsystem;
   public ShooterSubsystem shooterSubsystem;
@@ -76,8 +96,12 @@ public class RobotContainer {
     } else if (canDeviceFinder.isDevicePresent(CANDeviceType.CTRE_PCM, 0, "CTRE PCM")) {
       pneumaticModuleType = PneumaticsModuleType.CTREPCM;
     }
+    makeJoysticks();
 
     makeSubsystems();
+    makeStates();
+    makeStateTransitions();
+    makeStateMachine();
 
     if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
       missingDevicesAlert.set(true);
@@ -101,6 +125,40 @@ public class RobotContainer {
     shooterSubsystem = new ShooterSubsystem();
   }
 
+  private void makeStates() {
+    passingState = new PassingState();
+    scoringState = new ScoringState(); 
+  }
+  private void makeStateTransitions() {
+    Trigger passToScoreTrigger = new JoystickButton(operatorKeyboard, 1);
+    
+    passingState.addTransition(new StateTransition(
+      passToScoreTrigger,
+      scoringState
+    ));
+
+    Trigger scoreToPassTrigger = new JoystickButton(operatorKeyboard, 2);
+    
+    scoringState.addTransition(new StateTransition(
+      scoreToPassTrigger,
+      passingState
+    ));
+  }
+
+  private void makeStateMachine() {
+    stateMachine = new StateMachine(passingState);
+  }
+
+  public StateMachine getStateMachine() {
+    return stateMachine;
+  }
+
+  private void makeJoysticks() {
+    driverJoystick = new Joystick(0);
+    operatorJoystick = new Joystick(1);
+    operatorKeyboard = new Joystick(2);
+  }
+
   /**
    * Use this method to define your button->command mappings. Buttons can be
    * created by
@@ -110,8 +168,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    driverJoystick = new Joystick(0);
-    operatorJoystick = new Joystick(1);
+
 
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
         .onTrue(new LogCommand("'A' button hit"));
@@ -125,6 +182,9 @@ public class RobotContainer {
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
 
+
+    new JoystickButton(operatorKeyboard, 1)
+      .onTrue(new LogCommand("'Z' key hit"));
 
   }
 
