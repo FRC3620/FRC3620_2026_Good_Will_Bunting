@@ -21,6 +21,7 @@ import org.tinylog.TaggedLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Subsystems.ShoulderSubsystem;
+import frc.robot.Subsystems.RollerSubsytem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.ShoulderSubsystem.IntakeShoulderPositions;
@@ -57,6 +58,7 @@ public class RobotContainer {
   public TurretSubsystem turretSubsystem;
   public ShooterSubsystem shooterSubsystem;
   public ShoulderSubsystem intakeSubsystem;
+  public RollerSubsytem rollerSubsytem;
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -97,12 +99,14 @@ public class RobotContainer {
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     intakeSubsystem.setDefaultCommand(intakeSubsystem.setAngle(Degrees.of(90)));
+    rollerSubsytem.setDefaultCommand(rollerSubsytem.rollersOff());
   }
 
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
     shooterSubsystem = new ShooterSubsystem();
     intakeSubsystem= new ShoulderSubsystem();
+    rollerSubsytem= new RollerSubsytem();
   }
 
   /**

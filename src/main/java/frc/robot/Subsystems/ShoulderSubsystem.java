@@ -30,7 +30,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class ShoulderSubsystem extends SubsystemBase{
 
     TalonFX shoulder= new TalonFX(55);
-    TalonFX rollers= new TalonFX(57);
+    
     public enum IntakeShoulderPositions{
         UP(90.0),
         Down(0.0);
