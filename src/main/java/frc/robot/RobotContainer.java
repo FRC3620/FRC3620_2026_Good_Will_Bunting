@@ -1,8 +1,10 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -25,11 +27,14 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import java.util.Optional;
+
 import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.Commands.AutoAimTurretCommand;
 import frc.robot.Generated.TunerConstants;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
@@ -46,6 +51,8 @@ import frc.robot.Subsystems.SwerveSubsystem;
  */
 public class RobotContainer {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
+
+  Optional<Alliance> alliance;
 
   private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
@@ -86,6 +93,8 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+    alliance = DriverStation.getAlliance();
+
     canDeviceFinder = new CANDeviceFinder();
 
     robotParameters = RobotParametersContainer.getRobotParameters(RobotParameters.class);
@@ -111,30 +120,35 @@ public class RobotContainer {
       missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
     }
 
-
-
     setupSmartDashboardCommands();
 
     setupAutonomousCommands();
 
-    if(RobotBase.isSimulation()) {
+    if (RobotBase.isSimulation()) {
       MaxAngularRate = MaxAngularRate * 0.2; // limit angular rate in simulation
     }
 
-            swerveSubsystem.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            swerveSubsystem.applyRequest(() ->
-                drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.2) * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.2) * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with negative X (left)
+    swerveSubsystem.setDefaultCommand(
+        // Drivetrain will execute this command periodically
+        swerveSubsystem.applyRequest(
+            () -> drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.2) * MaxSpeed) // Drive
+                                                                                                             // forward
+                                                                                                             // with
+                                                                                                             // negative
+                                                                                                             // Y
+                                                                                                             // (forward)
+                .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.2) * MaxSpeed) // Drive left with
+                                                                                                      // negative X
+                                                                                                      // (left)
+                .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
+                                                                                    // negative X (left)
 
-            )
-        );
+        ));
 
     configureButtonBindings();
 
     // default commands
-    turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
+    turretSubsystem.setDefaultCommand(new AutoAimTurretCommand(turretSubsystem, swerveSubsystem, alliance));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
   }
 
@@ -155,39 +169,35 @@ public class RobotContainer {
     driverJoystick = new Joystick(0);
     operatorJoystick = new Joystick(1);
 
-            // Idle while the robot is disabled. This ensures the configured
-        // neutral mode is applied to the drive motors while disabled.
-        final var idle = new SwerveRequest.Idle();
-        RobotModeTriggers.disabled().whileTrue(
-            swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
-        );
+    // Idle while the robot is disabled. This ensures the configured
+    // neutral mode is applied to the drive motors while disabled.
+    final var idle = new SwerveRequest.Idle();
+    RobotModeTriggers.disabled().whileTrue(
+        swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true));
 
-        new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
-            .whileTrue(swerveSubsystem.applyRequest(() -> brake));
-        new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
-            .whileTrue(swerveSubsystem.applyRequest(() ->
-                point.withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))
-            ));
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+        .whileTrue(swerveSubsystem.applyRequest(() -> brake));
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
+        .whileTrue(swerveSubsystem.applyRequest(() -> point
+            .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))));
 
-        swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
+    swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
-        new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
-            .whileTrue(swerveSubsystem.applyRequest(() ->
-                drive.withVelocityX(0.2) // Drive forward with negative Y (forward)
-                    .withVelocityY(0) // Drive left with negative X (left)
-                    .withRotationalRate(0) // Drive coun
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
+        .whileTrue(swerveSubsystem.applyRequest(() -> drive.withVelocityX(0.2) // Drive forward with negative Y
+                                                                               // (forward)
+            .withVelocityY(0) // Drive left with negative X (left)
+            .withRotationalRate(0) // Drive coun
         ));
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
-        .onTrue(new LogCommand("'A' button hit"));
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_Y)
+        .whileTrue(new AutoAimTurretCommand(turretSubsystem, swerveSubsystem, alliance));
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
+    //new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_B)
+    //    .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
 
-    new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
+    new JoystickAnalogButton(operatorJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
         .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
 
   }
