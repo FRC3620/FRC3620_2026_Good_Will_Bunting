@@ -34,6 +34,7 @@ import org.tinylog.TaggedLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.TurretCalc.Targets;
 import frc.robot.Commands.AutoAimTurretCommand;
 import frc.robot.Generated.TunerConstants;
 import frc.robot.Subsystems.ShooterSubsystem;
@@ -148,7 +149,7 @@ public class RobotContainer {
     configureButtonBindings();
 
     // default commands
-    turretSubsystem.setDefaultCommand(new AutoAimTurretCommand(turretSubsystem, swerveSubsystem, alliance));
+    turretSubsystem.setDefaultCommand(turretSubsystem.autoAimTurretCommand(swerveSubsystem, Targets.REDHUB.position));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
   }
 
@@ -191,8 +192,6 @@ public class RobotContainer {
         ));
 
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_Y)
-        .whileTrue(new AutoAimTurretCommand(turretSubsystem, swerveSubsystem, alliance));
 
     //new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_B)
     //    .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));

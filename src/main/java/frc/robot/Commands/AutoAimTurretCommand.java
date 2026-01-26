@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,7 +25,7 @@ public class AutoAimTurretCommand extends Command {
 
   private final Optional<Alliance> alliance;
 
-  Pose2d hubPose = new Pose2d(4.06, 4, null); // Example hub position, replace with actual coordinates
+  Translation2d hubPose = new Translation2d(4.06, 4.0); // Example hub position, replace with actual coordinates
 
 
   public AutoAimTurretCommand(TurretSubsystem turret, SwerveSubsystem swerve, Optional<Alliance> alliance) {
@@ -40,9 +41,9 @@ public class AutoAimTurretCommand extends Command {
   public void initialize() {
     if (alliance.isPresent()) {
       if (alliance.get() == Alliance.Blue) {
-        hubPose = new Pose2d(4.06, 4.0, null);
+        hubPose = new Translation2d(4.06, 4.0);
       } else if (alliance.get() == Alliance.Red) {
-        hubPose = new Pose2d(16 - 4.06, 4.0, null); //random numbers for hubs
+        hubPose = new Translation2d(16 - 4.06, 4.0); //random numbers for hubs
       }
   }
 }

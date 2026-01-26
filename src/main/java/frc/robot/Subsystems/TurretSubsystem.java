@@ -12,13 +12,20 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.TalonFXS;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.TurretCalc;
+import frc.robot.Commands.AutoAimTurretCommand;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.PivotConfig;
@@ -64,7 +71,23 @@ public class TurretSubsystem extends SubsystemBase {
   Pivot turretPivot = new Pivot(pivot_config);
 
   public Command setAngle(Angle angle) {
-    return turretPivot.setAngle(angle);
+    return turretPivot
+        .setAngle(() -> angle)
+        .withName("TurretSetAngle(" + angle.in(Degrees) + ")");
+
+  }
+
+  public Command autoAimTurretCommand(SwerveSubsystem swerve, Translation2d targetTranslation) {
+    Supplier<Angle> angleSupplier = () -> {
+      Pose2d robotPose = swerve.getStateCopy().Pose;
+      Angle turretAngle = TurretCalc.calculateTurretAngle(robotPose, targetTranslation);
+      return turretAngle;
+    };
+    
+    return turretPivot
+        .setAngle(angleSupplier)
+        .withName("AutoAimTurretCommand");
+
   }
 
   @Override
