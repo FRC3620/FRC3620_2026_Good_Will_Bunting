@@ -103,7 +103,7 @@ public class RobotContainer {
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
     shooterSubsystem = new ShooterSubsystem();
-    spindexerSubystem = new SpindexerSubsystem();
+    spindexerSubsystem = new SpindexerSubsystem();
   }
 
   /**
@@ -130,8 +130,8 @@ public class RobotContainer {
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
         .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
 
-    new JoystickButton(driverJoystick, XBoxConstants.ButtonX)
-        .whileTrue(spindexerSubsystem.setVelocity(RPM.of(600)))
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
+        .whileTrue(spindexerSubsystem.setVelocity(RPM.of(600)));
 
   }
 

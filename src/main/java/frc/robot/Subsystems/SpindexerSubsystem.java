@@ -30,45 +30,45 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
+import yams.motorcontrollers.local.SparkWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class SpindexerSubsystem extends SubsystemBase {
   /** Creates a new SpindexerSubsystem. */
 
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
-  .withControlMode(ControlMode.CLOSED_LOOP)
-  // Feedback Constants (PID Constants)
-  .withClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-  .withSimClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-  // Feedforward Constants
-  .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-  .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-  // Telemetry name and verbosity level
-  .withTelemetry("SpindexerMotor", TelemetryVerbosity.HIGH)
-  // Gearing from the motor rotor to final shaft.
-  // In this example GearBox.fromReductionStages(3,4) is the same as GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to your motor.
-  // You could also use .withGearing(12) which does the same thing.
-  .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
-  // Motor properties to prevent over currenting.
-  .withMotorInverted(false)
-  .withIdleMode(MotorMode.COAST)
-  .withStatorCurrentLimit(Amps.of(40));
+      .withControlMode(ControlMode.CLOSED_LOOP)
+      // Feedback Constants (PID Constants)
+      .withClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+      .withSimClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+      // Feedforward Constants
+      .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+      .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+      // Telemetry name and verbosity level
+      .withTelemetry("SpindexerMotor", TelemetryVerbosity.HIGH)
+      // Gearing from the motor rotor to final shaft.
+      // In this example GearBox.fromReductionStages(3,4) is the same as
+      // GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to
+      // your motor.
+      // You could also use .withGearing(12) which does the same thing.
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+      // Motor properties to prevent over currenting.
+      .withMotorInverted(false)
+      .withIdleMode(MotorMode.COAST)
+      .withStatorCurrentLimit(Amps.of(40));
 
-  // Vendor motor controller object
-  private SparkMax spark = new SparkMax(4, MotorType.kBrushless);
-
-  // Create our SmartMotorController from our Spark and config with the NEO.
-  private SmartMotorController sparkSmartMotorController = new SparkWrapper(spark, DCMotor.getNEO(1), smcConfig);
+  TalonFX spindexerMotor = new TalonFX(22);
+  SmartMotorController motor = new TalonFXWrapper(spindexerMotor, DCMotor.getKrakenX60(1), smcConfig);
 
   private final FlyWheelConfig spindexerConfig = new FlyWheelConfig(motor)
-  // Diameter of the flywheel.
-  .withDiameter(Inches.of(4))
-  // Mass of the flywheel.
-  .withMass(Pounds.of(1))
-  // Maximum speed of the spindexer.
-  .withUpperSoftLimit(RPM.of(1000))
-  // Telemetry name and verbosity for the arm.
-  .withTelemetry("SpindexerMech", TelemetryVerbosity.HIGH);
+      // Diameter of the flywheel.
+      .withDiameter(Inches.of(4))
+      // Mass of the flywheel.
+      .withMass(Pounds.of(1))
+      // Maximum speed of the spindexer.
+      .withUpperSoftLimit(RPM.of(1000))
+      // Telemetry name and verbosity for the arm.
+      .withTelemetry("SpindexerMech", TelemetryVerbosity.HIGH);
 
   // Spindexer Mechanism
   private FlyWheel spindexer = new FlyWheel(spindexerConfig);
@@ -102,7 +102,9 @@ public class SpindexerSubsystem extends SubsystemBase {
     return spindexer.set(dutyCycle);
   }
 
-  public TurretSubsystem() {}
+  public SpindexerSubsystem() {
+
+  }
 
   @Override
   public void periodic() {
