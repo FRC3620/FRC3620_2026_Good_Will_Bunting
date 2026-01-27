@@ -88,7 +88,7 @@ public class SpindexerSubsystem extends SubsystemBase {
    * @param speed Speed to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command setVelocity(AngularVelocity speed) {
+  public Command setVelocityCommand(AngularVelocity speed) {
     return spindexer.setSpeed(speed);
   }
 
@@ -98,7 +98,7 @@ public class SpindexerSubsystem extends SubsystemBase {
    * @param dutyCycle DutyCycle to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command set(double dutyCycle) {
+  public Command setDutyCycleCommand(double dutyCycle) {
     return spindexer.set(dutyCycle);
   }
 
