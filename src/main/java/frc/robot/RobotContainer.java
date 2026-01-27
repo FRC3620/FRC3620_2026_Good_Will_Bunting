@@ -97,7 +97,7 @@ public class RobotContainer {
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
-    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocity(RPM.of(0)));
+    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
@@ -131,7 +131,7 @@ public class RobotContainer {
         .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
 
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
-        .whileTrue(spindexerSubsystem.setVelocity(RPM.of(600)));
+        .whileTrue(spindexerSubsystem.setVelocityCommand(RPM.of(600)));
 
   }
 
