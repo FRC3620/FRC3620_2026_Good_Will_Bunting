@@ -210,12 +210,9 @@ public class RobotContainer {
       return true;
     }
 
-    if (Robot.isSimulation()) {
-      return false;
-    }
-
     // noinspection PointlessBooleanExpression
     if (practiceBotJumper.get() == true) {
+      // .get() = true means no practice bot jumper
       return true;
     }
 
