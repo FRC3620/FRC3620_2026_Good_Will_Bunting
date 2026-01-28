@@ -19,12 +19,14 @@ import static edu.wpi.first.units.Units.RPM;
 import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Subsystems.ShoulderSubsystem;
-import frc.robot.Subsystems.RollerSubsytem;
+import frc.robot.Subsystems.IntakeRollerSubsytem;
+// import frc.robot.Subsystems.IntakeShoulderSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
-import frc.robot.Subsystems.ShoulderSubsystem.IntakeShoulderPositions;
+import frc.robot.Subsystems.IntakeShoulderSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -57,8 +59,8 @@ public class RobotContainer {
 
   public TurretSubsystem turretSubsystem;
   public ShooterSubsystem shooterSubsystem;
-  public ShoulderSubsystem intakeSubsystem;
-  public RollerSubsytem rollerSubsytem;
+  public IntakeShoulderSubsystem intakeShoulderSubsystem;
+  public IntakeRollerSubsytem intakeRollerSubsystem;
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -98,15 +100,15 @@ public class RobotContainer {
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
-    intakeSubsystem.setDefaultCommand(intakeSubsystem.setAngle(Degrees.of(90)));
-    rollerSubsytem.setDefaultCommand(rollerSubsytem.rollersOff());
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
   }
 
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
     shooterSubsystem = new ShooterSubsystem();
-    intakeSubsystem= new ShoulderSubsystem();
-    rollerSubsytem= new RollerSubsytem();
+    intakeShoulderSubsystem= new IntakeShoulderSubsystem();
+    intakeRollerSubsystem = new IntakeRollerSubsytem();
   }
 
   /**
@@ -133,8 +135,8 @@ public class RobotContainer {
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
       new JoystickButton(driverJoystick, 3)
-      .whileTrue(intakeSubsystem.setAngle(Degrees.of(0)));
-
+      .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
+    new JoystickButton(driverJoystick, 4).whileTrue( intakeRollerSubsystem.rollersOn());
 
   }
 
