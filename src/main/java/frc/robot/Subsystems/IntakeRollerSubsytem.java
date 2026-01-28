@@ -31,16 +31,14 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class IntakeRollerSubsytem extends SubsystemBase {
     int motorId = 57;
-    boolean forceNullHardwareForTesting = false;  // set this to true to test the "we don't have hardware" configuration
-
     private TalonFX rollers = null;
     private SmartMotorController rollerMotor = null;
     private FlyWheel roller = null;
 
     public IntakeRollerSubsytem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
-                        "IntakeRoller") || RobotContainer.shouldMakeAllCANDevices();
-        if (forceNullHardwareForTesting) makeDevices = false;
+                "IntakeRoller")
+                || RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
             rollers = new TalonFX(motorId);
@@ -76,7 +74,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     }
 
     private Command doNothingCommand() {
-        return run(() -> {});
+        return run(() -> {
+        });
     }
 
     public Command setSpeedCommand(Supplier<AngularVelocity> angularVelocitySupplier) {
