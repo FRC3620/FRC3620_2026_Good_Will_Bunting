@@ -42,7 +42,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase{
     .withSoftLimit(Degrees.of(-30), Degrees.of(100))
     .withGearing(new MechanismGearing(GearBox.fromReductionStages(70,1)))
     .withIdleMode(MotorMode.BRAKE)
-    .withTelemetry("ArmMotor", TelemetryVerbosity.HIGH)
+    .withTelemetry("ShoulderMotor", TelemetryVerbosity.HIGH)
     .withStatorCurrentLimit(Amps.of(40))
     .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
     .withControlMode(ControlMode.CLOSED_LOOP);
