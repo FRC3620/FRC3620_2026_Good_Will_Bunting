@@ -27,7 +27,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXSWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class ShoulderSubsystem extends SubsystemBase{
+public class IntakeShoulderSubsystem extends SubsystemBase{
 
     TalonFX shoulder= new TalonFX(55);
     
