@@ -28,6 +28,10 @@ import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 
+import frc.robot.Subsystems.ShooterSubsystem;
+import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.SpindexerSubsystem;
+
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a
@@ -61,6 +65,8 @@ public class RobotContainer {
   public ShooterSubsystem shooterSubsystem;
   public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
+  public SpindexerSubsystem spindexerSubsystem;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -102,6 +108,7 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
@@ -109,6 +116,7 @@ public class RobotContainer {
     shooterSubsystem = new ShooterSubsystem();
     intakeShoulderSubsystem= new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
+    spindexerSubsystem = new SpindexerSubsystem();
   }
 
   /**
