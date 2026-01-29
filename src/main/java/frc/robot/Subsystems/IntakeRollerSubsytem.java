@@ -64,43 +64,16 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     
     public Command rollersOn() {
         // Only use YAMS control, not manual rollers.set()
-        return run(() -> {
-        
-            roller.setSpeed(RPM.of(1500));
-
-        }).withName("Rollers On");
+        return roller.setSpeed(RPM.of(1500)).withName("Rollers On");
     }
     
     public Command rollersOff() {
-        return run(() -> {
-            roller.setSpeed(RPM.of(0));
-        }).withName("Rollers Off");
+        return roller.setSpeed(RPM.of(0)).withName("Rollers Off");
     }
     
     public Command rollersBackwards() {
-        return run(() -> {
-
-            roller.setSpeed(RPM.of(-1500));
-        }).withName("Rollers Backwards");
-            
-        
+        return roller.setSpeed(RPM.of(-1500)).withName("Rollers Backwards");
     }
-    
-    // Add command methods
-    public Command intakeCommand() {
-        return runEnd(
-            this::rollersOn,
-            () -> roller.setSpeed(RPM.of(0))
-        );
-    }
-    
-    public Command outtakeCommand() {
-        return runEnd(
-            this::rollersBackwards,
-            () -> roller.setSpeed(RPM.of(0))
-        );
-    }
-    
     
     @Override
     public void simulationPeriodic() {
