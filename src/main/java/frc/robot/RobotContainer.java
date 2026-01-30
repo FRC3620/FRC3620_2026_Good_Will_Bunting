@@ -22,11 +22,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Subsystems.IntakeRollerSubsytem;
-// import frc.robot.Subsystems.IntakeShoulderSubsystem;
-// import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
-import frc.robot.Subsystems.TurretSubsystem;
-// import frc.robot.Subsystems.IntakeShoulderSubsystem;
+import frc.robot.Subsystems.SpindexerSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -61,6 +58,8 @@ public class RobotContainer {
   public ShooterSubsystem shooterSubsystem;
   //public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
+  public SpindexerSubsystem spindexerSubsystem;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -102,6 +101,7 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     //intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOffCommand());
+    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
@@ -109,6 +109,7 @@ public class RobotContainer {
     shooterSubsystem = new ShooterSubsystem();
     //intakeShoulderSubsystem= new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
+    spindexerSubsystem = new SpindexerSubsystem();
   }
 
   /**
@@ -137,6 +138,10 @@ public class RobotContainer {
       // new JoystickButton(driverJoystick, 3)
       // .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
     new JoystickButton(driverJoystick, 4).whileTrue( intakeRollerSubsystem.rollersOnCommand());
+        .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
+
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
+        .whileTrue(spindexerSubsystem.setVelocityCommand(RPM.of(600)));
 
   }
 
