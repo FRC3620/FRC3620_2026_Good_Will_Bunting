@@ -17,6 +17,9 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.Constants;
+import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
@@ -39,12 +42,12 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public ShooterHoodSubsystem() {
 
-        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 58) ||
+        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 
+        Constants.MOTORID_HOOD) ||
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
-            motor = new TalonFX(58);
-
+            motor = new TalonFX(Constants.MOTORID_HOOD);
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
                     .withSoftLimit(Degrees.of(-30), Degrees.of(100))
