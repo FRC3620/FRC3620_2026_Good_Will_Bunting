@@ -20,7 +20,7 @@ import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.SpindexerSubsystem;
@@ -57,6 +57,7 @@ public class RobotContainer {
   public TurretSubsystem turretSubsystem;
   public ShooterSubsystem shooterSubsystem;
   public SpindexerSubsystem spindexerSubsystem;
+  public ShooterHoodSubsystem shooterHoodSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -98,12 +99,14 @@ public class RobotContainer {
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
   }
 
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
     shooterSubsystem = new ShooterSubsystem();
     spindexerSubsystem = new SpindexerSubsystem();
+    shooterHoodSubsystem = new ShooterHoodSubsystem();
   }
 
   /**
@@ -132,6 +135,8 @@ public class RobotContainer {
 
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
         .whileTrue(spindexerSubsystem.setVelocityCommand(RPM.of(600)));
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_Y)
+      .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(90)));
 
   }
 
