@@ -28,6 +28,7 @@ import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 
+import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.SpindexerSubsystem;
@@ -66,6 +67,7 @@ public class RobotContainer {
   public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
   public SpindexerSubsystem spindexerSubsystem;
+  public ShooterHoodSubsystem shooterHoodSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -109,6 +111,7 @@ public class RobotContainer {
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
   }
 
   private void makeSubsystems() {
@@ -117,6 +120,7 @@ public class RobotContainer {
     intakeShoulderSubsystem= new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
     spindexerSubsystem = new SpindexerSubsystem();
+    shooterHoodSubsystem = new ShooterHoodSubsystem();
   }
 
   /**
