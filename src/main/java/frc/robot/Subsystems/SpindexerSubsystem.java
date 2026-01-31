@@ -31,9 +31,12 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
+import yams.motorcontrollers.local.SparkWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class ShooterSubsystem extends SubsystemBase {
+public class SpindexerSubsystem extends SubsystemBase {
+  /** Creates a new SpindexerSubsystem. */
+
   private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       // Feedback Constants (PID Constants)
@@ -43,76 +46,75 @@ public class ShooterSubsystem extends SubsystemBase {
       .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
       .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
       // Telemetry name and verbosity level
-      .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+      .withTelemetry("SpindexerMotor", TelemetryVerbosity.HIGH)
       // Gearing from the motor rotor to final shaft.
-      // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
-      // corresponds to the gearbox attached to your motor.
+      // In this example GearBox.fromReductionStages(3,4) is the same as
+      // GearBox.fromStages("3:1","4:1") which corresponds to the gearbox attached to
+      // your motor.
+      // You could also use .withGearing(12) which does the same thing.
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
       // Motor properties to prevent over currenting.
       .withMotorInverted(false)
       .withIdleMode(MotorMode.COAST)
-      .withStatorCurrentLimit(Amps.of(40))
-      .withClosedLoopRampRate(Seconds.of(0.25))
-      .withOpenLoopRampRate(Seconds.of(0.25));
+      .withStatorCurrentLimit(Amps.of(40));
 
-  TalonFX turretMotor = new TalonFX(Constants.MOTORID_SHOOTER);
-  SmartMotorController motor = new TalonFXWrapper(turretMotor,
-      DCMotor.getKrakenX60(1),
-      smcConfig);
+  TalonFX spindexerMotor = new TalonFX(Constants.MOTORID_SPINDEXER);
+  SmartMotorController motor = new TalonFXWrapper(spindexerMotor, DCMotor.getKrakenX60(1), smcConfig);
 
-  private final FlyWheelConfig shooterConfig = new FlyWheelConfig(motor)
+  private final FlyWheelConfig spindexerConfig = new FlyWheelConfig(motor)
       // Diameter of the flywheel.
       .withDiameter(Inches.of(4))
       // Mass of the flywheel.
       .withMass(Pounds.of(1))
-      // Maximum speed of the shooter.
+      // Maximum speed of the spindexer.
       .withUpperSoftLimit(RPM.of(1000))
       // Telemetry name and verbosity for the arm.
-      .withTelemetry("Shooter", TelemetryVerbosity.HIGH);
+      .withTelemetry("SpindexerMech", TelemetryVerbosity.HIGH);
 
-  private FlyWheel shooter = new FlyWheel(shooterConfig);
-
-  /** Creates a new ShooterSubsystem. */
-  public ShooterSubsystem() {
-  }
+  // Spindexer Mechanism
+  private FlyWheel spindexer = new FlyWheel(spindexerConfig);
 
   /**
-   * Gets the current velocity of the shooter.
+   * Gets the current velocity of the spindexer.
    *
-   * @return Shooter velocity.
+   * @return Spindexer velocity.
    */
   public AngularVelocity getVelocity() {
-    return shooter.getSpeed();
+    return spindexer.getSpeed();
   }
 
   /**
-   * Set the shooter velocity.
+   * Set the spindexer velocity.
    *
    * @param speed Speed to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command setVelocity(AngularVelocity speed) {
-    return shooter.setSpeed(speed);
+  public Command setVelocityCommand(AngularVelocity speed) {
+    return spindexer.setSpeed(speed);
   }
 
   /**
-   * Set the dutycycle of the shooter.
+   * Set the dutycycle of the spindexer.
    *
    * @param dutyCycle DutyCycle to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command set(double dutyCycle) {
-    return shooter.set(dutyCycle);
+  public Command setDutyCycleCommand(double dutyCycle) {
+    return spindexer.set(dutyCycle);
+  }
+
+  public SpindexerSubsystem() {
+
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    shooter.updateTelemetry();
+    spindexer.updateTelemetry();
   }
 
-  @Override
   public void simulationPeriodic() {
-    shooter.simIterate();
+    // This method will be called once per scheduler run during simulation
+    spindexer.simIterate();
   }
 }
