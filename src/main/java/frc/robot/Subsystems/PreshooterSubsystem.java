@@ -35,7 +35,7 @@ public class PreshooterSubsystem extends SubsystemBase{
     public PreshooterSubsystem() {
     boolean makeDevices= RobotContainer.canDeviceFinder.isDevicePresent(org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6, 
         Constants.MOTORID_PRESHOOTER
-          , "Intake Rollers")||RobotContainer.shouldMakeAllCANDevices();
+          , "Pre shooter")||RobotContainer.shouldMakeAllCANDevices();
      if(makeDevices){
             motor = new TalonFX(Constants.MOTORID_PRESHOOTER);
              SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
@@ -48,7 +48,7 @@ public class PreshooterSubsystem extends SubsystemBase{
                 )
                 .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                 .withIdleMode(MotorMode.BRAKE)
-                .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH)
+                .withTelemetry("Pre shooter", TelemetryVerbosity.HIGH)
                 .withStatorCurrentLimit(Amps.of(40))
                 .withSupplyCurrentLimit(Amps.of(40))
                 .withControlMode(ControlMode.CLOSED_LOOP);
@@ -66,15 +66,15 @@ public class PreshooterSubsystem extends SubsystemBase{
     }
  public Command rollersOn() {
         // Only use YAMS control, not manual rollers.set()
-        return flyWheel.setSpeed(RPM.of(1500)).withName("Rollers On");
+        return flyWheel.setSpeed(RPM.of(1500)).withName("shooter On");
     }
     
     public Command rollersOff() {
-        return flyWheel.setSpeed(RPM.of(0)).withName("Rollers Off");
+        return flyWheel.setSpeed(RPM.of(0)).withName("shooter Off");
     }
     
     public Command rollersBackwards() {
-        return flyWheel.setSpeed(RPM.of(-1500)).withName("Rollers Backwards");
+        return flyWheel.setSpeed(RPM.of(-1500)).withName("shooter Backwards");
     }
     
     @Override
