@@ -24,6 +24,7 @@ import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.SpindexerSubsystem;
+import frc.robot.Subsystems.PreshooterSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -58,7 +59,7 @@ public class RobotContainer {
   public ShooterSubsystem shooterSubsystem;
   public SpindexerSubsystem spindexerSubsystem;
   public ShooterHoodSubsystem shooterHoodSubsystem;
-
+  public PreshooterSubsystem  preshooterSubsystem;
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -100,6 +101,7 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {

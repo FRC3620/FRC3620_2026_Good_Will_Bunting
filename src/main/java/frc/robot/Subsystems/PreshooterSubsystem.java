@@ -11,6 +11,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.hal.CANAPITypes.CANDeviceType;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -57,7 +58,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(0))
                     .withMass(Pound.of(0))
                     .withUpperSoftLimit(RPM.of(0))
-                    .withTelemetry("Preshooter Roller", TelemetryVerbosity.HIGH);
+                    .withTelemetry("Preshooter", TelemetryVerbosity.HIGH);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
@@ -81,5 +82,10 @@ public class PreshooterSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         // Only simulate, don't manually run the roller
         flyWheel.simIterate();
+    }
+
+    public Command setVelocityCommand(AngularVelocity of) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setVelocityCommand'");
     }
  }
