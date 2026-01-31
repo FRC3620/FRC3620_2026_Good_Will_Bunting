@@ -91,7 +91,7 @@ public class PreshooterSubsystem extends SubsystemBase {
 
     private Command donothingcommand() {
         // idk
-        throw new UnsupportedOperationException("Unimplemented method 'donothingcommand'");
+        throw new UnsupportedOperationException("does nothing 'donothingcommand'");
     }
 
     @Override
