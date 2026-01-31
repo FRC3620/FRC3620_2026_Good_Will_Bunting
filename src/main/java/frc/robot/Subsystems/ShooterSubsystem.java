@@ -82,7 +82,9 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return Shooter velocity.
    */
   public AngularVelocity getVelocity() {
+    if(shooter!=null)
     return shooter.getSpeed();
+    else return null;
   }
 
   /**
@@ -92,7 +94,11 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
+    if(shooter!=null)
     return shooter.setSpeed(speed);
+    else return this.runOnce(()->{
+      // RobotContainer.logger.error("Shooter not initialized");
+    });
   }
 
   /**
@@ -102,7 +108,11 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command set(double dutyCycle) {
+    if(shooter!=null)
     return shooter.set(dutyCycle);
+    else return this.runOnce(()->{
+      // RobotContainer.logger.error("Shooter not initialized");
+    });
   }
 
   @Override
