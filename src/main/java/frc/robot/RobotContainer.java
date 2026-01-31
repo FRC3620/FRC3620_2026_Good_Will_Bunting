@@ -60,6 +60,7 @@ public class RobotContainer {
   public SpindexerSubsystem spindexerSubsystem;
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public PreshooterSubsystem  preshooterSubsystem;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -101,7 +102,7 @@ public class RobotContainer {
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
-    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.rollersOff());
   }
 
   private void makeSubsystems() {

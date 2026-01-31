@@ -83,9 +83,4 @@ public class PreshooterSubsystem extends SubsystemBase {
         // Only simulate, don't manually run the roller
         flyWheel.simIterate();
     }
-
-    public Command setVelocityCommand(AngularVelocity of) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Preshooter 'setVelocityCommand'");
-    }
- }
+}
