@@ -12,6 +12,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.hal.CANAPITypes.CANDeviceType;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -62,25 +63,48 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
+
         }
     }
 
-    public Command rollersOn() {
-        // Only use YAMS control, not manual rollers.set()
-        return flyWheel.setSpeed(RPM.of(1500)).withName("Preshooter On");
+    /*
+     * @parma speed speed to set
+     * 
+     * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
+     */
+    public Command setVelocityCommand(AngularVelocity speed) {
+        if (flyWheel == null) {
+            return donothingcommand();
+        } else {
+            return flyWheel.setSpeed(speed);
+        }
     }
 
-    public Command rollersOff() {
-        return flyWheel.setSpeed(RPM.of(0)).withName("Preshooter Off");
+    // ** */
+    public Command setDutyCycleCommand(double dutyCycle) {
+        if (flyWheel == null) {
+            return donothingcommand();
+        } else {
+            return flyWheel.set(dutyCycle);
+        }
     }
 
-    public Command rollersBackwards() {
-        return flyWheel.setSpeed(RPM.of(-1500)).withName("Preshooter Backwards");
+    private Command donothingcommand() {
+        // idk
+        throw new UnsupportedOperationException("Unimplemented method 'donothingcommand'");
     }
 
     @Override
-    public void simulationPeriodic() {
-        // Only simulate, don't manually run the roller
-        flyWheel.simIterate();
+    public void periodic() {
+        if (flyWheel != null)
+            flyWheel.updateTelemetry();
     }
+
+    public void simulationPeriodic() {
+        if (flyWheel != null) {
+            flyWheel.simIterate();
+        }
+
+    }
+
 }
