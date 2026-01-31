@@ -69,15 +69,24 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     
     public Command rollersOn() {
         // Only use YAMS control, not manual rollers.set()
+        if(flyWheel!=null){
         return flyWheel.setSpeed(RPM.of(1500)).withName("Rollers On");
+    }else
+    return null;
     }
     
     public Command rollersOff() {
+        if(flyWheel!=null){
         return flyWheel.setSpeed(RPM.of(0)).withName("Rollers Off");
+    }else
+    return null;
     }
     
     public Command rollersBackwards() {
+        if(flyWheel!=null){
         return flyWheel.setSpeed(RPM.of(-1500)).withName("Rollers Backwards");
+    }else
+    return null;
     }
     
     @Override
