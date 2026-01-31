@@ -20,10 +20,22 @@ import static edu.wpi.first.units.Units.RPM;
 import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Subsystems.ClimberSubsystem;
+import frc.robot.Subsystems.IntakeRollerSubsytem;
+// import frc.robot.Subsystems.IntakeShoulderSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem;
+import frc.robot.Subsystems.ShooterSubsystem;
+import frc.robot.Subsystems.ShooterTriggerSubsystem;
+import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem;
+
+import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.SpindexerSubsystem;
+import frc.robot.Subsystems.PreshooterSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -57,6 +69,12 @@ public class RobotContainer {
   public TurretSubsystem turretSubsystem;
   public ClimberSubsystem climberSubsystem;
   public ShooterSubsystem shooterSubsystem;
+  public IntakeShoulderSubsystem intakeShoulderSubsystem;
+  public IntakeRollerSubsytem intakeRollerSubsystem;
+  public SpindexerSubsystem spindexerSubsystem;
+  public ShooterHoodSubsystem shooterHoodSubsystem;
+  public static ShooterTriggerSubsystem shooterTriggerSubsystem;
+  public PreshooterSubsystem  preshooterSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -99,12 +117,24 @@ public class RobotContainer {
     climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
     climberSubsystem = new ClimberSubsystem();
     shooterSubsystem = new ShooterSubsystem();
+    intakeShoulderSubsystem= new IntakeShoulderSubsystem();
+    intakeRollerSubsystem = new IntakeRollerSubsytem();
+    spindexerSubsystem = new SpindexerSubsystem();
+    shooterHoodSubsystem = new ShooterHoodSubsystem();
+    shooterTriggerSubsystem = new ShooterTriggerSubsystem();
+    preshooterSubsystem = new PreshooterSubsystem();
   }
 
   /**
@@ -133,7 +163,9 @@ public class RobotContainer {
         
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
-
+      new JoystickButton(driverJoystick, 3)
+      .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
+    new JoystickButton(driverJoystick, 4).whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
 
   }
 
