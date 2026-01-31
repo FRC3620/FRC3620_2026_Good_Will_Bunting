@@ -67,7 +67,7 @@ public class SpindexerSubsystem extends SubsystemBase {
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
           .withStatorCurrentLimit(Amps.of(40));
-      SmartMotorController smartMotorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), smcConfig);
+      smartMotorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), smcConfig);
       FlyWheelConfig flywheelConfig = new FlyWheelConfig(smartMotorController)
           // Diameter of the flywheel.
           .withDiameter(Inches.of(4))
