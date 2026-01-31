@@ -83,6 +83,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase{
   }
 
   public Command setAngle(Angle angle) {
+    if(arm!=null)
     return arm.setAngle(angle);
+    return null;
   }
 }
