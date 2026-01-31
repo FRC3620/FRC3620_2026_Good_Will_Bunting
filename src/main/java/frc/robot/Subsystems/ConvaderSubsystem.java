@@ -26,19 +26,19 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 import org.usfirst.frc3620.CANDeviceFinder;
-public class IntakeRollerSubsytem extends SubsystemBase {
+public class ConvaderSubsystem extends SubsystemBase {
     
     private  TalonFX motor=null;
     private  SmartMotorController motorController;
     private  FlyWheel flyWheel;
     
-    public IntakeRollerSubsytem() {
+    public ConvaderSubsystem() {
         boolean makeDevices= RobotContainer.canDeviceFinder.isDevicePresent(org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6, 
-        Constants.MOTORID_INTAKE_ROLLERS
-        , "Intake Rollers")||RobotContainer.shouldMakeAllCANDevices();
+        Constants.MOTORID_CONVADER
+        , "Convader Rollers")||RobotContainer.shouldMakeAllCANDevices();
         
         if(makeDevices){
-            motor = new TalonFX(Constants.MOTORID_INTAKE_ROLLERS);
+            motor = new TalonFX(Constants.MOTORID_CONVADER);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                 .withClosedLoopController(
@@ -50,7 +50,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                 )
                 .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                 .withIdleMode(MotorMode.BRAKE)
-                .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH)
+                .withTelemetry("ConvaderMotor", TelemetryVerbosity.HIGH)
                 .withStatorCurrentLimit(Amps.of(40))
                 .withSupplyCurrentLimit(Amps.of(40))
                 .withControlMode(ControlMode.CLOSED_LOOP);
@@ -59,34 +59,20 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                 FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
                     .withDiameter(Inch.of(4))
                     .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(2000))
-                    .withTelemetry("Intake Roller", TelemetryVerbosity.HIGH);
+                    .withUpperSoftLimit(RPM.of(7000))
+                    .withTelemetry("Convader Roller", TelemetryVerbosity.HIGH);
                 
                 // Create the FlyWheel
                 flyWheel = new FlyWheel(rollerConfig);
         }
     }
-    
-    public Command rollersOn() {
-        // Only use YAMS control, not manual rollers.set()
-        if(flyWheel!=null){
-        return flyWheel.setSpeed(RPM.of(1500)).withName("Rollers On");
-    }else
-    return null;
-    }
-    
-    public Command rollersOff() {
-        if(flyWheel!=null){
-        return flyWheel.setSpeed(RPM.of(0)).withName("Rollers Off");
-    }else
-    return null;
-    }
-    
-    public Command rollersBackwards() {
-        if(flyWheel!=null){
-        return flyWheel.setSpeed(RPM.of(-1500)).withName("Rollers Backwards");
-    }else
-    return null;
+    public Command setSpeed(double speed) {
+
+            if (flyWheel != null) {
+               return flyWheel.setSpeed(RPM.of(speed));
+            } else {
+                return null;
+            }
     }
     
     @Override
