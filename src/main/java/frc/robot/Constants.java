@@ -21,6 +21,8 @@ public final class Constants {
     public static final int MOTORID_TURRET = 20;
     public static final int MOTORID_SHOOTER = 21;
     public static final int MOTORID_SPINDEXER = 22;
+    public static final int MOTORID_INTAKEROLLERS = 24;
+    public static final int MOTORID_HOOD = 23;
 
 
     public static final int MOTORID_INTAKE_SHOULDER = 30;
