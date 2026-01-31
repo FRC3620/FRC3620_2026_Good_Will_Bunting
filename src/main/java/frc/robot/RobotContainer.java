@@ -222,6 +222,12 @@ public class RobotContainer {
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
       new JoystickButton(driverJoystick, 3)
+        .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
+
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
+        .whileTrue(spindexerSubsystem.setVelocityCommand(RPM.of(600)));
+
+    new JoystickButton(driverJoystick, 4).whileTrue( intakeRollerSubsystem.rollersOn());
       .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
     new JoystickButton(driverJoystick, 4).whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
 
