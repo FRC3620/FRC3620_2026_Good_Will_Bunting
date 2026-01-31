@@ -24,4 +24,6 @@ public final class Constants {
     public static final int MOTORID_INTAKEROLLERS = 24;
     public static final int MOTORID_HOOD = 23;
 
+    public static final int MOTORID_SHOOTER_TRIGGER = 40;
+
 }

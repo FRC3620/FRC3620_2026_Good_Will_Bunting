@@ -25,6 +25,7 @@ import frc.robot.Subsystems.IntakeRollerSubsytem;
 // import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
+import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 
@@ -68,6 +69,7 @@ public class RobotContainer {
   public IntakeRollerSubsytem intakeRollerSubsystem;
   public SpindexerSubsystem spindexerSubsystem;
   public ShooterHoodSubsystem shooterHoodSubsystem;
+  public static ShooterTriggerSubsystem shooterTriggerSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -112,6 +114,7 @@ public class RobotContainer {
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
   }
 
   private void makeSubsystems() {
@@ -121,6 +124,7 @@ public class RobotContainer {
     intakeRollerSubsystem = new IntakeRollerSubsytem();
     spindexerSubsystem = new SpindexerSubsystem();
     shooterHoodSubsystem = new ShooterHoodSubsystem();
+    shooterTriggerSubsystem = new ShooterTriggerSubsystem();
   }
 
   /**
@@ -148,7 +152,7 @@ public class RobotContainer {
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
       new JoystickButton(driverJoystick, 3)
       .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
-    new JoystickButton(driverJoystick, 4).whileTrue( intakeRollerSubsystem.rollersOn());
+    new JoystickButton(driverJoystick, 4).whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
 
   }
 
