@@ -57,7 +57,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(0))
                     .withMass(Pound.of(0))
                     .withUpperSoftLimit(RPM.of(0))
-                    .withTelemetry("PreShooter", TelemetryVerbosity.HIGH);
+                    .withTelemetry("PreShooter Roller", TelemetryVerbosity.HIGH);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
