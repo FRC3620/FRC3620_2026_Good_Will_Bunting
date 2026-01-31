@@ -57,7 +57,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(0))
                     .withMass(Pound.of(0))
                     .withUpperSoftLimit(RPM.of(0))
-                    .withTelemetry("PreShooter Roller", TelemetryVerbosity.HIGH);
+                    .withTelemetry("Preshooter Roller", TelemetryVerbosity.HIGH);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
@@ -66,15 +66,15 @@ public class PreshooterSubsystem extends SubsystemBase {
 
     public Command rollersOn() {
         // Only use YAMS control, not manual rollers.set()
-        return flyWheel.setSpeed(RPM.of(1500)).withName("shooter On");
+        return flyWheel.setSpeed(RPM.of(1500)).withName("Preshooter On");
     }
 
     public Command rollersOff() {
-        return flyWheel.setSpeed(RPM.of(0)).withName("shooter Off");
+        return flyWheel.setSpeed(RPM.of(0)).withName("Preshooter Off");
     }
 
     public Command rollersBackwards() {
-        return flyWheel.setSpeed(RPM.of(-1500)).withName("shooter Backwards");
+        return flyWheel.setSpeed(RPM.of(-1500)).withName("Preshooter Backwards");
     }
 
     @Override
