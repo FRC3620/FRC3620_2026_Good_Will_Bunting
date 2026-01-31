@@ -86,6 +86,6 @@ public class PreshooterSubsystem extends SubsystemBase {
 
     public Command setVelocityCommand(AngularVelocity of) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setVelocityCommand'");
+        throw new UnsupportedOperationException("Preshooter 'setVelocityCommand'");
     }
  }
