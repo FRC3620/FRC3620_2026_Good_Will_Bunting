@@ -110,6 +110,7 @@ public class RobotContainer {
     shooterSubsystem = new ShooterSubsystem();
     spindexerSubsystem = new SpindexerSubsystem();
     shooterHoodSubsystem = new ShooterHoodSubsystem();
+    preshooterSubsystem = new PreshooterSubsystem();
   }
 
   /**
