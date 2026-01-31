@@ -14,6 +14,7 @@ import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.XBoxConstants;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.RPM;
 
 import org.tinylog.TaggedLogger;
@@ -21,6 +22,7 @@ import org.tinylog.TaggedLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Subsystems.ClimberSubsystem;
 import frc.robot.Subsystems.IntakeRollerSubsytem;
 // import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
@@ -65,6 +67,7 @@ public class RobotContainer {
   public static Joystick operatorJoystick;
 
   public TurretSubsystem turretSubsystem;
+  public ClimberSubsystem climberSubsystem;
   public ShooterSubsystem shooterSubsystem;
   public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
@@ -111,6 +114,8 @@ public class RobotContainer {
 
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
+    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
@@ -122,6 +127,7 @@ public class RobotContainer {
 
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
+    climberSubsystem = new ClimberSubsystem();
     shooterSubsystem = new ShooterSubsystem();
     intakeShoulderSubsystem= new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
@@ -152,6 +158,9 @@ public class RobotContainer {
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
 
+     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X).whileTrue(climberSubsystem.setHeight(Inches.of(48)));
+     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_Y).whileTrue(climberSubsystem.setHeight(Inches.of(0)));
+        
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
       new JoystickButton(driverJoystick, 3)
