@@ -19,6 +19,9 @@ import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.XBoxConstants;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -32,6 +35,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Subsystems.ClimberSubsystem;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.fsm.StateMachine;
+import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.states.IState;
+import frc.robot.fsm.states.PassingState;
+import frc.robot.fsm.states.ScoringState;
+
+// frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -57,6 +68,14 @@ import frc.robot.Subsystems.PreshooterSubsystem;
  */
 public class RobotContainer {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
+  
+  // States
+  private PassingState passingState;
+  private ScoringState scoringState;
+
+  private StateMachine stateMachine;
+
+
 
   private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
@@ -89,6 +108,7 @@ public class RobotContainer {
   // joysticks here....
   public static Joystick driverJoystick;
   public static Joystick operatorJoystick;
+  public static Joystick operatorKeyboard;
 
   public TurretSubsystem turretSubsystem;
   public ClimberSubsystem climberSubsystem;
@@ -121,8 +141,12 @@ public class RobotContainer {
     } else if (canDeviceFinder.isDevicePresent(CANDeviceType.CTRE_PCM, 0, "CTRE PCM")) {
       pneumaticModuleType = PneumaticsModuleType.CTREPCM;
     }
+    makeJoysticks();
 
     makeSubsystems();
+    makeStates();
+    makeStateTransitions();
+    makeStateMachine();
 
     if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
       missingDevicesAlert.set(true);
@@ -176,6 +200,40 @@ public class RobotContainer {
     preshooterSubsystem = new PreshooterSubsystem();
   }
 
+  private void makeStates() {
+    passingState = new PassingState();
+    scoringState = new ScoringState(); 
+  }
+  private void makeStateTransitions() {
+    Trigger passToScoreTrigger = new JoystickButton(operatorKeyboard, 1);
+    
+    passingState.addTransition(new StateTransition(
+      passToScoreTrigger,
+      scoringState
+    ));
+
+    Trigger scoreToPassTrigger = new JoystickButton(operatorKeyboard, 2);
+    
+    scoringState.addTransition(new StateTransition(
+      scoreToPassTrigger,
+      passingState
+    ));
+  }
+
+  private void makeStateMachine() {
+    stateMachine = new StateMachine(passingState);
+  }
+
+  public StateMachine getStateMachine() {
+    return stateMachine;
+  }
+
+  private void makeJoysticks() {
+    driverJoystick = new Joystick(0);
+    operatorJoystick = new Joystick(1);
+    operatorKeyboard = new Joystick(2);
+  }
+
   /**
    * Use this method to define your button->command mappings. Buttons can be
    * created by
@@ -185,8 +243,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    driverJoystick = new Joystick(0);
-    operatorJoystick = new Joystick(1);
+
 
             // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
@@ -228,6 +285,9 @@ public class RobotContainer {
       new JoystickButton(driverJoystick, 3)
       .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
     new JoystickButton(driverJoystick, 4).whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
+
+    new JoystickButton(operatorKeyboard, 1)
+      .onTrue(new LogCommand("'Z' key hit"));
 
   }
 
