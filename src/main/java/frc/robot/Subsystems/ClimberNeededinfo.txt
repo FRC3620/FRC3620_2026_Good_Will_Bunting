@@ -1,0 +1,8 @@
+- Mechanism Circumference (distance traveled by each mechanism rotation converting rotations to meters.)
+- Tune PID's
+- Feed Forward
+- Gearing
+- Motor Inversion
+- Motor Type
+- Mechanism Position Configuration???
+- Mass of Climber
