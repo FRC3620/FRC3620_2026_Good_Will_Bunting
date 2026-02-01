@@ -67,7 +67,7 @@ public class ShooterTriggerSubsystem extends SubsystemBase {
     }
     
     public Command setSpeed(Double speed) {
-        if(flyWheel==null){
+        if(flyWheel != null){
             return flyWheel.setSpeed(RPM.of(speed));
         }
         else{

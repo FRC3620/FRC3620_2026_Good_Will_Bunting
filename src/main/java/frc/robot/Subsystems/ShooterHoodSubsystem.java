@@ -42,8 +42,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public ShooterHoodSubsystem() {
 
-        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 
-        Constants.MOTORID_HOOD) ||
+        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6,
+                Constants.MOTORID_HOOD) ||
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
@@ -71,20 +71,25 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        arm.updateTelemetry();
+        if (arm != null) {
+            arm.updateTelemetry();
+        }
     }
 
     @Override
     public void simulationPeriodic() {
         // setAngle(intake /\)
-        arm.simIterate();
+        if (arm != null) {
+            arm.simIterate();
+        }
     }
 
     public Command setAngle(Angle angle) {
-        if(arm!=null)
-        return arm.setAngle(angle);
-        else return this.runOnce(()->{
-            // RobotContainer.logger.error("Shooter Hood Arm not initialized");
-        });
+        if (arm != null)
+            return arm.setAngle(angle);
+        else
+            return this.runOnce(() -> {
+                // RobotContainer.logger.error("Shooter Hood Arm not initialized");
+            });
     }
 }
