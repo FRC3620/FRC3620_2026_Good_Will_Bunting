@@ -1,0 +1,10 @@
+What we need to know for our physical indexer?
+
+- Indexer Gearing
+- Motor Inverted?
+- PID and Feedforward tuning
+- Motor ID
+- Diameter of wheel
+- Mass of wheel
+- Upper limit (Rpm)
+- Type of motor

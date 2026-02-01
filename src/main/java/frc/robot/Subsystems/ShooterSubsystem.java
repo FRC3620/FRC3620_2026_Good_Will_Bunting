@@ -21,6 +21,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -54,7 +55,7 @@ public class ShooterSubsystem extends SubsystemBase {
       .withClosedLoopRampRate(Seconds.of(0.25))
       .withOpenLoopRampRate(Seconds.of(0.25));
 
-  TalonFX turretMotor = new TalonFX(21);
+  TalonFX turretMotor = new TalonFX(Constants.MOTORID_SHOOTER);
   SmartMotorController motor = new TalonFXWrapper(turretMotor,
       DCMotor.getKrakenX60(1),
       smcConfig);
@@ -81,7 +82,9 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return Shooter velocity.
    */
   public AngularVelocity getVelocity() {
+    if(shooter!=null)
     return shooter.getSpeed();
+    else return null;
   }
 
   /**
@@ -91,7 +94,11 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
+    if(shooter!=null)
     return shooter.setSpeed(speed);
+    else return this.runOnce(()->{
+      // RobotContainer.logger.error("Shooter not initialized");
+    });
   }
 
   /**
@@ -101,7 +108,11 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command set(double dutyCycle) {
+    if(shooter!=null)
     return shooter.set(dutyCycle);
+    else return this.runOnce(()->{
+      // RobotContainer.logger.error("Shooter not initialized");
+    });
   }
 
   @Override

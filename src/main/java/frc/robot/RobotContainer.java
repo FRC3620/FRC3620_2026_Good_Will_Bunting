@@ -1,11 +1,17 @@
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
+
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
 import org.usfirst.frc3620.JoystickAnalogButton;
@@ -17,11 +23,15 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
@@ -31,8 +41,24 @@ import frc.robot.fsm.states.PassingState;
 import frc.robot.fsm.states.ScoringState;
 
 // frc.robot.FSM.States;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.Generated.TunerConstants;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.SwerveSubsystem;
+import frc.robot.Subsystems.IntakeRollerSubsytem;
+// import frc.robot.Subsystems.IntakeShoulderSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem;
+import frc.robot.Subsystems.ShooterSubsystem;
+import frc.robot.Subsystems.ShooterTriggerSubsystem;
+import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem;
+
+import frc.robot.Subsystems.ShooterHoodSubsystem;
+import frc.robot.Subsystems.ShooterSubsystem;
+import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.SpindexerSubsystem;
+import frc.robot.Subsystems.PreshooterSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -54,6 +80,21 @@ public class RobotContainer {
 
 
 
+  private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
+                                                                                    // maxangular velocity
+
+  /* Setting up bindings for necessary control of the swerve drive platform */
+  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+  private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+  private final SwerveTelemetry swerveLogger = new SwerveTelemetry(MaxSpeed);
+
+  public final SwerveSubsystem swerveSubsystem = TunerConstants.createDrivetrain();
+
   // need this
   public static CANDeviceFinder canDeviceFinder;
   public static RobotParameters robotParameters;
@@ -74,6 +115,12 @@ public class RobotContainer {
 
   public TurretSubsystem turretSubsystem;
   public ShooterSubsystem shooterSubsystem;
+  public IntakeShoulderSubsystem intakeShoulderSubsystem;
+  public IntakeRollerSubsytem intakeRollerSubsystem;
+  public SpindexerSubsystem spindexerSubsystem;
+  public ShooterHoodSubsystem shooterHoodSubsystem;
+  public static ShooterTriggerSubsystem shooterTriggerSubsystem;
+  public PreshooterSubsystem  preshooterSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -108,21 +155,48 @@ public class RobotContainer {
       missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
     }
 
-    // Configure the button bindings
-    configureButtonBindings();
+
 
     setupSmartDashboardCommands();
 
     setupAutonomousCommands();
 
+    if(RobotBase.isSimulation()) {
+      MaxAngularRate = MaxAngularRate * 0.2; // limit angular rate in simulation
+    }
+
+            swerveSubsystem.setDefaultCommand(
+            // Drivetrain will execute this command periodically
+            swerveSubsystem.applyRequest(() ->
+                drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.2) * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.2) * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with negative X (left)
+
+            )
+        );
+
+    configureButtonBindings();
+
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
     turretSubsystem = new TurretSubsystem();
     shooterSubsystem = new ShooterSubsystem();
+    intakeShoulderSubsystem= new IntakeShoulderSubsystem();
+    intakeRollerSubsystem = new IntakeRollerSubsytem();
+    spindexerSubsystem = new SpindexerSubsystem();
+    shooterHoodSubsystem = new ShooterHoodSubsystem();
+    shooterTriggerSubsystem = new ShooterTriggerSubsystem();
+    preshooterSubsystem = new PreshooterSubsystem();
   }
 
   private void makeStates() {
@@ -170,6 +244,29 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
 
+            // Idle while the robot is disabled. This ensures the configured
+        // neutral mode is applied to the drive motors while disabled.
+        final var idle = new SwerveRequest.Idle();
+        RobotModeTriggers.disabled().whileTrue(
+            swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true)
+        );
+
+        new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+            .whileTrue(swerveSubsystem.applyRequest(() -> brake));
+        new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
+            .whileTrue(swerveSubsystem.applyRequest(() ->
+                point.withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))
+            ));
+
+        swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
+
+        new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
+            .whileTrue(swerveSubsystem.applyRequest(() ->
+                drive.withVelocityX(0.2) // Drive forward with negative Y (forward)
+                    .withVelocityY(0) // Drive left with negative X (left)
+                    .withRotationalRate(0) // Drive coun
+        ));
+
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
         .onTrue(new LogCommand("'A' button hit"));
 
@@ -181,7 +278,9 @@ public class RobotContainer {
 
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER)
       .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
-
+      new JoystickButton(driverJoystick, 3)
+      .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
+    new JoystickButton(driverJoystick, 4).whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
 
     new JoystickButton(operatorKeyboard, 1)
       .onTrue(new LogCommand("'Z' key hit"));
