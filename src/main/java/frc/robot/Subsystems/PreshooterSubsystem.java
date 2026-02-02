@@ -74,7 +74,7 @@ public class PreshooterSubsystem extends SubsystemBase {
      */
     public Command setVelocityCommand(AngularVelocity speed) {
         if (flyWheel == null) {
-            return donothingcommand();
+            return doNothingCommand();
         } else {
             return flyWheel.setSpeed(speed);
         }
@@ -83,16 +83,17 @@ public class PreshooterSubsystem extends SubsystemBase {
     // ** */
     public Command setDutyCycleCommand(double dutyCycle) {
         if (flyWheel == null) {
-            return donothingcommand();
+            return doNothingCommand();
         } else {
             return flyWheel.set(dutyCycle);
         }
     }
 
-    private Command donothingcommand() {
-        // idk
-        throw new UnsupportedOperationException("does nothing 'donothingcommand'");
-    }
+  private Command doNothingCommand() {
+    return run(() -> {
+      // Don't do anything
+    });
+  }
 
     @Override
     public void periodic() {
