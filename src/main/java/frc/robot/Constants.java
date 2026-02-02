@@ -27,5 +27,7 @@ public final class Constants {
     public static final int MOTORID_SHOOTER_TRIGGER = 40;
 
     public static final int MOTORID_PRESHOOTER = 25;
+
+    public static final int MOTORID_CLIMBER = 39;
     
 }

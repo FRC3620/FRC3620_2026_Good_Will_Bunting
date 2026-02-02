@@ -13,6 +13,8 @@ import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import org.usfirst.frc3620.CANDeviceType;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -23,6 +25,8 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ElevatorConfig;
@@ -37,7 +41,21 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class ClimberSubsystem extends SubsystemBase {
-  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+  
+  private SmartMotorControllerConfig smcConfig = null;
+  private TalonFX motor=null;
+  SmartMotorController motorController =null;
+  private ElevatorConfig elevconfig =null;
+  private Elevator elevator = null;
+
+
+  private boolean makeDevice= RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6,
+   Constants.MOTORID_CLIMBER)|| RobotContainer.shouldMakeAllCANDevices();
+
+   public ClimberSubsystem() {
+    if(makeDevice){
+      motor= new TalonFX(Constants.MOTORID_CLIMBER);
+      smcConfig =new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       // Mechanism Circumference is the distance traveled by each mechanism rotation
       // converting rotations to meters.
@@ -61,13 +79,11 @@ public class ClimberSubsystem extends SubsystemBase {
       .withClosedLoopRampRate(Seconds.of(0.25))
       .withOpenLoopRampRate(Seconds.of(0.25));
 
-  private TalonFX motor = new TalonFX(22);
-  /** Creates a new ClimberSubsystem. */
-  SmartMotorController motorController = new TalonFXWrapper(motor,
+      motorController= new TalonFXWrapper(motor,
       DCMotor.getKrakenX60(1),
       smcConfig);
 
-  private ElevatorConfig elevconfig = new ElevatorConfig(motorController)
+      elevconfig= new ElevatorConfig(motorController)
       .withStartingHeight(Meters.of(0.5))
       .withHardLimits(Meters.of(0), Meters.of(3))
       .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
@@ -78,7 +94,10 @@ public class ClimberSubsystem extends SubsystemBase {
               .withRelativePosition(new Translation3d(Inches.of(0), Inches.of(0), Inches.of(0))))
       .withMass(Pounds.of(16));
 
-  private Elevator elevator = new Elevator(elevconfig);
+      elevator=new Elevator(elevconfig); 
+    }
+   }
+   
 
   /**
    * Set the height of the elevator.
@@ -86,6 +105,9 @@ public class ClimberSubsystem extends SubsystemBase {
    * @param angle Distance to go to.
    */
   public Command setHeight(Distance height) {
+    if (elevator == null) {
+      return null;
+    }
     return elevator.setHeight(height);
   }
 
@@ -95,22 +117,28 @@ public class ClimberSubsystem extends SubsystemBase {
    * @param dutycycle [-1, 1] speed to set the elevator too.
    */
   public Command set(double dutycycle) {
+    if (elevator == null) {
+      return null;
+    }
     return elevator.set(dutycycle);
   }
 
   /** Creates a new ExampleSubsystem. */
-  public ClimberSubsystem() {}
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    elevator.updateTelemetry();
+    if (elevator != null) {
+      elevator.updateTelemetry();
+    }
   }
 
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
-    elevator.simIterate();
+    if (elevator != null) {
+      elevator.simIterate();
+    }
   }
 
 }
