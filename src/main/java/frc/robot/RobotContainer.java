@@ -227,9 +227,10 @@ public class RobotContainer {
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
         .whileTrue(spindexerSubsystem.setVelocityCommand(RPM.of(600)));
 
-    new JoystickButton(driverJoystick, 4).whileTrue( intakeRollerSubsystem.rollersOn());
+    new JoystickButton(driverJoystick, 4)
       .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
-    new JoystickButton(driverJoystick, 4).whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
+    new JoystickButton(driverJoystick, 4)
+      .whileTrue( shooterTriggerSubsystem.setSpeed(1500.0) );
 
   }
 
