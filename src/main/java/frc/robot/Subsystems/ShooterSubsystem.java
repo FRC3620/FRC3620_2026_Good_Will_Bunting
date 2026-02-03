@@ -95,7 +95,7 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public Command setVelocity(AngularVelocity speed) {
     if(shooter!=null)
-    return shooter.setSpeed(speed);
+    return shooter.setSpeed(speed).withName("SetShooterVelocity");
     else return this.runOnce(()->{
       // RobotContainer.logger.error("Shooter not initialized");
     });
@@ -109,7 +109,7 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public Command set(double dutyCycle) {
     if(shooter!=null)
-    return shooter.set(dutyCycle);
+    return shooter.set(dutyCycle).withName("SetShooterDutyCycle");
     else return this.runOnce(()->{
       // RobotContainer.logger.error("Shooter not initialized");
     });

@@ -89,7 +89,7 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       return doNothingCommand();
     } else {
-      return pivot.setAngle(angle);
+      return pivot.setAngle(angle).withName("TurretSubsystem.setAngle");
     }
   }
 

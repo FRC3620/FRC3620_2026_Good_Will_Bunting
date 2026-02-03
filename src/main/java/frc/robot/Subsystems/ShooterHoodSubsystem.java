@@ -86,7 +86,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public Command setAngle(Angle angle) {
         if (arm != null)
-            return arm.setAngle(angle);
+            return arm.setAngle(angle).withName("ShooterHoodSubsystem.setAngle");
         else
             return this.runOnce(() -> {
                 // RobotContainer.logger.error("Shooter Hood Arm not initialized");

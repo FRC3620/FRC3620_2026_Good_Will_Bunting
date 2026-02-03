@@ -95,7 +95,7 @@ public class ClimberSubsystem extends SubsystemBase {
    * @param dutycycle [-1, 1] speed to set the elevator too.
    */
   public Command set(double dutycycle) {
-    return elevator.set(dutycycle);
+    return elevator.set(dutycycle).withName("ClimberSubsystem.set");
   }
 
   /** Creates a new ExampleSubsystem. */

@@ -92,6 +92,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         // Only simulate, don't manually run the roller
+        if(flyWheel!=null){
         flyWheel.simIterate();
+        }
     }
 }
