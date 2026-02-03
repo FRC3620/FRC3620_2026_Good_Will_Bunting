@@ -71,7 +71,7 @@ public class ShooterTriggerSubsystem extends SubsystemBase {
             return flyWheel.setSpeed(RPM.of(speed)).withName("Set Shooter Trigger Speed to " + speed);
         }
         else{
-            return this.runOnce(()->{});
+            return this.runOnce(()->{}).withName("ShooterTriggerSubsystem.doNothing");
         }
     }
     @Override

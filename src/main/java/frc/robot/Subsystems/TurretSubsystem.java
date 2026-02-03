@@ -82,7 +82,7 @@ public class TurretSubsystem extends SubsystemBase {
   private Command doNothingCommand() {
     return run(() -> {
       // Don't do anything
-    });
+    }).withName("TurretSubsystem.doNothingCommand");
   }
 
   public Command setAngle(Angle angle) {

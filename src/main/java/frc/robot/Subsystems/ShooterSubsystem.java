@@ -98,7 +98,7 @@ public class ShooterSubsystem extends SubsystemBase {
     return shooter.setSpeed(speed).withName("SetShooterVelocity");
     else return this.runOnce(()->{
       // RobotContainer.logger.error("Shooter not initialized");
-    });
+    }).withName("Shooter.nothing");
   }
 
   /**
@@ -112,7 +112,7 @@ public class ShooterSubsystem extends SubsystemBase {
     return shooter.set(dutyCycle).withName("SetShooterDutyCycle");
     else return this.runOnce(()->{
       // RobotContainer.logger.error("Shooter not initialized");
-    });
+    }).withName("Shooter.nothing");
   }
 
   @Override

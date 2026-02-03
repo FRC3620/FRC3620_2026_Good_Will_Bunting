@@ -90,6 +90,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         else
             return this.runOnce(() -> {
                 // RobotContainer.logger.error("Shooter Hood Arm not initialized");
-            });
+            }).withName("ShooterHood.nothing");
     }
 }
