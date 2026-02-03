@@ -50,6 +50,7 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -82,6 +83,7 @@ public class RobotContainer {
   private ScoringState scoringState;
 
   private StateMachine stateMachine;
+  private FieldTriggers fieldTriggers;
 
   private double MaxSpeed = ChudbotTunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                        // speed
@@ -177,7 +179,7 @@ public class RobotContainer {
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
-    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
+    //preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
@@ -193,7 +195,7 @@ public class RobotContainer {
     spindexerSubsystem = new SpindexerSubsystem();
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
-    preshooterSubsystem = new PreshooterSubsystem();
+    //preshooterSubsystem = new PreshooterSubsystem();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
@@ -221,16 +223,14 @@ public class RobotContainer {
   }
 
   private void makeStateTransitions() {
-    Trigger passToScoreTrigger = new JoystickButton(operatorKeyboard, 1);
+    fieldTriggers = new FieldTriggers(swerveSubsystem);
 
     passingState.addTransition(new StateTransition(
-        passToScoreTrigger,
+        fieldTriggers.enterOpponentAlliance,
         scoringState));
 
-    Trigger scoreToPassTrigger = new JoystickButton(operatorKeyboard, 2);
-
     scoringState.addTransition(new StateTransition(
-        scoreToPassTrigger,
+        fieldTriggers.enterOurAlliance,
         passingState));
   }
 
@@ -316,6 +316,7 @@ public class RobotContainer {
     new JoystickButton(driverJoystick, 3);
         //.whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
     new JoystickButton(driverJoystick, 4).whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
+
 
 
   }

@@ -47,7 +47,7 @@ public class LimelightSubsystem extends SubsystemBase {
   NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
   public static AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
-    .loadField(AprilTagFields.k2026RebuiltWelded);
+      .loadField(AprilTagFields.k2026RebuiltWelded);
 
   public static Optional<Alliance> color;
 
@@ -170,12 +170,13 @@ public class LimelightSubsystem extends SubsystemBase {
             + "/";
 
         SmartDashboard.putNumber(prefix + "targetCount", m.tagCount);
-        //NTStructs.publishToSmartDashboard(prefix + "poseEstimate", m.pose);
+        // NTStructs.publishToSmartDashboard(prefix + "poseEstimate", m.pose);
 
-        /*StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
-          .getStructTopic(prefix + "poseEstimate", Pose2d.struct).publish();
-        publisher.set(m.pose);
-        */
+        /*
+         * StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
+         * .getStructTopic(prefix + "poseEstimate", Pose2d.struct).publish();
+         * publisher.set(m.pose);
+         */
         // it doesn't seem that poses published to NT make it into the
         // wpilog file via NetworkTableInstance.startEntryDataLog, so let's be
         // explicit
@@ -207,9 +208,11 @@ public class LimelightSubsystem extends SubsystemBase {
           var targetPosesArray = targetPoses.toArray(new Pose3d[0]);
           NTStructs.publish(prefix + "targets", targetPosesArray);
 
-          /*StructArrayPublisher<Pose3d> publisher2 = NetworkTableInstance.getDefault()
-            .getStructArrayTopic(prefix + "targets", Pose3d.struct).publish();
-          publisher2.set(targetPosesArray);*/
+          /*
+           * StructArrayPublisher<Pose3d> publisher2 = NetworkTableInstance.getDefault()
+           * .getStructArrayTopic(prefix + "targets", Pose3d.struct).publish();
+           * publisher2.set(targetPosesArray);
+           */
 
           // it doesn't seem that poses published to NT make it into the
           // wpilog file via NetworkTableInstance.startEntryDataLog, so let's be
@@ -286,7 +289,7 @@ public class LimelightSubsystem extends SubsystemBase {
       if (sd != null && error.length() == 0) {
         double distanceError = sd.getState().Pose.getTranslation()
             .getDistance(cameraData.megaTag2.poseEstimate.pose.getTranslation());
-          double numberTargetsSeen = cameraData.megaTag2.poseEstimate.tagCount;
+        double numberTargetsSeen = cameraData.megaTag2.poseEstimate.tagCount;
 
         double translationStdDev = Math.min(50.0, Math.max(0.4, numberTargetsSeen * distanceError * 2.0));
         // double rotationStdDev = Math.min(50.0, Math.max(0.3, distanceError * 0.3));
@@ -296,13 +299,14 @@ public class LimelightSubsystem extends SubsystemBase {
         sd.setVisionMeasurementStdDevs(VecBuilder.fill(translationStdDev, translationStdDev, 9999999));
 
         // If the QuestNav isn't connected or isn't tracking, use Limelight
-        if(!RobotContainer.questNavSubsystem.getQuestNavConnected() || !RobotContainer.questNavSubsystem.getQuestNavIsTracking()){
-          sd.addVisionMeasurement(cameraData.megaTag2.poseEstimate.pose, cameraData.megaTag2.poseEstimate.timestampSeconds);
+        if (!RobotContainer.questNavSubsystem.getQuestNavConnected()
+            || !RobotContainer.questNavSubsystem.getQuestNavIsTracking()) {
+          sd.addVisionMeasurement(cameraData.megaTag2.poseEstimate.pose,
+              cameraData.megaTag2.poseEstimate.timestampSeconds);
         }
 
         NTStructs.publish(sdPrefix + "megaTag2PoseEstimate", cameraData.megaTag2.poseEstimate.pose);
         NTStructs.publish(sdPrefix + "megaTag1PoseEstimate", cameraData.megaTag1.poseEstimate.pose);
-
 
         int updateCount = cameraData.bumpCountOfSwerveUpdatesFromThisCamera();
         SmartDashboard.putNumber(sdPrefix + "swervePoseUpdates", updateCount);
@@ -317,7 +321,9 @@ public class LimelightSubsystem extends SubsystemBase {
       SmartDashboard.putString(sdPrefix + "rejectionMessage", error);
     }
 
-    SmartDashboard.putNumber("errorBetweenMegaTag2Readings", getErrorBetweenCameras().in(Meters));
+ 
+     // SmartDashboard.putNumber("errorBetweenMegaTag2Readings", getErrorBetweenCameras().in(Meters));
+    
   }
 
   public CameraData getCameraData(Camera camera) {
@@ -333,11 +339,11 @@ public class LimelightSubsystem extends SubsystemBase {
 
     for (CameraData cdata : allCameraData.values()) {
       PoseEstimate pe = cdata.megaTag1.getPoseEstimate();
-      if(pe != null) {
+      if (pe != null) {
         rotations.add(pe.pose.getRotation());
       }
     }
-    
+
     double sinSum = 0;
     double cosSum = 0;
     for (Rotation2d rot : rotations) {
@@ -351,19 +357,22 @@ public class LimelightSubsystem extends SubsystemBase {
   public Distance getErrorBetweenCameras() {
     List<Pose2d> pes = new ArrayList<>();
     Distance error = Meters.of(0);
-    for(CameraData cdata : allCameraData.values()) {
+    for (CameraData cdata : allCameraData.values()) {
       Pose2d pe = cdata.megaTag2.getPoseEstimate().pose;
       if (pe != null) {
         pes.add(pe);
       }
-    } 
-    
-
-    for (int i = 0; i < pes.size() - 1; i++) {
-      error = error.plus(Meters.of(pes.get(i).getTranslation().getDistance(pes.get(i+1).getTranslation())));
     }
 
-    return error;
+    for (int i = 0; i < pes.size() - 1; i++) {
+      error = error.plus(Meters.of(pes.get(i).getTranslation().getDistance(pes.get(i + 1).getTranslation())));
+    }
+    if (error != null) {
+
+      return error;
+    }else{
+      return Meters.of(100);
+    }
   }
-  
+
 }
