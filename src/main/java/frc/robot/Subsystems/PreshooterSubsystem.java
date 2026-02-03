@@ -42,11 +42,11 @@ public class PreshooterSubsystem extends SubsystemBase {
             motor = new TalonFX(Constants.MOTORID_PRESHOOTER);
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            0.0, // kP - tune this
+                            0.1, // kP - tune this
                             0.0, // kI
                             0.0, // kD
-                            RotationsPerSecond.of(0),
-                            RotationsPerSecondPerSecond.of(0))
+                            RotationsPerSecond.of(100),
+                            RotationsPerSecondPerSecond.of(200))
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("PreshooterMotor", TelemetryVerbosity.HIGH)
@@ -56,9 +56,9 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(2), motorConfig);
             FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(0))
-                    .withMass(Pound.of(0))
-                    .withUpperSoftLimit(RPM.of(0))
+                    .withDiameter(Inch.of(4))
+                    .withMass(Pound.of(0.5))
+                    .withUpperSoftLimit(RPM.of(2000))
                     .withTelemetry("Preshooter", TelemetryVerbosity.HIGH);
 
             // Create the FlyWheel
