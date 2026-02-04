@@ -176,7 +176,7 @@ public class RobotContainer {
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
-    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.1));
+    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
