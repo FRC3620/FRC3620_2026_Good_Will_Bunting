@@ -99,14 +99,10 @@ public class RobotContainer {
                                                                                     // maxangular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
-  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-      .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-  private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-  private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
-
-  private final SwerveTelemetry swerveLogger = new SwerveTelemetry(MaxSpeed);
-
+  private SwerveRequest.FieldCentric drive;
+  private SwerveRequest.SwerveDriveBrake brake;
+  private SwerveRequest.PointWheelsAt point;
+  private SwerveTelemetry swerveLogger;
   public static SwerveSubsystem swerveSubsystem;
 
   public static LimelightSubsystem limelightSubsystem;
@@ -189,7 +185,20 @@ public class RobotContainer {
   }
 
   private void makeSubsystems() {
-    swerveSubsystem = configureSwerveDrive();
+    boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 1,
+        "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+    if (makeDevices) {
+      /* Setting up bindings for necessary control of the swerve drive platform */
+      drive = new SwerveRequest.FieldCentric()
+          .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+      brake = new SwerveRequest.SwerveDriveBrake();
+      point = new SwerveRequest.PointWheelsAt();
+
+      swerveLogger = new SwerveTelemetry(MaxSpeed);
+      swerveSubsystem = configureSwerveDrive();
+    }
+
     questNavSubsystem = new QuestNavSubsystem(swerveSubsystem, new Pose3d());
     limelightSubsystem = new LimelightSubsystem();
 
@@ -283,52 +292,55 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    if (swerveSubsystem != null) {
+      swerveSubsystem.setDefaultCommand(
+          // Drivetrain will execute this command periodically
+          swerveSubsystem.applyRequest(
+              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.1) * MaxSpeed) // Drive
+                                                                                                               // forward
+                                                                                                               // with
+                                                                                                               // negative
+                                                                                                               // Y
+                                                                                                               // (forward)
+                  .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.1) * MaxSpeed) // Drive left
+                                                                                                        // with
+                                                                                                        // negative X
+                                                                                                        // (left)
+                  .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
+                                                                                      // negative X (left)
 
-    swerveSubsystem.setDefaultCommand(
-        // Drivetrain will execute this command periodically
-        swerveSubsystem.applyRequest(
-            () -> drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.1) * MaxSpeed) // Drive
-                                                                                                             // forward
-                                                                                                             // with
-                                                                                                             // negative
-                                                                                                             // Y
-                                                                                                             // (forward)
-                .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.1) * MaxSpeed) // Drive left with
-                                                                                                      // negative X
-                                                                                                      // (left)
-                .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
-                                                                                    // negative X (left)
+          ).withName("Drive from Joysticks"));
 
-        ));
+      // Idle while the robot is disabled. This ensures the configured
+      // neutral mode is applied to the drive motors while disabled.
+      final var idle = new SwerveRequest.Idle();
+      RobotModeTriggers.disabled().whileTrue(
+          swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
+
+      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+          .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
+      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
+          .whileTrue(swerveSubsystem.applyRequest(() -> point
+              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))).withName("Point"));
+
+      swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
+
+      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
+          .whileTrue(swerveSubsystem.applyRequest(() -> drive.withVelocityX(0.2) // Drive forward with negative Y
+                                                                                 // (forward)
+              .withVelocityY(0) // Drive left with negative X (left)
+              .withRotationalRate(0) // Drive coun
+          ).withName("Drive Slow"));
+      CommandScheduler.getInstance().schedule(
+          new InstantCommand(
+              () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
+              .andThen(
+                  new InstantCommand(
+                      () -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
+    }
 
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
-    CommandScheduler.getInstance().schedule(
-        new InstantCommand(
-            () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-            .andThen(
-                new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
-
-    // Idle while the robot is disabled. This ensures the configured
-    // neutral mode is applied to the drive motors while disabled.
-    final var idle = new SwerveRequest.Idle();
-    RobotModeTriggers.disabled().whileTrue(
-        swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true));
-
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
-        .whileTrue(swerveSubsystem.applyRequest(() -> brake));
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
-        .whileTrue(swerveSubsystem.applyRequest(() -> point
-            .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))));
-
-    swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
-
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
-        .whileTrue(swerveSubsystem.applyRequest(() -> drive.withVelocityX(0.2) // Drive forward with negative Y
-                                                                               // (forward)
-            .withVelocityY(0) // Drive left with negative X (left)
-            .withRotationalRate(0) // Drive coun
-        ));
 
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));

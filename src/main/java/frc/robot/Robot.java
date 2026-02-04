@@ -47,7 +47,7 @@ public class Robot extends TimedRobot {
 
     // whenever a command initializes, the function declared below will run.
     CommandScheduler.getInstance().onCommandInitialize(command ->
-            logger.info("Initialized {}", command.getName()));
+            logger.info("Initialized {}, subsystems {}", command.getName(), command.getRequirements()));
 
     // whenever a command ends, the function declared below will run.
     CommandScheduler.getInstance().onCommandFinish(command ->

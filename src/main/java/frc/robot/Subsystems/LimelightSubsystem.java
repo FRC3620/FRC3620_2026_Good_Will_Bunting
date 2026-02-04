@@ -321,9 +321,7 @@ public class LimelightSubsystem extends SubsystemBase {
       SmartDashboard.putString(sdPrefix + "rejectionMessage", error);
     }
 
- 
-     // SmartDashboard.putNumber("errorBetweenMegaTag2Readings", getErrorBetweenCameras().in(Meters));
-    
+   // SmartDashboard.putNumber("errorBetweenMegaTag2Readings", getErrorBetweenCameras().in(Meters));
   }
 
   public CameraData getCameraData(Camera camera) {
