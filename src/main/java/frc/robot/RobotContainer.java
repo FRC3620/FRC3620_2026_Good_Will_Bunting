@@ -43,6 +43,10 @@ import frc.robot.Subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.states.ClimbingState;
+import frc.robot.fsm.states.DeadeyeState;
+import frc.robot.fsm.states.DefenseState;
+import frc.robot.fsm.states.HoardingState;
 import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.PassingState;
 import frc.robot.fsm.states.ScoringState;
@@ -81,6 +85,10 @@ public class RobotContainer {
   // States
   private PassingState passingState;
   private ScoringState scoringState;
+  private ClimbingState climbingState;
+  private DeadeyeState deadeyeState;
+  private HoardingState hoardingState;
+  private DefenseState defenseState;
 
   private StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
@@ -146,19 +154,17 @@ public class RobotContainer {
       logger.warn("this is a test chassis, will try to deal with missing hardware!");
     }
 
-    
     makeJoysticks();
-    
+
     makeSubsystems();
     if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
       missingDevicesAlert.set(true);
       missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
     }
-    
+
     makeStates();
     makeStateTransitions();
     makeStateMachine();
-    
 
     setupSmartDashboardCommands();
 
@@ -171,15 +177,15 @@ public class RobotContainer {
 
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
-    //climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    //shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
-    //intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
+    // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
-    //preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
+    // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
@@ -188,14 +194,14 @@ public class RobotContainer {
     limelightSubsystem = new LimelightSubsystem();
 
     turretSubsystem = new TurretSubsystem();
-    //climberSubsystem = new ClimberSubsystem();
-    //shooterSubsystem = new ShooterSubsystem();
-    //intakeShoulderSubsystem = new IntakeShoulderSubsystem();
+    // climberSubsystem = new ClimberSubsystem();
+    // shooterSubsystem = new ShooterSubsystem();
+    // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
     spindexerSubsystem = new SpindexerSubsystem();
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
-    //preshooterSubsystem = new PreshooterSubsystem();
+    // preshooterSubsystem = new PreshooterSubsystem();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
@@ -220,18 +226,38 @@ public class RobotContainer {
   private void makeStates() {
     passingState = new PassingState();
     scoringState = new ScoringState();
+    climbingState = new ClimbingState();
+    deadeyeState = new DeadeyeState();
+    defenseState = new DefenseState();
+    hoardingState = new HoardingState();
+
   }
 
   private void makeStateTransitions() {
     fieldTriggers = new FieldTriggers(swerveSubsystem);
 
     passingState.addTransition(new StateTransition(
-        fieldTriggers.enterOpponentAlliance,
+        fieldTriggers.enterOurAllianceZone,
         scoringState));
+    passingState.addTransition(new StateTransition(
+        fieldTriggers.enterDeadZone,
+        hoardingState));
 
     scoringState.addTransition(new StateTransition(
-        fieldTriggers.enterOurAlliance,
+        fieldTriggers.enterNeutralDepot,
         passingState));
+    scoringState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralOutpost, passingState));
+
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralDepot, passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralOutpost, passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterOpponentDepot, passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterOpponentOutpost, passingState));
+
   }
 
   private void makeStateMachine() {
@@ -278,8 +304,10 @@ public class RobotContainer {
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
     CommandScheduler.getInstance().schedule(
-        new InstantCommand(() -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-            .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
+        new InstantCommand(
+            () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
+            .andThen(
+                new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
 
     // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
@@ -308,16 +336,16 @@ public class RobotContainer {
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
 
-    //new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X).whileTrue(climberSubsystem.setHeight(Inches.of(48)));
-    //new JoystickButton(driverJoystick, XBoxConstants.BUTTON_Y).whileTrue(climberSubsystem.setHeight(Inches.of(0)));
+    // new JoystickButton(driverJoystick,
+    // XBoxConstants.BUTTON_X).whileTrue(climberSubsystem.setHeight(Inches.of(48)));
+    // new JoystickButton(driverJoystick,
+    // XBoxConstants.BUTTON_Y).whileTrue(climberSubsystem.setHeight(Inches.of(0)));
 
     new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER);
-        //.onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
+    // .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
     new JoystickButton(driverJoystick, 3);
-        //.whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
+    // .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
     new JoystickButton(driverJoystick, 4).whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
-
-
 
   }
 
