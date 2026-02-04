@@ -87,9 +87,9 @@ public class TurretSubsystem extends SubsystemBase {
 
   public Command setAngle(Angle angle) {
     if (pivot == null) {
-      return doNothingCommand();
+      return doNothingCommand().withName("Turret setAngle");
     } else {
-      return pivot.setAngle(angle);
+      return pivot.setAngle(angle).withName("Turret setAngle");
     }
   }
 
