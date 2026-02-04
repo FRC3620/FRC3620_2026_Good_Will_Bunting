@@ -43,6 +43,10 @@ import frc.robot.Subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.states.ClimbingState;
+import frc.robot.fsm.states.DeadeyeState;
+import frc.robot.fsm.states.DefenseState;
+import frc.robot.fsm.states.HoardingState;
 import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.PassingState;
 import frc.robot.fsm.states.ScoringState;
@@ -50,6 +54,7 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -80,8 +85,13 @@ public class RobotContainer {
   // States
   private PassingState passingState;
   private ScoringState scoringState;
+  private ClimbingState climbingState;
+  private DeadeyeState deadeyeState;
+  private HoardingState hoardingState;
+  private DefenseState defenseState;
 
   private StateMachine stateMachine;
+  private FieldTriggers fieldTriggers;
 
   private double MaxSpeed = ChudbotTunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                        // speed
@@ -171,7 +181,7 @@ public class RobotContainer {
     spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
-    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
+    // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
   private void makeSubsystems() {
@@ -200,7 +210,7 @@ public class RobotContainer {
     spindexerSubsystem = new SpindexerSubsystem();
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
-    preshooterSubsystem = new PreshooterSubsystem();
+    // preshooterSubsystem = new PreshooterSubsystem();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
@@ -225,20 +235,38 @@ public class RobotContainer {
   private void makeStates() {
     passingState = new PassingState();
     scoringState = new ScoringState();
+    climbingState = new ClimbingState();
+    deadeyeState = new DeadeyeState();
+    defenseState = new DefenseState();
+    hoardingState = new HoardingState();
+
   }
 
   private void makeStateTransitions() {
-    Trigger passToScoreTrigger = new JoystickButton(operatorKeyboard, 1);
+    fieldTriggers = new FieldTriggers(swerveSubsystem);
 
     passingState.addTransition(new StateTransition(
-        passToScoreTrigger,
+        fieldTriggers.enterOurAllianceZone,
         scoringState));
-
-    Trigger scoreToPassTrigger = new JoystickButton(operatorKeyboard, 2);
+    passingState.addTransition(new StateTransition(
+        fieldTriggers.enterDeadZone,
+        hoardingState));
 
     scoringState.addTransition(new StateTransition(
-        scoreToPassTrigger,
+        fieldTriggers.enterNeutralDepot,
         passingState));
+    scoringState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralOutpost, passingState));
+
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralDepot, passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralOutpost, passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterOpponentDepot, passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterOpponentOutpost, passingState));
+
   }
 
   private void makeStateMachine() {

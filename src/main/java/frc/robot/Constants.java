@@ -28,4 +28,10 @@ public final class Constants {
 
     public static final int MOTORID_PRESHOOTER = 25;
     
+    
+  public static boolean disableHAL = false;
+
+  public static void disableHAL() {
+    disableHAL = true;
+  }
 }
