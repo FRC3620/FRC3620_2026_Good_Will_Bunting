@@ -234,7 +234,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @return Command to run
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
-        return run(() -> this.setControl(requestSupplier.get()));
+        return run(() -> this.setControl(requestSupplier.get())).withName("Swerve Subsystem setControl");
     }
 
     /**
@@ -245,7 +245,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @return Command to run
      */
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.quasistatic(direction);
+        return m_sysIdRoutineToApply.quasistatic(direction).withName("Swerve Subsystem Quasistatic Test");
     }
 
     /**
@@ -256,7 +256,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @return Command to run
      */
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.dynamic(direction);
+        return m_sysIdRoutineToApply.dynamic(direction).withName("Swerve Subsystem Dynamic Test");
     }
 
     @Override

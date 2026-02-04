@@ -281,18 +281,19 @@ public class RobotContainer {
                   .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
                                                                                       // negative X (left)
 
-          ));
+          ).withName("Drive from Joysticks"));
+
       // Idle while the robot is disabled. This ensures the configured
       // neutral mode is applied to the drive motors while disabled.
       final var idle = new SwerveRequest.Idle();
       RobotModeTriggers.disabled().whileTrue(
-          swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true));
+          swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
 
       new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
-          .whileTrue(swerveSubsystem.applyRequest(() -> brake));
+          .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
       new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
           .whileTrue(swerveSubsystem.applyRequest(() -> point
-              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))));
+              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))).withName("Point"));
 
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
@@ -301,7 +302,7 @@ public class RobotContainer {
                                                                                  // (forward)
               .withVelocityY(0) // Drive left with negative X (left)
               .withRotationalRate(0) // Drive coun
-          ));
+          ).withName("Drive Slow"));
       CommandScheduler.getInstance().schedule(
           new InstantCommand(
               () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
