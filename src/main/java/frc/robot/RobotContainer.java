@@ -214,19 +214,16 @@ public class RobotContainer {
   }
 
   private SwerveSubsystem configureSwerveDrive() {
-    String serialNumber = RobotController.getSerialNumber();
 
-    if (serialNumber.equals("0326F30D") || serialNumber.equals("0327BA54")) {
-      SmartDashboard.putString("Robot Serial", serialNumber);
-      SmartDashboard.putString("Robot Variant", "Chudbot");
+    String serialNumber = RobotController.getSerialNumber();
+    SmartDashboard.putString("Robot Serial", serialNumber);
+    String robotVariant = robotParameters.getVariant();
+    SmartDashboard.putString("Robot Variant", robotVariant);
+    if (robotVariant.equals("Chudbot")) {
       return ChudbotTunerConstants.createDrivetrain();
-    } else if (serialNumber.equals("03063D7E")) {
-      SmartDashboard.putString("Robot Serial", serialNumber);
-      SmartDashboard.putString("Robot Variant", "JoeHann");
+    } else if (robotVariant.equals("JoeHann")) {
       return JoeHannTunerConstants.createDrivetrain();
     } else {
-      SmartDashboard.putString("Robot Serial", serialNumber);
-      SmartDashboard.putString("Robot Variant", "Other");
       return TunerConstants.createDrivetrain();
     }
 
