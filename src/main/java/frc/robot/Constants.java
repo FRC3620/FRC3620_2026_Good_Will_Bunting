@@ -3,7 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
+// 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean
@@ -20,7 +20,7 @@ package frc.robot;
 public final class Constants {
     public static final int MOTORID_TURRET = 20;
     public static final int MOTORID_SHOOTER = 21;
-    public static final int MOTORID_SPINDEXER = 22;
+   
     public static final int MOTORID_INTAKEROLLERS = 24;
     public static final int MOTORID_HOOD = 23;
 

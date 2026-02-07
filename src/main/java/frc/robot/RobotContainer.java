@@ -66,7 +66,7 @@ import frc.robot.Subsystems.SwerveSubsystem;
 import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
-import frc.robot.Subsystems.SpindexerSubsystem;
+
 
 import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
@@ -136,7 +136,7 @@ public class RobotContainer {
   public ShooterSubsystem shooterSubsystem;
   public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
-  public SpindexerSubsystem spindexerSubsystem;
+
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
@@ -185,7 +185,7 @@ public class RobotContainer {
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+  
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
@@ -214,7 +214,7 @@ public class RobotContainer {
     // shooterSubsystem = new ShooterSubsystem();
     // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
-    spindexerSubsystem = new SpindexerSubsystem();
+
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     // preshooterSubsystem = new PreshooterSubsystem();
