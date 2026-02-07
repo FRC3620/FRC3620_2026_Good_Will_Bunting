@@ -280,11 +280,6 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 m_hasAppliedOperatorPerspective = true;
             });
         }
-
-        SmartDashboard.putNumber("Swerve.getMeasureX", this.getState().Pose.getMeasureX().in(Meters));
-        SmartDashboard.putBoolean("Is active alliance", HubTracker.isAllianceHubActive());
-        SmartDashboard.putString("active alliance", HubTracker.getActiveAlliance().name());
-        SmartDashboard.putNumber("Match time", DriverStation.getMatchTime());
     }
 
     private void startSimThread() {
