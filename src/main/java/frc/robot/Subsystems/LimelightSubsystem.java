@@ -253,6 +253,11 @@ public class LimelightSubsystem extends SubsystemBase {
     for (var cameraData : allCameraData.values()) {
       var sdPrefix = "frc3620/vision/" + cameraData.getLimelightName() + "/";
 
+      if(cameraData.megaTag1.poseEstimate==null)
+      continue;
+      if(cameraData.megaTag2.poseEstimate==null)
+      continue;
+
       LimelightHelpers.SetRobotOrientation(cameraData.limelightName, yaw, yawRate, pitch, 0, 0, 0);
       processMegaTag(cameraData.megaTag1, () -> LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraData.limelightName),
           currentSwervePose);

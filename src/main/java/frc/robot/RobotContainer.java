@@ -243,7 +243,10 @@ public class RobotContainer {
   }
 
   private void makeStateTransitions() {
-    fieldTriggers = new FieldTriggers(swerveSubsystem);
+    if (swerveSubsystem==null) {
+      return;
+    }
+    fieldTriggers = new FieldTriggers(()->swerveSubsystem.getState().Pose);
 
     passingState.addTransition(new StateTransition(
         fieldTriggers.enterOurAllianceZone,
