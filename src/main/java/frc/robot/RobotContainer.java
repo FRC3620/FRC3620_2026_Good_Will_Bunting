@@ -19,6 +19,8 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
+import org.usfirst.frc3620.ChameleonController;
+import org.usfirst.frc3620.FlySkyConstants;
 import org.usfirst.frc3620.JoystickAnalogButton;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
@@ -57,6 +59,7 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
@@ -97,6 +100,7 @@ public class RobotContainer {
   private StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
   private FMSTriggers fmsTriggers;
+  private ButtonTriggers buttonTriggers;
 
   private Optional<Alliance> alliance = DriverStation.getAlliance();
 
@@ -128,6 +132,7 @@ public class RobotContainer {
 
   // joysticks here....
   public static Joystick driverJoystick;
+  public static ChameleonController driverChameleonController;
   public static Joystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
@@ -252,6 +257,12 @@ public class RobotContainer {
     }
     fieldTriggers = new FieldTriggers(()->swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers(alliance);
+    buttonTriggers = new ButtonTriggers(driverChameleonController);
+
+    passingState.addTransition(new StateTransition(
+      buttonTriggers.SWAOn,scoringState));
+    scoringState.addTransition(new StateTransition(
+      buttonTriggers.SWAOff, passingState));
 
    /*  passingState.addTransition(new StateTransition(
       fmsTriggers.isActivePeriod, 
@@ -300,6 +311,7 @@ public class RobotContainer {
 
   private void makeJoysticks() {
     driverJoystick = new Joystick(0);
+    driverChameleonController = new ChameleonController(driverJoystick);
     operatorJoystick = new Joystick(1);
     operatorKeyboard = new Joystick(2);
   }
@@ -317,17 +329,17 @@ public class RobotContainer {
       swerveSubsystem.setDefaultCommand(
           // Drivetrain will execute this command periodically
           swerveSubsystem.applyRequest(
-              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.1) * MaxSpeed) // Drive
+              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_Y,XBoxConstants.AXIS_LEFT_Y), 0.1) * MaxSpeed) // Drive
                                                                                                                // forward
                                                                                                                // with
                                                                                                                // negative
                                                                                                                // Y
                                                                                                                // (forward)
-                  .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.1) * MaxSpeed) // Drive left
+                  .withVelocityY(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_X,XBoxConstants.AXIS_LEFT_X), 0.1) * MaxSpeed) // Drive left
                                                                                                         // with
                                                                                                         // negative X
                                                                                                         // (left)
-                  .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
+                  .withRotationalRate(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_RIGHT_X, XBoxConstants.AXIS_RIGHT_X) * MaxAngularRate) // Drive counterclockwise with
                                                                                       // negative X (left)
 
           ).withName("Drive from Joysticks"));
