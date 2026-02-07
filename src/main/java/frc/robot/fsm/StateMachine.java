@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotContainer;
 import frc.robot.fsm.states.IState;
@@ -16,18 +17,25 @@ public class StateMachine {
     private IState currentState;
 
     public StateMachine(IState initialState) {
-        this.currentState = initialState;
-        this.currentState.onEnter();
+        if (DriverStation.isAutonomous()) {
+        }else{
+            this.currentState = initialState;
+            this.currentState.onEnter();
+        }
     }
 
     public void update() {
-        currentState.execute();
-        SmartDashboard.putString("FSM Current State", currentState.getClass().getSimpleName());
-        Optional<IState> nextState = currentState.nextState();
-        if (nextState.isPresent()) {
-            currentState.onExit();
-            currentState = nextState.get();
-            currentState.onEnter();
+        if(DriverStation.isAutonomous()) {
+            SmartDashboard.putString("FSM Current State", "Running Auto");
+        } else {
+            currentState.execute();
+            SmartDashboard.putString("FSM Current State", currentState.getClass().getSimpleName());
+            Optional<IState> nextState = currentState.nextState();
+            if (nextState.isPresent()) {
+                currentState.onExit();
+                currentState = nextState.get();
+                currentState.onEnter();
+            }
         }
     }
 
