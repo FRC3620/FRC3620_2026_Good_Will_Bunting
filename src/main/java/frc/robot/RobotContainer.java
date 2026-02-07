@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -26,6 +27,8 @@ import org.usfirst.frc3620.XBoxConstants;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -54,6 +57,7 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
@@ -92,6 +96,9 @@ public class RobotContainer {
 
   private StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
+  private FMSTriggers fmsTriggers;
+
+  private Optional<Alliance> alliance = DriverStation.getAlliance();
 
   private double MaxSpeed = ChudbotTunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                        // speed
@@ -244,8 +251,22 @@ public class RobotContainer {
       return;
     }
     fieldTriggers = new FieldTriggers(()->swerveSubsystem.getState().Pose);
+    fmsTriggers = new FMSTriggers(alliance);
 
-    passingState.addTransition(new StateTransition(
+   /*  passingState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod, 
+      scoringState));
+     scoringState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod, 
+      passingState));
+
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isEndgame, 
+      climbingState));
+
+
+
+     passingState.addTransition(new StateTransition(
         fieldTriggers.enterOurAllianceZone,
         scoringState));
     passingState.addTransition(new StateTransition(
@@ -266,7 +287,7 @@ public class RobotContainer {
         fieldTriggers.enterOpponentDepot, passingState));
     hoardingState.addTransition(new StateTransition(
         fieldTriggers.enterOpponentOutpost, passingState));
-
+*/
   }
 
   private void makeStateMachine() {
@@ -321,7 +342,8 @@ public class RobotContainer {
           .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
       new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
           .whileTrue(swerveSubsystem.applyRequest(() -> point
-              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))).withName("Point"));
+              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0))))
+              .withName("Point"));
 
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
