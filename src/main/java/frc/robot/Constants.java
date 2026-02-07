@@ -30,4 +30,10 @@ public final class Constants {
 
     public static final int MOTORID_CLIMBER = 39;
     
+    
+  public static boolean disableHAL = false;
+
+  public static void disableHAL() {
+    disableHAL = true;
+  }
 }

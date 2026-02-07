@@ -24,6 +24,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -234,7 +235,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @return Command to run
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
-        return run(() -> this.setControl(requestSupplier.get()));
+        return run(() -> this.setControl(requestSupplier.get())).withName("Swerve Subsystem setControl");
     }
 
     /**
@@ -245,7 +246,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @return Command to run
      */
     public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.quasistatic(direction);
+        return m_sysIdRoutineToApply.quasistatic(direction).withName("Swerve Subsystem Quasistatic Test");
     }
 
     /**
@@ -256,7 +257,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
      * @return Command to run
      */
     public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return m_sysIdRoutineToApply.dynamic(direction);
+        return m_sysIdRoutineToApply.dynamic(direction).withName("Swerve Subsystem Dynamic Test");
     }
 
     @Override
@@ -278,6 +279,8 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        SmartDashboard.putNumber("Swerve.getMeasureX", this.getState().Pose.getMeasureX().in(Meters));
     }
 
     private void startSimThread() {

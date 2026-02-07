@@ -4,6 +4,7 @@ plugins {
     // FRC3620 ****************************************************************
     id "com.gorylenko.gradle-git-properties" version "2.4.1" // 2.5.4 breaks
     id "name.remal.merge-resources" version "5.0.1"  // see note on tinylog
+    id "io.freefair.lombok" version "8.4"
     // later:
     // id 'com.diffplug.spotless' version '6.12.0'
     // ************************************************************************
