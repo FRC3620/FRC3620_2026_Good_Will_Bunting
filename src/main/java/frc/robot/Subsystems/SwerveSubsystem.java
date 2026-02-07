@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.RobotContainer;
 import frc.robot.Generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.Helpers.HubTracker;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -281,6 +282,9 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         }
 
         SmartDashboard.putNumber("Swerve.getMeasureX", this.getState().Pose.getMeasureX().in(Meters));
+        SmartDashboard.putBoolean("Is active alliance", HubTracker.isAllianceHubActive());
+        SmartDashboard.putString("active alliance", HubTracker.getActiveAlliance().name());
+        SmartDashboard.putNumber("Match time", DriverStation.getMatchTime());
     }
 
     private void startSimThread() {
