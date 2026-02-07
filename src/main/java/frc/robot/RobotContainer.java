@@ -39,6 +39,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
@@ -133,6 +134,7 @@ public class RobotContainer {
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
+  public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -211,6 +213,7 @@ public class RobotContainer {
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     // preshooterSubsystem = new PreshooterSubsystem();
+    blinkyLightsSubsystem = new BlinkyLightsSubsystem();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
