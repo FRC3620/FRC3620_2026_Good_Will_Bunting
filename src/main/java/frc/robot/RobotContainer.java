@@ -63,6 +63,7 @@ import frc.robot.Generated.TunerConstants;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -369,15 +370,16 @@ public class RobotContainer {
               .withRotationalRate(0) // Drive coun
           ).withName("Drive Slow"));
       CommandScheduler.getInstance().schedule(
-          new InstantCommand(
-              () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-              .andThen(
-                  new InstantCommand(
-                      () -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
+          new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
     }
 
+    
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
+    
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_BACK)
+        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
 
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
@@ -411,7 +413,7 @@ public class RobotContainer {
 
     if (autoChooser != null) {
       SmartDashboard.putData("Auto Mode", autoChooser);
-    }
+    } 
   }
 
   public Command getAutonomousCommand() {
