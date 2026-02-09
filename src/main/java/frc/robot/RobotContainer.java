@@ -10,6 +10,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
+import org.usfirst.frc3620.odo.OdoIdsFlySky;
+import org.usfirst.frc3620.odo.OdoIdsXBox;
+import org.usfirst.frc3620.odo.OdoJoystick;
+import org.usfirst.frc3620.odo.OdoJoystick.JoystickType;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -22,6 +26,8 @@ import org.usfirst.frc3620.CANDeviceType;
 import org.usfirst.frc3620.ChameleonController;
 import org.usfirst.frc3620.FlySkyConstants;
 import org.usfirst.frc3620.JoystickAnalogButton;
+import org.usfirst.frc3620.RobotMode;
+import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.XBoxConstants;
@@ -71,7 +77,6 @@ import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
 
-
 import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
@@ -87,7 +92,7 @@ import frc.robot.Subsystems.PreshooterSubsystem;
  * the robot (including
  * subsystems, commands, and button mappings) should be declared here.
  */
-public class RobotContainer {
+public class RobotContainer implements RobotModeChangeListener {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
 
   // States
@@ -132,8 +137,8 @@ public class RobotContainer {
   // subsystems here
 
   // joysticks here....
-  public static Joystick driverJoystick;
-  public static ChameleonController driverChameleonController;
+  private Joystick driverJoystick; // no one should touch this directly!
+  public static OdoJoystick driverOdoJoystick;
   public static Joystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
@@ -192,7 +197,7 @@ public class RobotContainer {
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-  
+
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
@@ -255,17 +260,17 @@ public class RobotContainer {
   }
 
   private void makeStateTransitions() {
-    if (swerveSubsystem==null) {
+    if (swerveSubsystem == null) {
       return;
     }
-    fieldTriggers = new FieldTriggers(()->swerveSubsystem.getState().Pose);
+    fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers(alliance);
-    buttonTriggers = new ButtonTriggers(driverChameleonController);
+    buttonTriggers = new ButtonTriggers(driverOdoJoystick);
 
     passingState.addTransition(new StateTransition(
-      buttonTriggers.SWAOn,scoringState));
+        buttonTriggers.SWAOn, scoringState));
     scoringState.addTransition(new StateTransition(
-      buttonTriggers.SWAOff, passingState));
+        buttonTriggers.SWAOff, passingState));
 
    /*  passingState.addTransition(new StateTransition(
       fmsTriggers.isActivePeriod, 
@@ -301,7 +306,7 @@ public class RobotContainer {
         fieldTriggers.enterOpponentDepot, passingState));
     hoardingState.addTransition(new StateTransition(
         fieldTriggers.enterOpponentOutpost, passingState));
-*/
+     */
   }
 
   private void makeStateMachine() {
@@ -314,7 +319,7 @@ public class RobotContainer {
 
   private void makeJoysticks() {
     driverJoystick = new Joystick(0);
-    driverChameleonController = new ChameleonController(driverJoystick);
+    driverOdoJoystick = new OdoJoystick(driverJoystick);
     operatorJoystick = new Joystick(1);
     operatorKeyboard = new Joystick(2);
   }
@@ -332,20 +337,17 @@ public class RobotContainer {
       swerveSubsystem.setDefaultCommand(
           // Drivetrain will execute this command periodically
           swerveSubsystem.applyRequest(
-              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_Y,XBoxConstants.AXIS_LEFT_Y), 0.1) * MaxSpeed) // Drive
-                                                                                                               // forward
-                                                                                                               // with
-                                                                                                               // negative
-                                                                                                               // Y
-                                                                                                               // (forward)
-                  .withVelocityY(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_X,XBoxConstants.AXIS_LEFT_X), 0.1) * MaxSpeed) // Drive left
-                                                                                                        // with
-                                                                                                        // negative X
-                                                                                                        // (left)
-                  .withRotationalRate(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_RIGHT_X, XBoxConstants.AXIS_RIGHT_X) * MaxAngularRate) // Drive counterclockwise with
-                                                                                      // negative X (left)
-
-          ).withName("Drive from Joysticks"));
+              () -> drive
+                  // Drive forward with negative Y (forward)
+                  .withVelocityX(MathUtil.applyDeadband(
+                      -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
+                  // Drive with negative X (left)
+                  .withVelocityY(MathUtil.applyDeadband(
+                      -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
+                  // Drive counterclockwise with negative X (left) left
+                  .withRotationalRate(-driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
+                      * MaxAngularRate))
+              .withName("Drive from Joysticks"));
 
       // Idle while the robot is disabled. This ensures the configured
       // neutral mode is applied to the drive motors while disabled.
@@ -353,19 +355,22 @@ public class RobotContainer {
       RobotModeTriggers.disabled().whileTrue(
           swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
 
-      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+      driverOdoJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
           .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
-      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
-          .whileTrue(swerveSubsystem.applyRequest(() -> point
-              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0))))
-              .withName("Point"));
+      driverOdoJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
+          .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
+              -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
+              -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
+          ))).withName("Point"));
 
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
-      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
-          .whileTrue(swerveSubsystem.applyRequest(() -> drive.withVelocityX(0.2) // Drive forward with negative Y
-                                                                                 // (forward)
-              .withVelocityY(0) // Drive left with negative X (left)
+      driverOdoJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+          .whileTrue(swerveSubsystem.applyRequest(() -> drive
+              // Drive forward with negative Y(forward)
+              .withVelocityX(0.2)
+              // Drive left with negative X (left)
+              .withVelocityY(0)
               .withRotationalRate(0) // Drive coun
           ).withName("Drive Slow"));
       CommandScheduler.getInstance().schedule(
@@ -379,23 +384,29 @@ public class RobotContainer {
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+    new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
+    new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_B)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
 
-    // new JoystickButton(driverJoystick,
-    // XBoxConstants.BUTTON_X).whileTrue(climberSubsystem.setHeight(Inches.of(48)));
-    // new JoystickButton(driverJoystick,
-    // XBoxConstants.BUTTON_Y).whileTrue(climberSubsystem.setHeight(Inches.of(0)));
+    new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_Y)
+        .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
+  }
 
-    new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER);
-    // .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
-    new JoystickButton(driverJoystick, 3);
-    // .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
-    new JoystickButton(driverJoystick, 4).whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
-
+  public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
+    if (currentRobotMode == RobotMode.TELEOP) {
+      String driveControllerName = driverJoystick.getName();
+      int n_axes = driverJoystick.getAxisCount();
+      int n_buttons = driverJoystick.getButtonCount();
+      logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName, 
+        driverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
+      if (driveControllerName.startsWith("Flysky")) {
+        driverOdoJoystick.setJoystickType(JoystickType.A);
+      } else {
+        driverOdoJoystick.setJoystickType(JoystickType.B);
+      }
+    }
   }
 
   private void setupSmartDashboardCommands() {
