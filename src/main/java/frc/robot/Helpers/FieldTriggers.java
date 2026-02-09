@@ -4,17 +4,8 @@ import static edu.wpi.first.units.Units.Meters;
 
 import java.util.function.Supplier;
 
-import org.usfirst.frc3620.XBoxConstants;
-
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.FieldConstants;
-import frc.robot.RobotContainer;
-import frc.robot.Subsystems.SwerveSubsystem;
 
 public class FieldTriggers {
 

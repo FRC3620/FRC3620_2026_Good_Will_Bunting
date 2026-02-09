@@ -23,18 +23,12 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
-import org.usfirst.frc3620.ChameleonController;
-import org.usfirst.frc3620.FlySkyConstants;
-import org.usfirst.frc3620.JoystickAnalogButton;
+
 import org.usfirst.frc3620.RobotMode;
 import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
-import org.usfirst.frc3620.XBoxConstants;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -137,9 +131,8 @@ public class RobotContainer implements RobotModeChangeListener {
   // subsystems here
 
   // joysticks here....
-  private Joystick driverJoystick; // no one should touch this directly!
-  public static OdoJoystick driverOdoJoystick;
-  public static Joystick operatorJoystick;
+  public static OdoJoystick driverJoystick;
+  public static OdoJoystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
   public TurretSubsystem turretSubsystem;
@@ -265,7 +258,7 @@ public class RobotContainer implements RobotModeChangeListener {
     }
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers(alliance);
-    buttonTriggers = new ButtonTriggers(driverOdoJoystick);
+    buttonTriggers = new ButtonTriggers(driverJoystick);
 
     passingState.addTransition(new StateTransition(
         buttonTriggers.SWAOn, scoringState));
@@ -318,9 +311,8 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void makeJoysticks() {
-    driverJoystick = new Joystick(0);
-    driverOdoJoystick = new OdoJoystick(driverJoystick);
-    operatorJoystick = new Joystick(1);
+    driverJoystick = new OdoJoystick(new Joystick(0));
+    operatorJoystick = new OdoJoystick(new Joystick(1));
     operatorKeyboard = new Joystick(2);
   }
 
@@ -340,12 +332,12 @@ public class RobotContainer implements RobotModeChangeListener {
               () -> drive
                   // Drive forward with negative Y (forward)
                   .withVelocityX(MathUtil.applyDeadband(
-                      -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
+                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
                   // Drive with negative X (left)
                   .withVelocityY(MathUtil.applyDeadband(
-                      -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
+                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
                   // Drive counterclockwise with negative X (left) left
-                  .withRotationalRate(-driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
+                  .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
                       * MaxAngularRate))
               .withName("Drive from Joysticks"));
 
@@ -355,17 +347,17 @@ public class RobotContainer implements RobotModeChangeListener {
       RobotModeTriggers.disabled().whileTrue(
           swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
 
-      driverOdoJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
           .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
-      driverOdoJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
           .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
-              -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
-              -driverOdoJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
+              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
+              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
           ))).withName("Point"));
 
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
-      driverOdoJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
           .whileTrue(swerveSubsystem.applyRequest(() -> drive
               // Drive forward with negative Y(forward)
               .withVelocityX(0.2)
@@ -384,27 +376,28 @@ public class RobotContainer implements RobotModeChangeListener {
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
-    new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_A)
+    operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
 
-    new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_B)
+    operatorJoystick.button(OdoIdsXBox.ButtonId.B)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
 
-    new JoystickButton(operatorJoystick, XBoxConstants.BUTTON_Y)
+    operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
         .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
     if (currentRobotMode == RobotMode.TELEOP) {
-      String driveControllerName = driverJoystick.getName();
-      int n_axes = driverJoystick.getAxisCount();
-      int n_buttons = driverJoystick.getButtonCount();
+      Joystick realDriverJoystick = driverJoystick.getRealJoystick();
+      String driveControllerName = realDriverJoystick.getName();
+      int n_axes = realDriverJoystick.getAxisCount();
+      int n_buttons = realDriverJoystick.getButtonCount();
       logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName, 
-        driverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
+        realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
       if (driveControllerName.startsWith("Flysky")) {
-        driverOdoJoystick.setJoystickType(JoystickType.A);
+        driverJoystick.setJoystickType(JoystickType.A);
       } else {
-        driverOdoJoystick.setJoystickType(JoystickType.B);
+        driverJoystick.setJoystickType(JoystickType.B);
       }
     }
   }

@@ -14,7 +14,7 @@ public class OdoJoystick {
     A, B
   }
 
-  Joystick joystick;
+  private Joystick joystick;
 
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
@@ -34,6 +34,10 @@ public class OdoJoystick {
     return currentJoystickType;
   }
 
+  public Joystick getRealJoystick() {
+    return joystick;
+  }
+
   public double getRawAxis(IOdoAxisId axis_id) {
     return joystick.getRawAxis(axis_id.getAxisNumber());
   }
@@ -48,6 +52,14 @@ public class OdoJoystick {
 
   public boolean getRawButton(int button_number) {
     return joystick.getRawButton(button_number);
+  }
+
+  public Trigger button(IOdoButtonId a_button_id) {
+    return button(() -> getRawButton(a_button_id), () -> false);
+  }
+
+  public Trigger button(BooleanSupplier a_supplier) {
+    return button(a_supplier, () -> false);
   }
 
   public Trigger button(IOdoButtonId a_button_id, IOdoButtonId b_button_id) {
@@ -83,6 +95,14 @@ public class OdoJoystick {
       }
     }
   }
+
+  public double getAxis(IOdoAxisId a_axis_id) {
+    return getAxis(() -> getRawAxis(a_axis_id), () -> 0.0);
+  }
+
+  public double getAxis(DoubleSupplier a_supplier) {
+    return getAxis(a_supplier, () -> 0.0);
+  }  
 
   public double getAxis(IOdoAxisId a_axis_id, IOdoAxisId b_axis_id) {
     return getAxis(() -> getRawAxis(a_axis_id), () -> getRawAxis(b_axis_id));
