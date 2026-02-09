@@ -12,26 +12,18 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.SuperState;
 
-public class ClimbingState implements IState {
+public class ClimbingState extends SuperState {
 
-    public final static TaggedLogger logger = LoggingMaster.getLogger(ClimbingState.class);
 
-    private List<StateTransition> stateTransitions = new ArrayList<>();
 
-    public ClimbingState() {
-    }
-
-    public void addTransition(StateTransition transition) {
-        if (stateTransitions != null) {
-            stateTransitions.add(transition);
-        }
-    }
+   
 
     @Override
     public void onEnter() {
         // Code to run when entering the Scoring state
-        logger.info("Entering Climbing State");
+    
     }
 
     @Override
@@ -48,15 +40,5 @@ public class ClimbingState implements IState {
 
     }
 
-    @Override
-    public Optional<IState> nextState() {
-        // Logic to determine the next state
-        for (StateTransition transition : stateTransitions) {
-            if (transition.triggerToState().getAsBoolean()) {
-                logger.info("Transitioning from climbing to {}", transition.targetState().getClass().getSimpleName());
-                return Optional.of(transition.targetState());
-            }
-        }
-        return Optional.empty();
-    }
+   
 }
