@@ -51,7 +51,6 @@ import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.states.ClimbingState;
 import frc.robot.fsm.states.DeadeyeState;
-import frc.robot.fsm.states.DefenseState;
 import frc.robot.fsm.states.HoardingState;
 import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.PassingState;
@@ -70,7 +69,6 @@ import frc.robot.Subsystems.SwerveSubsystem;
 import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
-
 
 import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
@@ -96,7 +94,7 @@ public class RobotContainer {
   private ClimbingState climbingState;
   private DeadeyeState deadeyeState;
   private HoardingState hoardingState;
-  private DefenseState defenseState;
+
 
   private StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
@@ -192,7 +190,7 @@ public class RobotContainer {
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-  
+
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
@@ -249,59 +247,115 @@ public class RobotContainer {
     scoringState = new ScoringState();
     climbingState = new ClimbingState();
     deadeyeState = new DeadeyeState();
-    defenseState = new DefenseState();
     hoardingState = new HoardingState();
 
   }
 
   private void makeStateTransitions() {
-    if (swerveSubsystem==null) {
+    if (swerveSubsystem == null) {
       return;
     }
-    fieldTriggers = new FieldTriggers(()->swerveSubsystem.getState().Pose);
+    fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers(alliance);
     buttonTriggers = new ButtonTriggers(driverChameleonController);
 
     passingState.addTransition(new StateTransition(
-      buttonTriggers.SWAOn,scoringState));
-    scoringState.addTransition(new StateTransition(
-      buttonTriggers.SWAOff, passingState));
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
+        scoringState));
 
-   /*  passingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod, 
-      scoringState));
-     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod, 
+    passingState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone), 
+      hoardingState));
+    passingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterDeadZone), 
+      hoardingState));
+    passingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone), 
+      hoardingState));
+
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost), 
+      passingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot), 
       passingState));
 
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isEndgame, 
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot), 
+      hoardingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost), 
+      hoardingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone), 
+      hoardingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone), 
+      hoardingState));
+    
+/* 
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.climb), 
       climbingState));
-
-
-
-     passingState.addTransition(new StateTransition(
-        fieldTriggers.enterOurAllianceZone,
-        scoringState));
-    passingState.addTransition(new StateTransition(
-        fieldTriggers.enterDeadZone,
-        hoardingState));
-
-    scoringState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralDepot,
-        passingState));
-    scoringState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralOutpost, passingState));
-
-    hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralDepot, passingState));
-    hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralOutpost, passingState));
-    hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterOpponentDepot, passingState));
-    hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterOpponentOutpost, passingState));
 */
+    hoardingState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
+      scoringState));
+    
+    hoardingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentDepot),
+      passingState));
+    hoardingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentOutpost),
+      passingState));
+    hoardingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
+      passingState));
+    hoardingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
+      passingState));
+    /*
+     * passingState.addTransition(new StateTransition(
+     * buttonTriggers.SWAOn,scoringState));
+     * scoringState.addTransition(new StateTransition(
+     * buttonTriggers.SWAOff, passingState));
+     */
+    /*
+     * passingState.addTransition(new StateTransition(
+     * fmsTriggers.isActivePeriod,
+     * scoringState));
+     * scoringState.addTransition(new StateTransition(
+     * fmsTriggers.isInactivePeriod,
+     * passingState));
+     * 
+     * scoringState.addTransition(new StateTransition(
+     * fmsTriggers.isEndgame,
+     * climbingState));
+     * 
+     * 
+     * 
+     * passingState.addTransition(new StateTransition(
+     * fieldTriggers.enterOurAllianceZone,
+     * scoringState));
+     * passingState.addTransition(new StateTransition(
+     * fieldTriggers.enterDeadZone,
+     * hoardingState));
+     * 
+     * scoringState.addTransition(new StateTransition(
+     * fieldTriggers.enterNeutralDepot,
+     * passingState));
+     * scoringState.addTransition(new StateTransition(
+     * fieldTriggers.enterNeutralOutpost, passingState));
+     * 
+     * hoardingState.addTransition(new StateTransition(
+     * fieldTriggers.enterNeutralDepot, passingState));
+     * hoardingState.addTransition(new StateTransition(
+     * fieldTriggers.enterNeutralOutpost, passingState));
+     * hoardingState.addTransition(new StateTransition(
+     * fieldTriggers.enterOpponentDepot, passingState));
+     * hoardingState.addTransition(new StateTransition(
+     * fieldTriggers.enterOpponentOutpost, passingState));
+     */
   }
 
   private void makeStateMachine() {
@@ -332,18 +386,25 @@ public class RobotContainer {
       swerveSubsystem.setDefaultCommand(
           // Drivetrain will execute this command periodically
           swerveSubsystem.applyRequest(
-              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_Y,XBoxConstants.AXIS_LEFT_Y), 0.1) * MaxSpeed) // Drive
-                                                                                                               // forward
-                                                                                                               // with
-                                                                                                               // negative
-                                                                                                               // Y
-                                                                                                               // (forward)
-                  .withVelocityY(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_X,XBoxConstants.AXIS_LEFT_X), 0.1) * MaxSpeed) // Drive left
-                                                                                                        // with
-                                                                                                        // negative X
-                                                                                                        // (left)
-                  .withRotationalRate(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_RIGHT_X, XBoxConstants.AXIS_RIGHT_X) * MaxAngularRate) // Drive counterclockwise with
-                                                                                      // negative X (left)
+              () -> drive
+                  .withVelocityX(MathUtil.applyDeadband(
+                      -driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_Y, XBoxConstants.AXIS_LEFT_Y),
+                      0.1) * MaxSpeed) // Drive
+                  // forward
+                  // with
+                  // negative
+                  // Y
+                  // (forward)
+                  .withVelocityY(MathUtil.applyDeadband(
+                      -driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_X, XBoxConstants.AXIS_LEFT_X),
+                      0.1) * MaxSpeed) // Drive left
+                  // with
+                  // negative X
+                  // (left)
+                  .withRotationalRate(
+                      -driverChameleonController.getRawAxis(FlySkyConstants.AXIS_RIGHT_X, XBoxConstants.AXIS_RIGHT_X)
+                          * MaxAngularRate) // Drive counterclockwise with
+          // negative X (left)
 
           ).withName("Drive from Joysticks"));
 
