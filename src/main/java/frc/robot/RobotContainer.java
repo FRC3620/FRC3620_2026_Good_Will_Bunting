@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -18,6 +19,8 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
+import org.usfirst.frc3620.ChameleonController;
+import org.usfirst.frc3620.FlySkyConstants;
 import org.usfirst.frc3620.JoystickAnalogButton;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
@@ -26,6 +29,8 @@ import org.usfirst.frc3620.XBoxConstants;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -39,6 +44,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
@@ -54,6 +60,8 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.ButtonTriggers;
+import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
@@ -62,7 +70,7 @@ import frc.robot.Subsystems.SwerveSubsystem;
 import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
-import frc.robot.Subsystems.SpindexerSubsystem;
+
 
 import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
@@ -92,6 +100,10 @@ public class RobotContainer {
 
   private StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
+  private FMSTriggers fmsTriggers;
+  private ButtonTriggers buttonTriggers;
+
+  private Optional<Alliance> alliance = DriverStation.getAlliance();
 
   private double MaxSpeed = ChudbotTunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                        // speed
@@ -121,6 +133,7 @@ public class RobotContainer {
 
   // joysticks here....
   public static Joystick driverJoystick;
+  public static ChameleonController driverChameleonController;
   public static Joystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
@@ -129,10 +142,11 @@ public class RobotContainer {
   public ShooterSubsystem shooterSubsystem;
   public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
-  public SpindexerSubsystem spindexerSubsystem;
+
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
+  public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -178,7 +192,7 @@ public class RobotContainer {
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+  
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
@@ -207,10 +221,11 @@ public class RobotContainer {
     // shooterSubsystem = new ShooterSubsystem();
     // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
-    spindexerSubsystem = new SpindexerSubsystem();
+
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     // preshooterSubsystem = new PreshooterSubsystem();
+    blinkyLightsSubsystem = new BlinkyLightsSubsystem();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
@@ -240,9 +255,32 @@ public class RobotContainer {
   }
 
   private void makeStateTransitions() {
-    fieldTriggers = new FieldTriggers(swerveSubsystem);
+    if (swerveSubsystem==null) {
+      return;
+    }
+    fieldTriggers = new FieldTriggers(()->swerveSubsystem.getState().Pose);
+    fmsTriggers = new FMSTriggers(alliance);
+    buttonTriggers = new ButtonTriggers(driverChameleonController);
 
     passingState.addTransition(new StateTransition(
+      buttonTriggers.SWAOn,scoringState));
+    scoringState.addTransition(new StateTransition(
+      buttonTriggers.SWAOff, passingState));
+
+   /*  passingState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod, 
+      scoringState));
+     scoringState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod, 
+      passingState));
+
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isEndgame, 
+      climbingState));
+
+
+
+     passingState.addTransition(new StateTransition(
         fieldTriggers.enterOurAllianceZone,
         scoringState));
     passingState.addTransition(new StateTransition(
@@ -263,7 +301,7 @@ public class RobotContainer {
         fieldTriggers.enterOpponentDepot, passingState));
     hoardingState.addTransition(new StateTransition(
         fieldTriggers.enterOpponentOutpost, passingState));
-
+*/
   }
 
   private void makeStateMachine() {
@@ -276,6 +314,7 @@ public class RobotContainer {
 
   private void makeJoysticks() {
     driverJoystick = new Joystick(0);
+    driverChameleonController = new ChameleonController(driverJoystick);
     operatorJoystick = new Joystick(1);
     operatorKeyboard = new Joystick(2);
   }
@@ -293,17 +332,17 @@ public class RobotContainer {
       swerveSubsystem.setDefaultCommand(
           // Drivetrain will execute this command periodically
           swerveSubsystem.applyRequest(
-              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.1) * MaxSpeed) // Drive
+              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_Y,XBoxConstants.AXIS_LEFT_Y), 0.1) * MaxSpeed) // Drive
                                                                                                                // forward
                                                                                                                // with
                                                                                                                // negative
                                                                                                                // Y
                                                                                                                // (forward)
-                  .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.1) * MaxSpeed) // Drive left
+                  .withVelocityY(MathUtil.applyDeadband(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_LEFT_X,XBoxConstants.AXIS_LEFT_X), 0.1) * MaxSpeed) // Drive left
                                                                                                         // with
                                                                                                         // negative X
                                                                                                         // (left)
-                  .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
+                  .withRotationalRate(-driverChameleonController.getRawAxis(FlySkyConstants.AXIS_RIGHT_X, XBoxConstants.AXIS_RIGHT_X) * MaxAngularRate) // Drive counterclockwise with
                                                                                       // negative X (left)
 
           ).withName("Drive from Joysticks"));
@@ -318,7 +357,8 @@ public class RobotContainer {
           .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
       new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
           .whileTrue(swerveSubsystem.applyRequest(() -> point
-              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))).withName("Point"));
+              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0))))
+              .withName("Point"));
 
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 

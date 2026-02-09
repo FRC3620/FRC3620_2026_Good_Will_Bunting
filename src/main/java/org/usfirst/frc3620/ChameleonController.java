@@ -77,5 +77,39 @@ public class ChameleonController {
             return a > 0.2;
         }
     }
+
+    public boolean threeWaySwitchUp (int a_index, int b_index) {
+        return new ABThreeWayButtonProvider(a_index, b_index).getUpBoolean();
+    }
+    public boolean threeWaySwitchMidle (int a_index, int b_index) {
+        return new ABThreeWayButtonProvider(a_index, b_index).getMiddleBoolean();
+    }
+    public boolean threeWaySwitchDown (int a_index, int b_index) {
+        return new ABThreeWayButtonProvider(a_index, b_index).getDownBoolean();
+    }
+    
+    class ABThreeWayButtonProvider {
+        int a_axis_number, b_axis_number;
+
+        ABThreeWayButtonProvider(int a_axis_number, int b_axis_number) {
+            this.a_axis_number = a_axis_number;
+            this.b_axis_number = b_axis_number;
+        }
+
+        public boolean getUpBoolean() {
+            double a = getRawAxis(a_axis_number, b_axis_number);
+            return a > 0.2;
+        }
+
+        public boolean getMiddleBoolean() {
+            double a = getRawAxis(a_axis_number, b_axis_number);
+            return a == 0.0;
+        }
+
+        public boolean getDownBoolean() {
+            double a = getRawAxis(a_axis_number, b_axis_number);
+            return a < 0.2;
+        }
+    }
 }
 
