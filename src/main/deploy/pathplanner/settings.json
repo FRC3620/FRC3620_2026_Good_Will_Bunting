@@ -9,6 +9,7 @@
   ],
   "autoFolders": [
     "Left Bump Start",
+    "Tests",
     "Right Bump Start"
   ],
   "defaultMaxVel": 3.0,

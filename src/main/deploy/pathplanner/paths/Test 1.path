@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.977,
-        "y": 4.098
+        "x": 3.560328102710413,
+        "y": 5.542353780313838
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.829590361445783,
-        "y": 4.720879518072288
+        "x": 2.4129184641561956,
+        "y": 6.165233298386126
       },
       "isLocked": false,
       "linkedName": "Red Square Center"

@@ -25,6 +25,7 @@ import org.usfirst.frc3620.JoystickAnalogButton;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.XBoxConstants;
+import org.usfirst.frc3620.ChameleonController.ControllerType;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -315,6 +316,7 @@ public class RobotContainer {
   private void makeJoysticks() {
     driverJoystick = new Joystick(0);
     driverChameleonController = new ChameleonController(driverJoystick);
+    driverChameleonController.setCurrentControllerType(ControllerType.B);
     operatorJoystick = new Joystick(1);
     operatorKeyboard = new Joystick(2);
   }
@@ -398,12 +400,10 @@ public class RobotContainer {
     new JoystickButton(driverJoystick, 4).whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
 
     // Resets questNav from limelight
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_X)
+    driverChameleonController.button(FlySkyConstants.BUTTON_SWB, XBoxConstants.BUTTON_X)
       .onTrue(new SetQuestNavPoseFromMegaTag1Command()
       .andThen(new InstantCommand(() -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-      .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation())))));
-
-     
+      .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation())))).ignoringDisable(true));
   }
 
   private void setupSmartDashboardCommands() {

@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import org.tinylog.TaggedLogger;
+import org.usfirst.frc3620.logger.LoggingMaster;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -16,6 +19,8 @@ import gg.questnav.questnav.QuestNav;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class SetQuestNavPoseFromMegaTag1Command extends Command {
   boolean resetQN;
+  TaggedLogger logger = LoggingMaster.getLogger(getClass());
+
 
   /** Creates a new SetQuestNavPoseFromMegaTag1Command. */
   public SetQuestNavPoseFromMegaTag1Command() {
@@ -26,6 +31,7 @@ public class SetQuestNavPoseFromMegaTag1Command extends Command {
   @Override
   public void initialize() {
     resetQN = false;
+    logger.info("initializing");
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -49,13 +55,16 @@ public class SetQuestNavPoseFromMegaTag1Command extends Command {
         QuestNavSubsystem qn = RobotContainer.questNavSubsystem;
         qn.setQuestNavPose(pose);
         resetQN = true;
+
       }
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    logger.info("ended");
+  }
 
   // Returns true when the command should end.
   @Override

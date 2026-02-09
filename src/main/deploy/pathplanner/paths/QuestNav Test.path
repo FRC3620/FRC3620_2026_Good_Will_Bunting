@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.977,
-        "y": 4.098
+        "x": 3.4697574893009984,
+        "y": 5.529415121255349
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.643819277108434,
-        "y": 4.110650602409639
+        "x": 3.7820857456997774,
+        "y": 5.529504548617662
       },
       "isLocked": false,
-      "linkedName": "Red Square Center"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.904,
-        "y": 4.209843373493976
+        "x": 6.730299572039942,
+        "y": 5.529415121255349
       },
       "prevControl": {
-        "x": 6.761975903614462,
-        "y": 4.1897108433734935
+        "x": 5.837160791202157,
+        "y": 5.5339400467116855
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 178.210089391754
   },
   "reversed": false,
   "folder": "Test Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 179.1185960034178
   },
   "useDefaultConstraints": false
 }
