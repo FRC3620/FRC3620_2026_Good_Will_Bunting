@@ -4,11 +4,16 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
+import org.usfirst.frc3620.odo.OdoIdsFlySky;
+import org.usfirst.frc3620.odo.OdoIdsXBox;
+import org.usfirst.frc3620.odo.OdoJoystick;
+import org.usfirst.frc3620.odo.OdoJoystick.JoystickType;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -18,14 +23,14 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
-import org.usfirst.frc3620.JoystickAnalogButton;
+
+import org.usfirst.frc3620.RobotMode;
+import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
-import org.usfirst.frc3620.XBoxConstants;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Optional;
+
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -39,13 +44,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.states.ClimbingState;
 import frc.robot.fsm.states.DeadeyeState;
-import frc.robot.fsm.states.DefenseState;
 import frc.robot.fsm.states.HoardingState;
 import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.PassingState;
@@ -54,7 +59,10 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.ButtonTriggers;
+import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -62,7 +70,6 @@ import frc.robot.Subsystems.SwerveSubsystem;
 import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
-import frc.robot.Subsystems.SpindexerSubsystem;
 
 import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
@@ -79,7 +86,7 @@ import frc.robot.Subsystems.PreshooterSubsystem;
  * the robot (including
  * subsystems, commands, and button mappings) should be declared here.
  */
-public class RobotContainer {
+public class RobotContainer implements RobotModeChangeListener {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
 
   // States
@@ -88,10 +95,14 @@ public class RobotContainer {
   private ClimbingState climbingState;
   private DeadeyeState deadeyeState;
   private HoardingState hoardingState;
-  private DefenseState defenseState;
 
-  private StateMachine stateMachine;
+
+  private static StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
+  private FMSTriggers fmsTriggers;
+  private ButtonTriggers buttonTriggers;
+
+  private Optional<Alliance> alliance = DriverStation.getAlliance();
 
   private double MaxSpeed = ChudbotTunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                        // speed
@@ -120,8 +131,8 @@ public class RobotContainer {
   // subsystems here
 
   // joysticks here....
-  public static Joystick driverJoystick;
-  public static Joystick operatorJoystick;
+  public static OdoJoystick driverJoystick;
+  public static OdoJoystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
   public TurretSubsystem turretSubsystem;
@@ -129,10 +140,11 @@ public class RobotContainer {
   public ShooterSubsystem shooterSubsystem;
   public IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
-  public SpindexerSubsystem spindexerSubsystem;
+
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
+  public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -175,10 +187,10 @@ public class RobotContainer {
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-    spindexerSubsystem.setDefaultCommand(spindexerSubsystem.setVelocityCommand(RPM.of(0)));
+
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
@@ -204,29 +216,27 @@ public class RobotContainer {
 
     turretSubsystem = new TurretSubsystem();
     // climberSubsystem = new ClimberSubsystem();
-    // shooterSubsystem = new ShooterSubsystem();
+    shooterSubsystem = new ShooterSubsystem();
     // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
-    spindexerSubsystem = new SpindexerSubsystem();
+
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     // preshooterSubsystem = new PreshooterSubsystem();
+    blinkyLightsSubsystem = new BlinkyLightsSubsystem();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
-    String serialNumber = RobotController.getSerialNumber();
 
-    if (serialNumber.equals("0326F30D") || serialNumber.equals("0327BA54")) {
-      SmartDashboard.putString("Robot Serial", serialNumber);
-      SmartDashboard.putString("Robot Variant", "Chudbot");
+    String serialNumber = RobotController.getSerialNumber();
+    SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
+    String robotVariant = robotParameters.getVariant();
+    SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
+    if (robotVariant.equals("Chudbot")) {
       return ChudbotTunerConstants.createDrivetrain();
-    } else if (serialNumber.equals("03063D7E")) {
-      SmartDashboard.putString("Robot Serial", serialNumber);
-      SmartDashboard.putString("Robot Variant", "JoeHann");
+    } else if (robotVariant.equals("JoeHann")) {
       return JoeHannTunerConstants.createDrivetrain();
     } else {
-      SmartDashboard.putString("Robot Serial", serialNumber);
-      SmartDashboard.putString("Robot Variant", "Other");
       return TunerConstants.createDrivetrain();
     }
 
@@ -237,49 +247,86 @@ public class RobotContainer {
     scoringState = new ScoringState();
     climbingState = new ClimbingState();
     deadeyeState = new DeadeyeState();
-    defenseState = new DefenseState();
     hoardingState = new HoardingState();
 
   }
 
   private void makeStateTransitions() {
-    fieldTriggers = new FieldTriggers(swerveSubsystem);
+    if (swerveSubsystem == null) {
+      return;
+    }
+    fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
+    fmsTriggers = new FMSTriggers(alliance);
+    buttonTriggers = new ButtonTriggers(driverJoystick);
 
     passingState.addTransition(new StateTransition(
-        fieldTriggers.enterOurAllianceZone,
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
         scoringState));
+
     passingState.addTransition(new StateTransition(
-        fieldTriggers.enterDeadZone,
-        hoardingState));
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone), 
+      hoardingState));
+    passingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterDeadZone), 
+      hoardingState));
+    passingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone), 
+      hoardingState));
 
     scoringState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralDepot,
-        passingState));
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost), 
+      passingState));
     scoringState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralOutpost, passingState));
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot), 
+      passingState));
 
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot), 
+      hoardingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost), 
+      hoardingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone), 
+      hoardingState));
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone), 
+      hoardingState));
+    
+/* 
+    scoringState.addTransition(new StateTransition(
+      fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.climb), 
+      climbingState));
+*/
     hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralDepot, passingState));
+      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
+      scoringState));
+    
     hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterNeutralOutpost, passingState));
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentDepot),
+      passingState));
     hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterOpponentDepot, passingState));
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentOutpost),
+      passingState));
     hoardingState.addTransition(new StateTransition(
-        fieldTriggers.enterOpponentOutpost, passingState));
-
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
+      passingState));
+    hoardingState.addTransition(new StateTransition(
+      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
+      passingState));
   }
 
   private void makeStateMachine() {
     stateMachine = new StateMachine(passingState);
   }
 
-  public StateMachine getStateMachine() {
+  public static StateMachine getStateMachine() {
     return stateMachine;
   }
 
   private void makeJoysticks() {
-    driverJoystick = new Joystick(0);
-    operatorJoystick = new Joystick(1);
+    driverJoystick = new OdoJoystick(new Joystick(0));
+    operatorJoystick = new OdoJoystick(new Joystick(1));
     operatorKeyboard = new Joystick(2);
   }
 
@@ -296,20 +343,17 @@ public class RobotContainer {
       swerveSubsystem.setDefaultCommand(
           // Drivetrain will execute this command periodically
           swerveSubsystem.applyRequest(
-              () -> drive.withVelocityX(MathUtil.applyDeadband(-driverJoystick.getRawAxis(1), 0.1) * MaxSpeed) // Drive
-                                                                                                               // forward
-                                                                                                               // with
-                                                                                                               // negative
-                                                                                                               // Y
-                                                                                                               // (forward)
-                  .withVelocityY(MathUtil.applyDeadband(-driverJoystick.getRawAxis(0), 0.1) * MaxSpeed) // Drive left
-                                                                                                        // with
-                                                                                                        // negative X
-                                                                                                        // (left)
-                  .withRotationalRate(-driverJoystick.getRawAxis(4) * MaxAngularRate) // Drive counterclockwise with
-                                                                                      // negative X (left)
-
-          ).withName("Drive from Joysticks"));
+              () -> drive
+                  // Drive forward with negative Y (forward)
+                  .withVelocityX(MathUtil.applyDeadband(
+                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
+                  // Drive with negative X (left)
+                  .withVelocityY(MathUtil.applyDeadband(
+                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
+                  // Drive counterclockwise with negative X (left) left
+                  .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
+                      * MaxAngularRate))
+              .withName("Drive from Joysticks"));
 
       // Idle while the robot is disabled. This ensures the configured
       // neutral mode is applied to the drive motors while disabled.
@@ -317,48 +361,60 @@ public class RobotContainer {
       RobotModeTriggers.disabled().whileTrue(
           swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
 
-      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
           .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
-      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
-          .whileTrue(swerveSubsystem.applyRequest(() -> point
-              .withModuleDirection(new Rotation2d(-driverJoystick.getRawAxis(1), -driverJoystick.getRawAxis(0)))).withName("Point"));
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
+          .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
+              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
+              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
+          ))).withName("Point"));
 
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
-      new JoystickButton(driverJoystick, XBoxConstants.BUTTON_RIGHT_BUMPER)
-          .whileTrue(swerveSubsystem.applyRequest(() -> drive.withVelocityX(0.2) // Drive forward with negative Y
-                                                                                 // (forward)
-              .withVelocityY(0) // Drive left with negative X (left)
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+          .whileTrue(swerveSubsystem.applyRequest(() -> drive
+              // Drive forward with negative Y(forward)
+              .withVelocityX(0.2)
+              // Drive left with negative X (left)
+              .withVelocityY(0)
               .withRotationalRate(0) // Drive coun
           ).withName("Drive Slow"));
       CommandScheduler.getInstance().schedule(
-          new InstantCommand(
-              () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-              .andThen(
-                  new InstantCommand(
-                      () -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
+          new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
     }
 
+    
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_A)
+    operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_B)
+    operatorJoystick.button(OdoIdsXBox.ButtonId.B)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
 
-    // new JoystickButton(driverJoystick,
-    // XBoxConstants.BUTTON_X).whileTrue(climberSubsystem.setHeight(Inches.of(48)));
-    // new JoystickButton(driverJoystick,
-    // XBoxConstants.BUTTON_Y).whileTrue(climberSubsystem.setHeight(Inches.of(0)));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
+        .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
 
-    new JoystickAnalogButton(driverJoystick, XBoxConstants.AXIS_LEFT_TRIGGER);
-    // .onTrue(shooterSubsystem.setVelocity(RPM.of(600)));
-    new JoystickButton(driverJoystick, 3);
-    // .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)));
-    new JoystickButton(driverJoystick, 4).whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
+  }
 
+  public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
+    if (currentRobotMode == RobotMode.TELEOP) {
+      Joystick realDriverJoystick = driverJoystick.getRealJoystick();
+      String driveControllerName = realDriverJoystick.getName();
+      int n_axes = realDriverJoystick.getAxisCount();
+      int n_buttons = realDriverJoystick.getButtonCount();
+      logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName, 
+        realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
+      if (driveControllerName.startsWith("Flysky")) {
+        driverJoystick.setJoystickType(JoystickType.A);
+      } else {
+        driverJoystick.setJoystickType(JoystickType.B);
+      }
+    }
   }
 
   private void setupSmartDashboardCommands() {
@@ -374,7 +430,7 @@ public class RobotContainer {
 
     if (autoChooser != null) {
       SmartDashboard.putData("Auto Mode", autoChooser);
-    }
+    } 
   }
 
   public Command getAutonomousCommand() {
@@ -450,5 +506,6 @@ public class RobotContainer {
 
     return false;
   }
+
 
 }

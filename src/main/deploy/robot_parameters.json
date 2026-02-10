@@ -2,41 +2,34 @@
   {
     "name": "simulator",
     "serialNumber": "(simulation)",
-    "makeAllCANDevices": true,
-    "swerveDirectoryName": "swerve/simulation",
-    "competitionRobot": true,
-    "shortLEDStrip": true
+    "makeAllCANDevices": true
   },
   {
     "name": "Joehann",
     "serialNumber": "03063d7e",
     "makeAllCANDevices": false,
-    "swerveDirectoryName": "swerve/Joehann",
-    "shortLEDStrip": true
+    "variant": "Joehann"
   },
   {
     "name": "CheepCheep",
     "serialNumber": "030a8289",
-    "makeAllCANDevices": false,
-    "swerveDirectoryName": "swerve/CheepCheep"
+    "makeAllCANDevices": false
   },
   {
     "name": "Chudbot",
     "serialNumber": ["0326F30D",  "0327BA54"],
     "makeAllCANDevices": false,
     "competitionRobot": false,
-    "swerveDirectoryName": "swerve/Compbot"
+    "variant": "Chudbot"
   },
   {
     "name": "Muleboard",
     "serialNumber": "0305ccbf",
-    "makeAllCANDevices": false,
-    "swerveDirectoryName": "swerve/Compbot"
+    "makeAllCANDevices": false
   },
   {
     "name": "unknown",
     "serialNumber": "(unknown)",
-    "makeAllCANDevices": true,
-    "swerveDirectoryName": "swerve/simulation"
+    "makeAllCANDevices": true
   }
 ]
