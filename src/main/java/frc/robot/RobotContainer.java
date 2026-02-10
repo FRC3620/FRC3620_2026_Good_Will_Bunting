@@ -387,10 +387,6 @@ public class RobotContainer implements RobotModeChangeListener {
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
-    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_BACK)
-        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
-
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
 
@@ -399,6 +395,10 @@ public class RobotContainer implements RobotModeChangeListener {
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
         .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
+
+    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
