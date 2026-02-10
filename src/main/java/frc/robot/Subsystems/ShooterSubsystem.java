@@ -52,9 +52,11 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
-        telemetryPrefix + "Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+        telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevices) {
       motor1 = new TalonFX(motorId1);
+      RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId2,
+        telemetryPrefix + " #2");
       motor2 = new TalonFX(motorId2);
 
       SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
@@ -79,20 +81,20 @@ public class ShooterSubsystem extends SubsystemBase {
           .withClosedLoopRampRate(Seconds.of(0.5))
           .withOpenLoopRampRate(Seconds.of(0.5));
 
-
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
-    }
 
-    FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
-        // Diameter of the flywheel.
-        .withDiameter(Inches.of(4))
-        // Mass of the flywheel.
-        .withMass(Pounds.of(0.6))
-        // Maximum speed of the flywheel.
-        .withUpperSoftLimit(RPM.of(1000))
-        // Telemetry name and verbosity for the arm.
-        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
-    flywheel = new FlyWheel(Config);
+      FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
+          // Diameter of the flywheel.
+          .withDiameter(Inches.of(4))
+          // Mass of the flywheel.
+          .withMass(Pounds.of(0.6))
+          // Maximum speed of the flywheel.
+          .withUpperSoftLimit(RPM.of(1000))
+          // Telemetry name and verbosity for the arm.
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
+
+      flywheel = new FlyWheel(Config);
+    }
   }
 
   /**
@@ -114,12 +116,13 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
+    Command rv;
     if (flywheel != null)
-      return flywheel.setSpeed(speed);
+      rv = flywheel.setSpeed(speed);
     else
-      return this.runOnce(() -> {
-        // RobotContainer.logger.error("flywheel not initialized");
+      rv = run(() -> {
       });
+    return rv.withName("setVelocity");
   }
 
   /**
@@ -129,26 +132,27 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command set(double dutyCycle) {
+    Command rv;
     if (flywheel != null)
-      return flywheel.set(dutyCycle);
+      rv = flywheel.set(dutyCycle);
     else
-      return this.runOnce(() -> {
-        // RobotContainer.logger.error("Flywheel not initialized");
+      rv = run(() -> {
       });
+    return rv.withName("set");
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-   if (flywheel != null) {
-      flywheel.updateTelemetry();}
-   }
+    if (flywheel != null) {
+      flywheel.updateTelemetry();
+    }
+  }
 
   @Override
   public void simulationPeriodic() {
-     if (flywheel != null) {
+    if (flywheel != null) {
       flywheel.simIterate();
     }
   }
 }
-
