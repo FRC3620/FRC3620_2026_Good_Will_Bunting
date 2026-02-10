@@ -28,63 +28,73 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXSWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
-public class IntakeShoulderSubsystem extends SubsystemBase{
-    public boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, 
-    Constants.MOTORID_INTAKE_SHOULDER)|| RobotContainer.shouldMakeAllCANDevices();
-    TalonFX motor= null;
-    SmartMotorControllerConfig motorConfig =null;
-    private  SmartMotorController motorControler =null;
-    private  Arm arm = null;
-    public enum IntakeShoulderPositions{
-        UP(90.0),
-        Down(0.0);
-        IntakeShoulderPositions(Double i) {
-            //TODO Auto-generated constructor stub
-        }}
-     
+public class IntakeShoulderSubsystem extends SubsystemBase {
+  int motorId = Constants.MOTORID_INTAKE_SHOULDER;
+  String telemetryPrefix = "IntakeShoulder";
 
+  private TalonFX motor = null;
+  private SmartMotorController motorControler = null;
+  private Arm arm = null;
 
-  public IntakeShoulderSubsystem() {
-    if(makeDevice){
-      motor= new TalonFX(Constants.MOTORID_INTAKE_SHOULDER);
-      motorConfig = new SmartMotorControllerConfig(this)
-        .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-        .withSoftLimit(Degrees.of(-30), Degrees.of(100))
-        .withGearing(new MechanismGearing(GearBox.fromReductionStages(70,1)))
-        .withIdleMode(MotorMode.BRAKE)
-        .withTelemetry("ShoulderMotor", TelemetryVerbosity.HIGH)
-        .withStatorCurrentLimit(Amps.of(40))
-        .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
-        .withControlMode(ControlMode.CLOSED_LOOP);
+  public enum IntakeShoulderPositions {
+    UP(90.0),
+    Down(0.0);
 
-        motorControler =  new TalonFXWrapper(motor, DCMotor.getKrakenX60(1),motorConfig);
-        arm=new Arm(new ArmConfig(motorControler)
-      .withLength(Meters.of(0.135))
-      .withHardLimit(Degrees.of(-100), Degrees.of(200))
-      .withStartingPosition(Degrees.of(0))
-      .withTelemetry("Shoulder Example", TelemetryVerbosity.HIGH)
-       .withLength(Feet.of(4))
-       .withMass(Pound.of(4))
-  );
+    IntakeShoulderPositions(Double i) {
+      // TODO Auto-generated constructor stub
     }
   }
+
+  public IntakeShoulderSubsystem() {
+    boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, motorId)
+        || RobotContainer.shouldMakeAllCANDevices();
+    if (makeDevice) {
+      motor = new TalonFX(motorId);
+      SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
+          .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+          .withSoftLimit(Degrees.of(-30), Degrees.of(100))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(70, 1)))
+          .withIdleMode(MotorMode.BRAKE)
+          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
+          .withStatorCurrentLimit(Amps.of(40))
+          .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
+          .withControlMode(ControlMode.CLOSED_LOOP);
+
+      motorControler = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
+      arm = new Arm(new ArmConfig(motorControler)
+          .withLength(Meters.of(0.135))
+          .withHardLimit(Degrees.of(-100), Degrees.of(200))
+          .withStartingPosition(Degrees.of(0))
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
+          .withLength(Feet.of(4))
+          .withMass(Pound.of(4)));
+    }
+  }
+
   @Override
   public void periodic() {
-    arm.updateTelemetry();
+    if (arm != null) {
+      arm.updateTelemetry();
+    }
   }
 
   @Override
   public void simulationPeriodic() {
-    // setAngle(intake /\)
-    arm.simIterate();
+    if (arm != null) {
+      arm.simIterate();
+    }
+  }
+
+  private Command doNothingCommand() {
+    return run(() -> {
+    });
   }
 
   public Command setAngle(Angle angle) {
-    if(arm!=null)
-    return arm.setAngle(angle);
-    return null;
+    if (arm != null)
+      return arm.setAngle(angle);
+    return doNothingCommand();
   }
 }
