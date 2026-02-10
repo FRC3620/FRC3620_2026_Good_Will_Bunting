@@ -5,10 +5,9 @@
     "makeAllCANDevices": true
   },
   {
-    "name": "Joehann",
+    "name": "PlexiMuleboard",
     "serialNumber": "03063d7e",
-    "makeAllCANDevices": false,
-    "variant": "Joehann"
+    "makeAllCANDevices": false
   },
   {
     "name": "CheepCheep",
