@@ -62,6 +62,7 @@ import frc.robot.Generated.TunerConstants;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -96,7 +97,7 @@ public class RobotContainer implements RobotModeChangeListener {
   private HoardingState hoardingState;
 
 
-  private StateMachine stateMachine;
+  private static StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
   private FMSTriggers fmsTriggers;
   private ButtonTriggers buttonTriggers;
@@ -186,7 +187,7 @@ public class RobotContainer implements RobotModeChangeListener {
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
@@ -215,7 +216,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     turretSubsystem = new TurretSubsystem();
     // climberSubsystem = new ClimberSubsystem();
-    // shooterSubsystem = new ShooterSubsystem();
+    shooterSubsystem = new ShooterSubsystem();
     // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
 
@@ -313,55 +314,13 @@ public class RobotContainer implements RobotModeChangeListener {
     hoardingState.addTransition(new StateTransition(
       fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
       passingState));
-    /*
-     * passingState.addTransition(new StateTransition(
-     * buttonTriggers.SWAOn,scoringState));
-     * scoringState.addTransition(new StateTransition(
-     * buttonTriggers.SWAOff, passingState));
-     */
-    /*
-     * passingState.addTransition(new StateTransition(
-     * fmsTriggers.isActivePeriod,
-     * scoringState));
-     * scoringState.addTransition(new StateTransition(
-     * fmsTriggers.isInactivePeriod,
-     * passingState));
-     * 
-     * scoringState.addTransition(new StateTransition(
-     * fmsTriggers.isEndgame,
-     * climbingState));
-     * 
-     * 
-     * 
-     * passingState.addTransition(new StateTransition(
-     * fieldTriggers.enterOurAllianceZone,
-     * scoringState));
-     * passingState.addTransition(new StateTransition(
-     * fieldTriggers.enterDeadZone,
-     * hoardingState));
-     * 
-     * scoringState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralDepot,
-     * passingState));
-     * scoringState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralOutpost, passingState));
-     * 
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralDepot, passingState));
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralOutpost, passingState));
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterOpponentDepot, passingState));
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterOpponentOutpost, passingState));
-     */
   }
 
   private void makeStateMachine() {
     stateMachine = new StateMachine(passingState);
   }
 
-  public StateMachine getStateMachine() {
+  public static StateMachine getStateMachine() {
     return stateMachine;
   }
 
@@ -421,15 +380,16 @@ public class RobotContainer implements RobotModeChangeListener {
               .withRotationalRate(0) // Drive coun
           ).withName("Drive Slow"));
       CommandScheduler.getInstance().schedule(
-          new InstantCommand(
-              () -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-              .andThen(
-                  new InstantCommand(
-                      () -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation()))));
+          new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
     }
 
+    
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
+
+    new JoystickButton(driverJoystick, XBoxConstants.BUTTON_BACK)
+        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
@@ -470,7 +430,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (autoChooser != null) {
       SmartDashboard.putData("Auto Mode", autoChooser);
-    }
+    } 
   }
 
   public Command getAutonomousCommand() {
@@ -546,5 +506,6 @@ public class RobotContainer implements RobotModeChangeListener {
 
     return false;
   }
+
 
 }

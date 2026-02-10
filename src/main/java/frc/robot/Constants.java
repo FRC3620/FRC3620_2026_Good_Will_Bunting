@@ -19,7 +19,8 @@ package frc.robot;
 @SuppressWarnings("unused")
 public final class Constants {
     public static final int MOTORID_TURRET = 20;
-    public static final int MOTORID_SHOOTER = 21;
+    public static final int MOTORID_SHOOTER1 = 21;
+    public static final int MOTORID_SHOOTER2 = 22;
    
     public static final int MOTORID_INTAKEROLLERS = 24;
     public static final int MOTORID_HOOD = 23;
