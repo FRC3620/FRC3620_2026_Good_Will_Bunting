@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pound;
 
@@ -25,7 +26,9 @@ import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
+import yams.mechanisms.config.PivotConfig;
 import yams.mechanisms.positional.Arm;
+import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -37,7 +40,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class ShooterHoodSubsystem extends SubsystemBase {
 
     TalonFX motor = null;
-    private Arm arm = null;
+    private Pivot pivot = null;
     private SmartMotorController motorController = null;
 
     public ShooterHoodSubsystem() {
@@ -49,47 +52,46 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         if (makeDevices) {
             motor = new TalonFX(Constants.MOTORID_HOOD);
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-                    .withSoftLimit(Degrees.of(-30), Degrees.of(100))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(7, 1)))
+                    .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(5), DegreesPerSecondPerSecond.of(2.5))
+                    .withSoftLimit(Degrees.of(25), Degrees.of(65))
+                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625, 1)))
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(40))
+                    .withStatorCurrentLimit(Amps.of(5))
                     .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
                     .withControlMode(ControlMode.CLOSED_LOOP);
             // .withMOI(Feet.of(4), Pound.of(4));
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
-            arm = new Arm(new ArmConfig(motorController)
-                    .withHardLimit(Degrees.of(45), Degrees.of(90))
-                    .withStartingPosition(Degrees.of(45))
+            pivot = new Pivot(new PivotConfig(motorController)
+                    .withHardLimit(Degrees.of(10), Degrees.of(80))
+                    .withStartingPosition(Degrees.of(10))
+                    .withMOI(Inches.of(55.7), Pound.of(1))
                     .withTelemetry("Shooter Hood", TelemetryVerbosity.HIGH)
-                    .withLength(Feet.of(1))
-                    .withMass(Pound.of(0.5)));
-        }
+            );}
 
     }
 
     @Override
     public void periodic() {
-        if (arm != null) {
-            arm.updateTelemetry();
+        if (pivot != null) {
+            pivot.updateTelemetry();
         }
     }
 
     @Override
     public void simulationPeriodic() {
         // setAngle(intake /\)
-        if (arm != null) {
-            arm.simIterate();
+        if (pivot != null) {
+            pivot.simIterate();
         }
     }
 
     public Command setAngle(Angle angle){
-        if (arm != null)
-            return arm.setAngle(angle).withName("Shooter Hood setAngle");
+        if (pivot != null)
+            return pivot.setAngle(angle).withName("Shooter Hood setAngle");
         else
-            return this.run(() -> {
-                // RobotContainer.logger.error("Shooter Hood Arm not initialized");
+            return this.run(() -> { 
+                // RobotContainer.logger.error("Shooter Hood not initialized");
             }).withName("Shooter Hood setAngle");
     }
 }

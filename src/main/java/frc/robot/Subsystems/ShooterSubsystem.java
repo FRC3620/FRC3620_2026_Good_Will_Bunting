@@ -18,6 +18,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -38,52 +39,57 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
-  int motorId = Constants.MOTORID_SHOOTER;
+  int motorId1 = Constants.MOTORID_SHOOTER1;
+  int motorId2 = Constants.MOTORID_SHOOTER2;
   String telemetryPrefix = "Shooter";
 
-  private TalonFX motor = null;
+  private TalonFX motor1 = null;
+  private TalonFX motor2 = null;
   private SmartMotorController smartMotorController = null;
   private FlyWheel flywheel = null;
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
-    boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
+    boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + "Subsystem") || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevices) {
-      motor = new TalonFX(motorId);
+      motor1 = new TalonFX(motorId1);
+      motor2 = new TalonFX(motorId2);
 
-      SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+      SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
+          .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-          .withSimClosedLoopController(50, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+          .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+          .withSimClosedLoopController(25, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           // Telemetry name and verbosity level
-          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
+          .withTelemetry(telemetryPrefix + "Motor1", TelemetryVerbosity.HIGH)
           // Gearing from the motor rotor to final shaft.
           // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
           // corresponds to the gearbox attached to your motor.
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(2, 1)))
           // Motor properties to prevent over currenting.
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
-          .withStatorCurrentLimit(Amps.of(40))
-          .withClosedLoopRampRate(Seconds.of(0.25))
-          .withOpenLoopRampRate(Seconds.of(0.25));
+          .withStatorCurrentLimit(Amps.of(10))
+          .withClosedLoopRampRate(Seconds.of(5))
+          .withOpenLoopRampRate(Seconds.of(5));
 
-      smartMotorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), smcConfig);
+
+      smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
     }
 
     FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
         // Diameter of the flywheel.
         .withDiameter(Inches.of(4))
         // Mass of the flywheel.
-        .withMass(Pounds.of(1))
+        .withMass(Pounds.of(0.6))
         // Maximum speed of the flywheel.
-        .withUpperSoftLimit(RPM.of(1000))
+        .withUpperSoftLimit(RPM.of(100))
         // Telemetry name and verbosity for the arm.
         .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
     flywheel = new FlyWheel(Config);

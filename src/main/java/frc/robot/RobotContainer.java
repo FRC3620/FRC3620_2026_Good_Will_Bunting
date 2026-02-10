@@ -190,7 +190,7 @@ public class RobotContainer {
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
   
@@ -219,7 +219,7 @@ public class RobotContainer {
 
     turretSubsystem = new TurretSubsystem();
     // climberSubsystem = new ClimberSubsystem();
-    // shooterSubsystem = new ShooterSubsystem();
+    shooterSubsystem = new ShooterSubsystem();
     // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
 
@@ -376,7 +376,7 @@ public class RobotContainer {
     
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
-    
+
     new JoystickButton(driverJoystick, XBoxConstants.BUTTON_BACK)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
         .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
