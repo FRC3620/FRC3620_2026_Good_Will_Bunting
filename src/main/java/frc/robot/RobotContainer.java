@@ -96,7 +96,7 @@ public class RobotContainer {
   private HoardingState hoardingState;
 
 
-  private StateMachine stateMachine;
+  private static StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
   private FMSTriggers fmsTriggers;
   private ButtonTriggers buttonTriggers;
@@ -314,55 +314,13 @@ public class RobotContainer {
     hoardingState.addTransition(new StateTransition(
       fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
       passingState));
-    /*
-     * passingState.addTransition(new StateTransition(
-     * buttonTriggers.SWAOn,scoringState));
-     * scoringState.addTransition(new StateTransition(
-     * buttonTriggers.SWAOff, passingState));
-     */
-    /*
-     * passingState.addTransition(new StateTransition(
-     * fmsTriggers.isActivePeriod,
-     * scoringState));
-     * scoringState.addTransition(new StateTransition(
-     * fmsTriggers.isInactivePeriod,
-     * passingState));
-     * 
-     * scoringState.addTransition(new StateTransition(
-     * fmsTriggers.isEndgame,
-     * climbingState));
-     * 
-     * 
-     * 
-     * passingState.addTransition(new StateTransition(
-     * fieldTriggers.enterOurAllianceZone,
-     * scoringState));
-     * passingState.addTransition(new StateTransition(
-     * fieldTriggers.enterDeadZone,
-     * hoardingState));
-     * 
-     * scoringState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralDepot,
-     * passingState));
-     * scoringState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralOutpost, passingState));
-     * 
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralDepot, passingState));
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterNeutralOutpost, passingState));
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterOpponentDepot, passingState));
-     * hoardingState.addTransition(new StateTransition(
-     * fieldTriggers.enterOpponentOutpost, passingState));
-     */
   }
 
   private void makeStateMachine() {
     stateMachine = new StateMachine(passingState);
   }
 
-  public StateMachine getStateMachine() {
+  public static StateMachine getStateMachine() {
     return stateMachine;
   }
 
@@ -548,5 +506,6 @@ public class RobotContainer {
 
     return false;
   }
+
 
 }
