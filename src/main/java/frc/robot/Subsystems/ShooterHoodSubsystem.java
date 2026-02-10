@@ -52,18 +52,21 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         if (makeDevices) {
             motor = new TalonFX(Constants.MOTORID_HOOD);
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(5), DegreesPerSecondPerSecond.of(2.5))
+                    .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(7), DegreesPerSecondPerSecond.of(5))
                     .withSoftLimit(Degrees.of(25), Degrees.of(65))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625, 1)))
+                    .withMotorInverted(true)
+                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(5))
+                    .withStatorCurrentLimit(Amps.of(15))
                     .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
+                    .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
+                    .withStartingPosition(Degrees.of(10))
                     .withControlMode(ControlMode.CLOSED_LOOP);
             // .withMOI(Feet.of(4), Pound.of(4));
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
             pivot = new Pivot(new PivotConfig(motorController)
-                    .withHardLimit(Degrees.of(10), Degrees.of(80))
+                    .withHardLimit(Degrees.of(10), Degrees.of(60))
                     .withStartingPosition(Degrees.of(10))
                     .withMOI(Inches.of(55.7), Pound.of(1))
                     .withTelemetry("Shooter Hood", TelemetryVerbosity.HIGH)

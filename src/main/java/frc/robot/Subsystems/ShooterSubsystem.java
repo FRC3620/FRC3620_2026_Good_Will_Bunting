@@ -61,8 +61,8 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(25, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
-          .withSimClosedLoopController(25, 0, 0, DegreesPerSecond.of(90), DegreesPerSecondPerSecond.of(45))
+          .withClosedLoopController(10, 0, 0, DegreesPerSecond.of(1440), DegreesPerSecondPerSecond.of(720))
+          .withSimClosedLoopController(10, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
@@ -71,13 +71,13 @@ public class ShooterSubsystem extends SubsystemBase {
           // Gearing from the motor rotor to final shaft.
           // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
           // corresponds to the gearbox attached to your motor.
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(2, 1)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(2)))
           // Motor properties to prevent over currenting.
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
-          .withStatorCurrentLimit(Amps.of(10))
-          .withClosedLoopRampRate(Seconds.of(5))
-          .withOpenLoopRampRate(Seconds.of(5));
+          .withStatorCurrentLimit(Amps.of(40))
+          .withClosedLoopRampRate(Seconds.of(0.5))
+          .withOpenLoopRampRate(Seconds.of(0.5));
 
 
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
@@ -89,7 +89,7 @@ public class ShooterSubsystem extends SubsystemBase {
         // Mass of the flywheel.
         .withMass(Pounds.of(0.6))
         // Maximum speed of the flywheel.
-        .withUpperSoftLimit(RPM.of(100))
+        .withUpperSoftLimit(RPM.of(1000))
         // Telemetry name and verbosity for the arm.
         .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
     flywheel = new FlyWheel(Config);
