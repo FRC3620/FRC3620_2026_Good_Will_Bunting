@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.4938659058487873,
-        "y": 0.6256633380884444
+        "x": 7.299600570613409,
+        "y": 3.8862054208273893
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.1925534950071321,
-        "y": 0.8068045649072735
+        "x": 7.247845934379456,
+        "y": 2.2429957203994295
       },
       "isLocked": false,
-      "linkedName": "Outpost Collect"
+      "linkedName": "Center Neutral Collect"
     },
     {
       "anchor": {
@@ -20,19 +20,41 @@
         "y": 2.695848787446506
       },
       "prevControl": {
-        "x": 1.0631669044222536,
-        "y": 2.371848787446506
+        "x": 5.46231098430813,
+        "y": 2.2041797432239663
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Right Climb"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 135.0
+    },
+    {
+      "waypointRelativePos": 0.788912579957356,
+      "rotationDegrees": 135.0
+    }
+  ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8021607022282286,
+      "minWaypointRelativePos": 0.4726536124240407,
+      "maxWaypointRelativePos": 0.7886563133018294,
+      "constraints": {
+        "maxVelocity": 2.0,
+        "maxAcceleration": 2.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.8966914247130297,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
         "maxVelocity": 1.5,
@@ -45,7 +67,19 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Reset QuestNav",
+      "waypointRelativePos": 0.7913571910871022,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Reset QuestNav"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 2.5,
     "maxAcceleration": 2.5,
@@ -62,7 +96,7 @@
   "folder": "Right Bump Start",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -146.0
   },
   "useDefaultConstraints": false
 }
