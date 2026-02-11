@@ -50,7 +50,7 @@ public class ClimberSubsystem extends SubsystemBase {
         motorId) || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
       
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)

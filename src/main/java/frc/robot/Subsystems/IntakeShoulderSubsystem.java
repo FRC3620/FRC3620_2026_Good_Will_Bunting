@@ -51,7 +51,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
       
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))

@@ -14,6 +14,9 @@ import org.usfirst.frc3620.odo.OdoIdsXBox;
 import org.usfirst.frc3620.odo.OdoJoystick;
 import org.usfirst.frc3620.odo.OdoJoystick.JoystickType;
 
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -28,6 +31,7 @@ import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 
+import java.util.EnumSet;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -207,6 +211,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
       swerveLogger = new SwerveTelemetry(MaxSpeed);
       swerveSubsystem = configureSwerveDrive();
+
+      sendSwerveSubsystemToHealthSubsystem();
     }
 
     questNavSubsystem = new QuestNavSubsystem(swerveSubsystem, new Pose3d());
@@ -222,6 +228,8 @@ public class RobotContainer implements RobotModeChangeListener {
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     preshooterSubsystem = new PreshooterSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
+
+    healthSubsystem.dumpDatabase();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
@@ -229,6 +237,7 @@ public class RobotContainer implements RobotModeChangeListener {
     SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
     String robotVariant = robotParameters.getVariant();
     SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
+    SwerveSubsystem rv = null;
     if (robotVariant.equals("Chudbot")) {
       return ChudbotTunerConstants.createDrivetrain();
     } else if (robotVariant.equals("JoeHann")) {
@@ -395,7 +404,7 @@ public class RobotContainer implements RobotModeChangeListener {
         .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
-    .whileTrue(intakeRollerSubsystem.rollersOn());
+        .whileTrue(intakeRollerSubsystem.rollersOn());
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
@@ -444,6 +453,35 @@ public class RobotContainer implements RobotModeChangeListener {
 
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
+  }
+
+  void sendSwerveSubsystemToHealthSubsystem() {
+    var modules = swerveSubsystem.getModules();
+    var locations = swerveSubsystem.getModuleLocations();
+    for (var i = 0; i < modules.length; i++) {
+      var module = modules[i];
+      var location = locations[i];
+      // X and Y seem swapped, but look at TunerConstants.
+      // +X is to front of robot, +Y is to left
+      /*
+       * ·· +Y
+       * -X [> +X (front)
+       * ·· -Y
+       */
+      var location_name = ((location.getX() > 0) ? "Front" : "Back") + ((location.getY() > 0) ? "Left" : "Right");
+
+      CoreTalonFX steer_motor = module.getSteerMotor();
+      healthSubsystem.addMotorToWatch(steer_motor, "Swerve/" + location_name + "/steer",
+          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+      CoreTalonFX drive_motor = module.getDriveMotor();
+      healthSubsystem.addMotorToWatch(drive_motor, "Swerve/" + location_name + "/drive",
+          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+      CANcoder cancoder = module.getEncoder();
+      healthSubsystem.addCTRESensorToWatch(cancoder, "Swerve/" + location_name + "/cancoder",
+          HealthSubsystem.healthOptionsForCTRESwerveSensors);
+    }
+    Pigeon2 pigeon = swerveSubsystem.getPigeon2();
+    healthSubsystem.addCTRESensorToWatch(pigeon, "Swerve/pigeon", HealthSubsystem.healthOptionsForCTRESwerveSensors);
   }
 
   /**
