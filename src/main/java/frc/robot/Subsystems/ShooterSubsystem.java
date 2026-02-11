@@ -58,6 +58,8 @@ public class ShooterSubsystem extends SubsystemBase {
       RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId2,
         telemetryPrefix + " #2");
       motor2 = new TalonFX(motorId2);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor1, "telemetryPrefix"+"#1");
+      RobotContainer.healthSubsystem.addMotorToWatch(motor2, "telemetryPrefix"+"#2");
 
       SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)

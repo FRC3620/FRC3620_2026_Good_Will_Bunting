@@ -50,7 +50,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
-            motor = new TalonFX(Constants.MOTORID_HOOD);
+            motor = new TalonFX(Constants.MOTORID_HOOD); 
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, "telemetryPrefix");
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(7), DegreesPerSecondPerSecond.of(5))
                     .withSoftLimit(Degrees.of(25), Degrees.of(65))

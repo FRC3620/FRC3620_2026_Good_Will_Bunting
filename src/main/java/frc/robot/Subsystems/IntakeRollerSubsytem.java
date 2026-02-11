@@ -26,69 +26,72 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 import org.usfirst.frc3620.CANDeviceFinder;
+
 public class IntakeRollerSubsytem extends SubsystemBase {
-    
-    private  TalonFX motor=null;
-    private  SmartMotorController motorController;
-    private  FlyWheel flyWheel;
-    
+    int motorId = Constants.MOTORID_INTAKEROLLERS;
+    String telemetryPrefix = "IntakeRollers";
+
+    private TalonFX motor = null;
+    private SmartMotorController motorController;
+    private FlyWheel flyWheel;
+
     public IntakeRollerSubsytem() {
-        boolean makeDevices= RobotContainer.canDeviceFinder.isDevicePresent(org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6, 
-        Constants.MOTORID_INTAKEROLLERS
-        , "Intake Rollers")||RobotContainer.shouldMakeAllCANDevices();
-        
-        if(makeDevices){
-            motor = new TalonFX(Constants.MOTORID_INTAKEROLLERS);
+        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
+                org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
+                motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
+
+        if (makeDevices) {
+            motor = new TalonFX(motorId);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                .withClosedLoopController(
-                    0.1,  // kP - tune this
-                    0.0,  // kI
-                    0.0,  // kD
-                    RotationsPerSecond.of(100),
-                    RotationsPerSecondPerSecond.of(200)
-                )
-                .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
-                .withIdleMode(MotorMode.BRAKE)
-                .withTelemetry("RollerMotor", TelemetryVerbosity.HIGH)
-                .withStatorCurrentLimit(Amps.of(40))
-                .withSupplyCurrentLimit(Amps.of(40))
-                .withControlMode(ControlMode.CLOSED_LOOP);
-            
-                motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
-                FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
+                    .withClosedLoopController(
+                            0.1, // kP - tune this
+                            0.0, // kI
+                            0.0, // kD
+                            RotationsPerSecond.of(100),
+                            RotationsPerSecondPerSecond.of(200))
+                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
+                    .withIdleMode(MotorMode.BRAKE)
+                    .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.HIGH)
+                    .withStatorCurrentLimit(Amps.of(40))
+                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withControlMode(ControlMode.CLOSED_LOOP);
+
+            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
+            FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
                     .withDiameter(Inch.of(4))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(2000))
-                    .withTelemetry("Intake Roller", TelemetryVerbosity.HIGH);
-                
-                // Create the FlyWheel
-                flyWheel = new FlyWheel(rollerConfig);
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
+
+            // Create the FlyWheel
+            flyWheel = new FlyWheel(rollerConfig);
         }
     }
-    
+
     public Command rollersOn() {
         // Only use YAMS control, not manual rollers.set()
-        if(flyWheel!=null){
-        return flyWheel.setSpeed(RPM.of(1500)).withName("Rollers On");
-    }else
-    return null;
+        if (flyWheel != null) {
+            return flyWheel.setSpeed(RPM.of(500)).withName("Rollers On");
+        } else
+            return null;
     }
-    
+
     public Command rollersOff() {
-        if(flyWheel!=null){
-        return flyWheel.setSpeed(RPM.of(0)).withName("Rollers Off");
-    }else
-    return null;
+        if (flyWheel != null) {
+            return flyWheel.setSpeed(RPM.of(0)).withName("Rollers Off");
+        } else
+            return null;
     }
-    
+
     public Command rollersBackwards() {
-        if(flyWheel!=null){
-        return flyWheel.setSpeed(RPM.of(-1500)).withName("Rollers Backwards");
-    }else
-    return null;
+        if (flyWheel != null) {
+            return flyWheel.setSpeed(RPM.of(-100)).withName("Rollers Backwards");
+        } else
+            return null;
     }
-    
+
     @Override
     public void simulationPeriodic() {
         // Only simulate, don't manually run the roller
