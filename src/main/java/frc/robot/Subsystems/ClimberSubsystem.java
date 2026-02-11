@@ -50,9 +50,9 @@ public class ClimberSubsystem extends SubsystemBase {
         motorId) || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);
-      motor.getFaultField();
-      motor.getFault_DeviceTemp();
-      SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
+      
+      SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           // Mechanism Circumference is the distance traveled by each mechanism rotation
           // converting rotations to meters.
@@ -63,8 +63,8 @@ public class ClimberSubsystem extends SubsystemBase {
           // Feedforward Constants
           .withFeedforward(new ElevatorFeedforward(0, 0, 0))
           .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
-          // Telemetry name and verbosity level
-          .withTelemetry("ElevatorMotor", TelemetryVerbosity.HIGH)
+          // Telemetry name (relative to the mechanism telemetry name) and verbosity level
+          .withTelemetry("motor", TelemetryVerbosity.HIGH)
           // Gearing from the motor rotor to final shaft.
           // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
           // corresponds to the gearbox attached to your motor.
@@ -78,20 +78,18 @@ public class ClimberSubsystem extends SubsystemBase {
 
       motorController = new TalonFXWrapper(motor,
           DCMotor.getKrakenX60(1),
-          smcConfig);
+          motorConfig);
 
-      ElevatorConfig config = new ElevatorConfig(motorController)
+      elevator = new Elevator(new ElevatorConfig(motorController)
           .withStartingHeight(Meters.of(0.5))
           .withHardLimits(Meters.of(0), Meters.of(3))
-          .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           .withMechanismPositionConfig(
               new MechanismPositionConfig()
                   .withMaxRobotHeight(Inches.of(30))
                   .withMaxRobotLength(Inches.of(34))
                   .withRelativePosition(new Translation3d(Inches.of(0), Inches.of(0), Inches.of(0))))
-          .withMass(Pounds.of(16));
-
-      elevator = new Elevator(config);
+          .withMass(Pounds.of(16)));
     }
   }
 
@@ -103,12 +101,11 @@ public class ClimberSubsystem extends SubsystemBase {
   public Command setHeight(Distance height) {
     Command rv;
     if (elevator == null) {
-      rv = run(() -> {
-      });
+      rv = idle();
     } else {
       rv = elevator.setHeight(height);
     }
-    return rv.withName("SetHeight");
+    return rv.withName(telemetryPrefix + " SetHeight");
   }
 
   /**
@@ -119,15 +116,12 @@ public class ClimberSubsystem extends SubsystemBase {
   public Command set(double dutycycle) {
     Command rv;
     if (elevator == null) {
-      rv = run(() -> {
-      });
+      rv = idle();
     } else {
       rv = elevator.set(dutycycle);
     }
-    return rv.withName("Set");
+    return rv.withName(telemetryPrefix + " Set");
   }
-
-  /** Creates a new ExampleSubsystem. */
 
   @Override
   public void periodic() {

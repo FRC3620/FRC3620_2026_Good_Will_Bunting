@@ -56,8 +56,10 @@ public class ShooterSubsystem extends SubsystemBase {
     if (makeDevices) {
       motor1 = new TalonFX(motorId1);
       RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId2,
-        telemetryPrefix + " #2");
+          telemetryPrefix + " #2");
       motor2 = new TalonFX(motorId2);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix + "#1");
+      RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix + "#2");
 
       SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
@@ -69,7 +71,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           // Telemetry name and verbosity level
-          .withTelemetry(telemetryPrefix + "Motor1", TelemetryVerbosity.HIGH)
+          .withTelemetry("motor1", TelemetryVerbosity.HIGH)
           // Gearing from the motor rotor to final shaft.
           // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
           // corresponds to the gearbox attached to your motor.
@@ -83,7 +85,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
 
-      FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
+      flywheel = new FlyWheel(new FlyWheelConfig(smartMotorController)
           // Diameter of the flywheel.
           .withDiameter(Inches.of(4))
           // Mass of the flywheel.
@@ -91,9 +93,7 @@ public class ShooterSubsystem extends SubsystemBase {
           // Maximum speed of the flywheel.
           .withUpperSoftLimit(RPM.of(1000))
           // Telemetry name and verbosity for the arm.
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
-
-      flywheel = new FlyWheel(Config);
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
     }
   }
 
@@ -117,12 +117,12 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public Command setVelocity(AngularVelocity speed) {
     Command rv;
-    if (flywheel != null)
+    if (flywheel != null) {
       rv = flywheel.setSpeed(speed);
-    else
-      rv = run(() -> {
-      });
-    return rv.withName("setVelocity");
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " SetVelocity");
   }
 
   /**
@@ -133,12 +133,12 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public Command set(double dutyCycle) {
     Command rv;
-    if (flywheel != null)
+    if (flywheel != null) {
       rv = flywheel.set(dutyCycle);
-    else
-      rv = run(() -> {
-      });
-    return rv.withName("set");
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " Set");
   }
 
   @Override

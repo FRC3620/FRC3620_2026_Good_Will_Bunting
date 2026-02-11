@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
+import frc.robot.Subsystems.HealthSubsystem.Health;
 
 public class BlinkyLightsSubsystem extends SubsystemBase {
   int length = 38;
@@ -37,7 +39,10 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
   LEDPattern base = LEDPattern.solid(Color.kRed);
   LEDPattern driverDisabled = LEDPattern.solid(Color.kOrange);
   LEDPattern driverTeleop = LEDPattern.solid(Color.kGreen);
-  LEDPattern critical = base.blink(Seconds.of(0.5));
+  LEDPattern good = LEDPattern.solid(Color.kGreen);
+  LEDPattern mediocre = LEDPattern.solid(Color.kYellow);
+  LEDPattern bad = LEDPattern.solid(Color.kRed);
+  LEDPattern deathrow = base.blink(Seconds.of(0.5));
 
   AddressableLEDBufferView m_health = m_buffer.createView(0, length / 2);
   AddressableLEDBufferView m_driver = m_buffer.createView(length / 2 + 1, length - 1).reversed();
@@ -52,14 +57,23 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     // Create an LED pattern that sets the entire strip to solid red
+    Health currentHealth = RobotContainer.healthSubsystem.getCurrentHealth();
+    LEDPattern currentPattern = good;
 
+    if (currentHealth == Health.MEDIOCRE) {
+      currentPattern = mediocre;
+    } else if (currentHealth == Health.BAD) {
+      currentPattern = bad;
+    } else if (currentHealth == Health.DEATHROW) {
+      currentPattern = deathrow;
+    }
     // Apply the LED pattern to the data buffer
-    critical.applyTo(m_health);
+    currentPattern.applyTo(m_health);
 
     RobotMode robotMode = Robot.getCurrentRobotMode();
     if (robotMode == RobotMode.TELEOP) {
       driverTeleop.applyTo(m_driver);
-    } 
+    }
     if (robotMode == RobotMode.DISABLED) {
       driverDisabled.applyTo(m_driver);
     }
