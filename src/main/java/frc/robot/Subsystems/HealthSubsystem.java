@@ -12,7 +12,6 @@ import java.util.List;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.units.TemperatureUnit;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -49,11 +48,11 @@ public class HealthSubsystem extends SubsystemBase {
       StatusSignal<Temperature> tempuratreSignal = talonFX.getDeviceTemp();
       var tempuratre = tempuratreSignal.getValue();
       double tempuratreFahrenheit = tempuratre.in(Fahrenheit);
-      if (tempuratreFahrenheit>90) {
+      if (tempuratreFahrenheit > 90) {
         currentHealth = Health.BAD;
       }
-       boolean isConnected = talonFX.isConnected();
-      if (! isConnected) {
+      boolean isConnected = talonFX.isConnected();
+      if (!isConnected) {
         currentHealth = Health.BAD;
       }
       SmartDashboard.putNumber("Temp", tempuratreFahrenheit);

@@ -9,10 +9,8 @@ import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.hal.CANAPITypes.CANDeviceType;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -27,9 +25,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
-import org.usfirst.frc3620.CANDeviceFinder;
 
 public class PreshooterSubsystem extends SubsystemBase {
+    int motorId = Constants.MOTORID_PRESHOOTER;
+    String telemetryPrefix = "Preshooter";
+
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
@@ -37,10 +37,11 @@ public class PreshooterSubsystem extends SubsystemBase {
     public PreshooterSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
                 org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
-                Constants.MOTORID_PRESHOOTER, "Preshooter") || RobotContainer.shouldMakeAllCANDevices();
+                motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
         if (makeDevices) {
-            motor = new TalonFX(Constants.MOTORID_PRESHOOTER);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, "telemetryPrefix");
+            motor = new TalonFX(motorId);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
+
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
                             0.1, // kP - tune this
@@ -50,20 +51,19 @@ public class PreshooterSubsystem extends SubsystemBase {
                             RotationsPerSecondPerSecond.of(200))
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry("PreshooterMotor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(2), motorConfig);
-            FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
+
+            // Create the FlyWheel
+            flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
                     .withDiameter(Inch.of(4))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(2000))
-                    .withTelemetry("Preshooter", TelemetryVerbosity.HIGH);
-
-            // Create the FlyWheel
-            flyWheel = new FlyWheel(rollerConfig);
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
 
         }
     }
@@ -74,39 +74,37 @@ public class PreshooterSubsystem extends SubsystemBase {
      * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
      */
     public Command setVelocityCommand(AngularVelocity speed) {
+        Command rv;
         if (flyWheel == null) {
-            return doNothingCommand();
+            rv = idle();
         } else {
-            return flyWheel.setSpeed(speed);
+            rv = flyWheel.setSpeed(speed);
         }
+        return rv.withName(telemetryPrefix + " SetVelocity");
     }
 
     // ** */
     public Command setDutyCycleCommand(double dutyCycle) {
+        Command rv;
         if (flyWheel == null) {
-            return doNothingCommand();
+            rv = idle();
         } else {
-            return flyWheel.set(dutyCycle);
+            rv = flyWheel.set(dutyCycle);
         }
+        return rv.withName(telemetryPrefix + " SetDutyCycle");
     }
-
-  private Command doNothingCommand() {
-    return run(() -> {
-      // Don't do anything
-    });
-  }
 
     @Override
     public void periodic() {
-        if (flyWheel != null)
+        if (flyWheel != null) {
             flyWheel.updateTelemetry();
+        }
     }
 
     public void simulationPeriodic() {
         if (flyWheel != null) {
             flyWheel.simIterate();
         }
-
     }
 
 }

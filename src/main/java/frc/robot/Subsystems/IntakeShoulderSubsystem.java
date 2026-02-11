@@ -40,10 +40,9 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public enum IntakeShoulderPositions {
     UP(90.0),
-    Down(0.0);
+    DOWN(0.0);
 
     IntakeShoulderPositions(Double i) {
-      // TODO Auto-generated constructor stub
     }
   }
 
@@ -52,17 +51,20 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
+      
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
           .withSoftLimit(Degrees.of(-30), Degrees.of(100))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(70, 1)))
           .withIdleMode(MotorMode.BRAKE)
-          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
+          .withTelemetry("motor", TelemetryVerbosity.HIGH)
           .withStatorCurrentLimit(Amps.of(40))
           .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
       motorControler = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
+
       arm = new Arm(new ArmConfig(motorControler)
           .withLength(Meters.of(0.135))
           .withHardLimit(Degrees.of(-100), Degrees.of(200))
@@ -87,14 +89,13 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     }
   }
 
-  private Command doNothingCommand() {
-    return run(() -> {
-    });
-  }
-
   public Command setAngle(Angle angle) {
-    if (arm != null)
-      return arm.setAngle(angle);
-    return doNothingCommand();
+    Command rv;
+    if (arm != null) {
+      rv = arm.setAngle(angle);
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " SetAngle");
   }
 }

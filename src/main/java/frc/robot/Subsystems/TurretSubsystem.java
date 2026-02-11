@@ -15,7 +15,6 @@ import static edu.wpi.first.units.Units.Seconds;
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.TalonFXS;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -32,7 +31,6 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXSWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class TurretSubsystem extends SubsystemBase {
@@ -46,10 +44,10 @@ public class TurretSubsystem extends SubsystemBase {
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
-        telemetryPrefix + "Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+        telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevices) {
       motor = new TalonFX(motorId);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor, "telemetryPrefix");
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
@@ -59,7 +57,7 @@ public class TurretSubsystem extends SubsystemBase {
           .withIdleMode(MotorMode.BRAKE)
           .withMotorInverted(false)
           // Setup Telemetry
-          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
+          .withTelemetry("motor", TelemetryVerbosity.HIGH)
           // Power Optimization
           .withStatorCurrentLimit(Amps.of(40))
           .withClosedLoopRampRate(Seconds.of(0.25))
@@ -69,29 +67,26 @@ public class TurretSubsystem extends SubsystemBase {
           DCMotor.getKrakenX60(1),
           motorConfig);
 
-      PivotConfig pivot_config = new PivotConfig(smartMotorController)
-          .withStartingPosition(Degrees.of(0)) // Starting position of the Pivot
-          .withHardLimit(Degrees.of(-135), Degrees.of(135)) // Hard limit bc wiring prevents infinite spinning
-          .withTelemetry("PivotExample", TelemetryVerbosity.HIGH) // Telemetry
-          .withMOI(Meters.of(0.25), Pounds.of(2)); // MOI Calculation
-
-      pivot = new Pivot(pivot_config);
-
+      pivot = new Pivot(new PivotConfig(smartMotorController)
+          // Starting position of the Pivot
+          .withStartingPosition(Degrees.of(0))
+          // Hard limit bc wiring prevents infinite spinning
+          .withHardLimit(Degrees.of(-135), Degrees.of(135))
+          // Telemetry
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
+          // MOI Calculation
+          .withMOI(Meters.of(0.25), Pounds.of(2)));
     }
-  }
-
-  private Command doNothingCommand() {
-    return run(() -> {
-      // Don't do anything
-    });
   }
 
   public Command setAngle(Angle angle) {
+    Command rv;
     if (pivot == null) {
-      return doNothingCommand().withName("Turret setAngle");
+      rv = idle();
     } else {
-      return pivot.setAngle(angle).withName("Turret setAngle");
+      rv = pivot.setAngle(angle);
     }
+    return rv.withName(telemetryPrefix + " setAngle");
   }
 
   @Override
