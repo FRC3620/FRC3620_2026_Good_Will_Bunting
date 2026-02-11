@@ -33,15 +33,11 @@ See Constants.java
 
 # Driver Controller
 
-## Slow Drive Mode
-- **Robot Oriented limited to 30% power**
-  - **Xbox Controller**: Hold Left Bumper
-  - **FlySky Controller**: Toggle SWF
+| Function | FlySky | XBox |
+| -------- | ------ | ---- |
+| Slow drive (limited to 30% power) | SWF | Left Bumper |
+| NavX Reset (Square Up Robot) [not implemented in 2026] | SWA | A |
 
-## General Controls
-- **NavX Reset (Square Up Robot)**
-  - **Xbox Controller**: Press A Button
-  - **FlySky Controller**: Toggle SWA
 
 ## Button Box Mappings
 ### ESEF Positioning Commands
