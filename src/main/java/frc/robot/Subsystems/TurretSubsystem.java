@@ -49,6 +49,7 @@ public class TurretSubsystem extends SubsystemBase {
         telemetryPrefix + "Subsystem") || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevices) {
       motor = new TalonFX(motorId);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, "telemetryPrefix");
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)

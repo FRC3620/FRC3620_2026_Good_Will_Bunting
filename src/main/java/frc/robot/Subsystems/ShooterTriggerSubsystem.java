@@ -39,6 +39,7 @@ public class ShooterTriggerSubsystem extends SubsystemBase {
         
         if(makeDevices){
             motor = new TalonFX(Constants.MOTORID_SHOOTER_TRIGGER);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, "telemetryPrefix");
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                 .withClosedLoopController(
                     0.1,  // kP - tune this

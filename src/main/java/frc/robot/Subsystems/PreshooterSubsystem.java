@@ -40,6 +40,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                 Constants.MOTORID_PRESHOOTER, "Preshooter") || RobotContainer.shouldMakeAllCANDevices();
         if (makeDevices) {
             motor = new TalonFX(Constants.MOTORID_PRESHOOTER);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, "telemetryPrefix");
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
                             0.1, // kP - tune this

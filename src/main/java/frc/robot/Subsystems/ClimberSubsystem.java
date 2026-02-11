@@ -55,6 +55,7 @@ public class ClimberSubsystem extends SubsystemBase {
    public ClimberSubsystem() {
     if(makeDevice){
       motor= new TalonFX(Constants.MOTORID_CLIMBER);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor, "Climber");
       smcConfig =new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
       // Mechanism Circumference is the distance traveled by each mechanism rotation
