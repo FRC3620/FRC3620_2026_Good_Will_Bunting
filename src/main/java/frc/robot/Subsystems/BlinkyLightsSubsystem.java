@@ -4,18 +4,10 @@
 
 package frc.robot.Subsystems;
 
-import static edu.wpi.first.units.Units.Centimeters;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Percent;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 
-import java.util.Map;
-
 import org.usfirst.frc3620.RobotMode;
-
-import com.ctre.phoenix6.controls.RainbowAnimation;
 
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.AddressableLED;
