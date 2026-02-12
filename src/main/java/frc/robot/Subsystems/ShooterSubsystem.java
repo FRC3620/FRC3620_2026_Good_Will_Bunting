@@ -52,10 +52,14 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
-        telemetryPrefix + "Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+        telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevices) {
       motor1 = new TalonFX(motorId1);
+      RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId2,
+          telemetryPrefix + " #2");
       motor2 = new TalonFX(motorId2);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix + "#1", HealthSubsystem.healthOptionsForYAMS);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix + "#2", HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
@@ -67,7 +71,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           // Telemetry name and verbosity level
-          .withTelemetry(telemetryPrefix + "Motor1", TelemetryVerbosity.HIGH)
+          .withTelemetry("motor1", TelemetryVerbosity.HIGH)
           // Gearing from the motor rotor to final shaft.
           // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
           // corresponds to the gearbox attached to your motor.
@@ -79,20 +83,18 @@ public class ShooterSubsystem extends SubsystemBase {
           .withClosedLoopRampRate(Seconds.of(0.5))
           .withOpenLoopRampRate(Seconds.of(0.5));
 
-
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
-    }
 
-    FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
-        // Diameter of the flywheel.
-        .withDiameter(Inches.of(4))
-        // Mass of the flywheel.
-        .withMass(Pounds.of(0.6))
-        // Maximum speed of the flywheel.
-        .withUpperSoftLimit(RPM.of(1000))
-        // Telemetry name and verbosity for the arm.
-        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
-    flywheel = new FlyWheel(Config);
+      flywheel = new FlyWheel(new FlyWheelConfig(smartMotorController)
+          // Diameter of the flywheel.
+          .withDiameter(Inches.of(4))
+          // Mass of the flywheel.
+          .withMass(Pounds.of(0.6))
+          // Maximum speed of the flywheel.
+          .withUpperSoftLimit(RPM.of(1000))
+          // Telemetry name and verbosity for the arm.
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+    }
   }
 
   /**
@@ -114,12 +116,13 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
-    if (flywheel != null)
-      return flywheel.setSpeed(speed);
-    else
-      return this.runOnce(() -> {
-        // RobotContainer.logger.error("flywheel not initialized");
-      });
+    Command rv;
+    if (flywheel != null) {
+      rv = flywheel.setSpeed(speed);
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " SetVelocity");
   }
 
   /**
@@ -129,26 +132,27 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command set(double dutyCycle) {
-    if (flywheel != null)
-      return flywheel.set(dutyCycle);
-    else
-      return this.runOnce(() -> {
-        // RobotContainer.logger.error("Flywheel not initialized");
-      });
+    Command rv;
+    if (flywheel != null) {
+      rv = flywheel.set(dutyCycle);
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " Set");
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-   if (flywheel != null) {
-      flywheel.updateTelemetry();}
-   }
+    if (flywheel != null) {
+      flywheel.updateTelemetry();
+    }
+  }
 
   @Override
   public void simulationPeriodic() {
-     if (flywheel != null) {
+    if (flywheel != null) {
       flywheel.simIterate();
     }
   }
 }
-

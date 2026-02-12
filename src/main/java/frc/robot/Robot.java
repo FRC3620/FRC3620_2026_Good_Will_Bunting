@@ -37,15 +37,17 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     // get data logging going
-    DogLog.setOptions(new DogLogOptions().withCaptureDs(true).withCaptureNt(false));
+    DogLog.setOptions(new DogLogOptions().withCaptureDs(true).withCaptureNt(true));
     DataLogManager.start();
 
     logger = LoggingMaster.getLogger(getClass());
     logger.info ("I'm alive! {}", GitNess.gitDescription());
     Utilities.logMetadataToDataLog();
 
-    Utilities.addDataLogForNT("frc3620");
-    Utilities.addDataLogForNT("SmartDashboard/frc3620");
+    if (! DogLog.getOptions().captureNt()) {
+      Utilities.addDataLogForNT("frc3620");
+      Utilities.addDataLogForNT("SmartDashboard/frc3620");
+    }
 
     // whenever a command initializes, the function declared below will run.
     CommandScheduler.getInstance().onCommandInitialize(command ->
@@ -63,7 +65,7 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
 
-    FileSaver.add("networktables.json");
+    // FileSaver.add("networktables.json");
 
     enableLiveWindowInTest(true);
 
