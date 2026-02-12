@@ -45,7 +45,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(7), DegreesPerSecondPerSecond.of(5))
