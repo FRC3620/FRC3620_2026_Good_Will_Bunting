@@ -27,12 +27,12 @@ import frc.robot.RobotContainer;
 public class HealthSubsystem extends SubsystemBase {
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
-  public enum HealthOptions {
+  public static class HealthOptions {
   }
 
-  public final static EnumSet<HealthOptions> healthOptionsForYAMS = EnumSet.noneOf(HealthOptions.class);
-  public final static EnumSet<HealthOptions> healthOptionsForCTRESwerveMotors = EnumSet.noneOf(HealthOptions.class);
-  public final static EnumSet<HealthOptions> healthOptionsForCTRESwerveSensors = EnumSet.noneOf(HealthOptions.class);
+  public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
+  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions();
+  public final static HealthOptions healthOptionsForCTRESwerveSensors =  new HealthOptions();
 
   public enum Health {
     GOOD, MEDIOCRE, BAD, DEATHROW;
@@ -54,7 +54,7 @@ public class HealthSubsystem extends SubsystemBase {
 
   Map<Object, String> all_device_names = new HashMap<>();
   Map<Object, String> all_device_descriptions = new HashMap<>();
-  Map<Object, EnumSet<HealthOptions>> all_health_options = new HashMap<>();
+  Map<Object, HealthOptions> all_health_options = new HashMap<>();
 
   Timer timer = new Timer();
 
@@ -121,7 +121,7 @@ public class HealthSubsystem extends SubsystemBase {
     return rv;
   }
 
-  public void addMotorToWatch(CoreTalonFX device, String name, EnumSet<HealthOptions> healthOptions) {
+  public void addMotorToWatch(CoreTalonFX device, String name, HealthOptions healthOptions) {
     all_Fxs.add(device);
     all_ctre.add(device);
     all_device_names.put(device, name);
@@ -129,7 +129,7 @@ public class HealthSubsystem extends SubsystemBase {
     all_health_options.put(device, healthOptions);
   }
 
-  public void addCTRESensorToWatch(ParentDevice device, String name, EnumSet<HealthOptions> healthOptions) {
+  public void addCTRESensorToWatch(ParentDevice device, String name, HealthOptions healthOptions) {
     all_ctre.add(device);
     all_device_names.put(device, name);
     all_device_descriptions.put(device, deviceDescription(device));
