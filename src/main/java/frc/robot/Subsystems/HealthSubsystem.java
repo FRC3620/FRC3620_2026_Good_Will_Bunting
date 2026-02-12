@@ -21,6 +21,7 @@ import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 
@@ -28,9 +29,12 @@ public class HealthSubsystem extends SubsystemBase {
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
   public enum HealthOptions {
+    DONT_PUT_TEMPERATURE_IN_NETWORK_TABLES,
+    DONT_PUT_CONNECTION_STATUS_IN_NETWORK_TABLES,
   }
 
-  public final static EnumSet<HealthOptions> healthOptionsForYAMS = EnumSet.noneOf(HealthOptions.class);
+  public final static EnumSet<HealthOptions> healthOptionsForYAMS = EnumSet
+      .of(HealthOptions.DONT_PUT_TEMPERATURE_IN_NETWORK_TABLES);
   public final static EnumSet<HealthOptions> healthOptionsForCTRESwerveMotors = EnumSet.noneOf(HealthOptions.class);
   public final static EnumSet<HealthOptions> healthOptionsForCTRESwerveSensors = EnumSet.noneOf(HealthOptions.class);
 
@@ -38,7 +42,8 @@ public class HealthSubsystem extends SubsystemBase {
     GOOD, MEDIOCRE, BAD, DEATHROW;
 
     public Health worstOf(Health h) {
-      if (this.compareTo(h) > 0) return this;
+      if (this.compareTo(h) > 0)
+        return this;
       return h;
     }
   }
@@ -50,7 +55,9 @@ public class HealthSubsystem extends SubsystemBase {
   }
 
   Set<CoreTalonFX> all_Fxs = new HashSet<>();
+  Set<CoreTalonFX> warm_Fxs = new HashSet<>();
   Set<ParentDevice> all_ctre = new HashSet<>();
+  Set<ParentDevice> disconnected_ctre = new HashSet<>();
 
   Map<Object, String> all_device_names = new HashMap<>();
   Map<Object, String> all_device_descriptions = new HashMap<>();
@@ -100,8 +107,20 @@ public class HealthSubsystem extends SubsystemBase {
       var tempuratre = tempuratreSignal.getValue();
 
       double tempuratreFahrenheit = tempuratre.in(Fahrenheit);
+      if (!healthOptionsForDevice.contains(HealthOptions.DONT_PUT_TEMPERATURE_IN_NETWORK_TABLES)) {
+        SmartDashboard.putNumber("health/" + deviceName + "/temperature", tempuratreFahrenheit);
+      }
       if (tempuratreFahrenheit > 90) {
         rv = Health.BAD;
+        if (!warm_Fxs.contains(device)) {
+          logger.warn("{} is warm", deviceName);
+          warm_Fxs.add(device);
+        }
+      } else {
+        if (warm_Fxs.contains(device)) {
+          logger.info("{} cooled off", deviceName);
+          warm_Fxs.remove(device);
+        }
       }
     }
     return rv;
@@ -114,8 +133,20 @@ public class HealthSubsystem extends SubsystemBase {
       var deviceName = all_device_names.get(device);
 
       boolean isConnected = device.isConnected();
+      if (!healthOptionsForDevice.contains(HealthOptions.DONT_PUT_CONNECTION_STATUS_IN_NETWORK_TABLES)) {
+        SmartDashboard.putBoolean("health/" + deviceName + "/connected", isConnected);
+      }
       if (!isConnected) {
         rv = Health.BAD;
+        if (!disconnected_ctre.contains(device)) {
+          logger.warn("{} disconnected", deviceName);
+          disconnected_ctre.add(device);
+        }
+      } else {
+        if (disconnected_ctre.contains(device)) {
+          logger.info("{} reconnected", deviceName);
+          disconnected_ctre.remove(device);
+        }
       }
     }
     return rv;
