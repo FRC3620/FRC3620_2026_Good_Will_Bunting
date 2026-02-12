@@ -191,7 +191,7 @@ public class RobotContainer implements RobotModeChangeListener {
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
-    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(30)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
@@ -388,10 +388,10 @@ public class RobotContainer implements RobotModeChangeListener {
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
+        .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(45)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
+        .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(35)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
         .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
