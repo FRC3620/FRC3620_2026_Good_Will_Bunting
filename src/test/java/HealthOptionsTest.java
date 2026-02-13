@@ -9,7 +9,7 @@ public class HealthOptionsTest {
   public void test00() {
     for (var h1 : Health.values()) {
       for (var h2 : Health.values()) {
-        Health r = h1.worstOf(h2);
+        Health r = h1.worstOfThisAnd(h2);
         System.out.println(h1 + " " + h2 + " -> " + r);
       }
     }

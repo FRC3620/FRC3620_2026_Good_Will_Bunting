@@ -126,8 +126,6 @@ public class RobotContainer implements RobotModeChangeListener {
   public static CANDeviceFinder canDeviceFinder;
   public static RobotParameters robotParameters;
 
-  Alert missingDevicesAlert = new Alert("Diagnostics", "", Alert.AlertType.kWarning);
-
   // subsystems here
 
   // joysticks here....
@@ -165,10 +163,6 @@ public class RobotContainer implements RobotModeChangeListener {
     makeJoysticks();
 
     makeSubsystems();
-    if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
-      missingDevicesAlert.set(true);
-      missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
-    }
 
     makeStates();
     makeStateTransitions();
@@ -229,7 +223,7 @@ public class RobotContainer implements RobotModeChangeListener {
     preshooterSubsystem = new PreshooterSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
-    healthSubsystem.dumpDatabase();
+    // healthSubsystem.dumpDatabase();
   }
 
   private SwerveSubsystem configureSwerveDrive() {

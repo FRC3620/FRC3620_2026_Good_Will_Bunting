@@ -6,13 +6,14 @@ package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Fahrenheit;
 
-import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 import org.tinylog.TaggedLogger;
+import org.usfirst.frc3620.CompoundAlert;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
 import com.ctre.phoenix6.StatusSignal;
@@ -21,24 +22,26 @@ import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 
 public class HealthSubsystem extends SubsystemBase {
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
-  public static class HealthOptions {
-  }
+  private final static String alertGroupName = "Health Alerts";
 
-  public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveSensors =  new HealthOptions();
+  CompoundAlert alertForMissingDevices = new CompoundAlert(alertGroupName, "Missing from CAN bus at startup");
+  CompoundAlert alertForCANFaults = new CompoundAlert(alertGroupName, "Disconnected from CAN bus");
+  CompoundAlert alertForHotMotors = new CompoundAlert(alertGroupName, "Hot motors");
+  CompoundAlert alertForGenerics = new CompoundAlert(alertGroupName, "Generics");
 
   public enum Health {
     GOOD, MEDIOCRE, BAD, DEATHROW;
 
-    public Health worstOf(Health h) {
-      if (this.compareTo(h) > 0) return this;
+    public Health worstOfThisAnd(Health h) {
+      if (this.compareTo(h) > 0)
+        return this;
       return h;
     }
   }
@@ -49,8 +52,9 @@ public class HealthSubsystem extends SubsystemBase {
     return currentHealth;
   }
 
-  Set<CoreTalonFX> all_Fxs = new HashSet<>();
-  Set<ParentDevice> all_ctre = new HashSet<>();
+  Set<CoreTalonFX> all_Fxs = new LinkedHashSet<>();
+  Set<ParentDevice> all_ctre = new LinkedHashSet<>();
+  Set<BooleanSupplier> all_generics = new LinkedHashSet<>();
 
   Map<Object, String> all_device_names = new HashMap<>();
   Map<Object, String> all_device_descriptions = new HashMap<>();
@@ -62,24 +66,50 @@ public class HealthSubsystem extends SubsystemBase {
   public HealthSubsystem() {
     timer.reset();
     timer.start();
+
+    thingy_timer.reset();
+    thingy_timer.start();
+
+    this.addGeneric(() -> thingy(), "Test Thingy", new HealthOptions());
   }
+
+  Timer thingy_timer = new Timer();
+
+  boolean thingy() {
+    var t = thingy_timer.get();
+    var rv = t % 5 > 2.5;
+    SmartDashboard.putNumber("thingy_t", t);
+    SmartDashboard.putBoolean("thingy", rv);
+    return rv;
+  }
+
+  Health missingDeviceHealth = null;
 
   @Override
   public void periodic() {
-
     Health newHealth = Health.GOOD;
 
-    int numberOfMissingMotors = RobotContainer.canDeviceFinder.getMissingDeviceSet().size();
-    if (numberOfMissingMotors > 0) {
-      newHealth = Health.MEDIOCRE;
+    // only need to do this once at the beginning
+    if (missingDeviceHealth == null) {
+      var missingDeviceSet = RobotContainer.canDeviceFinder.getMissingDeviceSet();
+      if (RobotContainer.canDeviceFinder.getMissingDeviceSet().isEmpty()) {
+        missingDeviceHealth = Health.GOOD;
+      } else {
+        missingDeviceHealth = Health.MEDIOCRE;
+        alertForMissingDevices.warning(missingDeviceSet.toString());
+      }
     }
+    newHealth = newHealth.worstOfThisAnd(missingDeviceHealth);
 
     if (timer.advanceIfElapsed(0.5)) {
       Health talonTemperatureHealth = checkTalonTemperatures();
-      newHealth = newHealth.worstOf(talonTemperatureHealth);
+      newHealth = newHealth.worstOfThisAnd(talonTemperatureHealth);
 
       Health ctreConnectionHealth = checkCTREconnections();
-      newHealth = newHealth.worstOf(ctreConnectionHealth);
+      newHealth = newHealth.worstOfThisAnd(ctreConnectionHealth);
+
+      Health genericsHealth = checkGenerics();
+      newHealth = newHealth.worstOfThisAnd(genericsHealth);
 
       /*
        * Check questnav and limelights
@@ -92,31 +122,59 @@ public class HealthSubsystem extends SubsystemBase {
 
   public Health checkTalonTemperatures() {
     Health rv = Health.GOOD;
+    Set<String> text_for_broken_devices = new LinkedHashSet<>();
     for (var device : all_Fxs) {
       var healthOptionsForDevice = all_health_options.get(device);
-      var deviceName = all_device_names.get(device);
 
       StatusSignal<Temperature> tempuratreSignal = device.getDeviceTemp();
       var tempuratre = tempuratreSignal.getValue();
 
       double tempuratreFahrenheit = tempuratre.in(Fahrenheit);
-      if (tempuratreFahrenheit > 90) {
-        rv = Health.BAD;
+      if (tempuratreFahrenheit > healthOptionsForDevice.getMotorTemperatureThreshold()) {
+        text_for_broken_devices.add(deviceText(device));
       }
+    }
+    if (text_for_broken_devices.size() > 0) {
+      rv = Health.BAD;
+      alertForHotMotors.error(text_for_broken_devices.toString());
+    } else {
+      alertForHotMotors.none();
     }
     return rv;
   }
 
   public Health checkCTREconnections() {
     Health rv = Health.GOOD;
+    Set<String> text_for_broken_devices = new LinkedHashSet<>();
     for (var device : all_ctre) {
-      var healthOptionsForDevice = all_health_options.get(device);
-      var deviceName = all_device_names.get(device);
-
       boolean isConnected = device.isConnected();
       if (!isConnected) {
-        rv = Health.BAD;
+        text_for_broken_devices.add(deviceText(device));
       }
+    }
+    if (text_for_broken_devices.size() > 0) {
+      rv = Health.BAD;
+      alertForCANFaults.error(text_for_broken_devices.toString());
+    } else {
+      alertForCANFaults.none();
+    }
+    return rv;
+  }
+
+  public Health checkGenerics() {
+    Health rv = Health.GOOD;
+    Set<String> text_for_broken_devices = new LinkedHashSet<>();
+    for (var device : all_generics) {
+      boolean isOk = device.getAsBoolean();
+      if (!isOk) {
+        text_for_broken_devices.add(deviceText(device));
+      }
+    }
+    if (text_for_broken_devices.size() > 0) {
+      rv = Health.BAD;
+      alertForGenerics.error(text_for_broken_devices.toString());
+    } else {
+      alertForGenerics.none();
     }
     return rv;
   }
@@ -136,6 +194,23 @@ public class HealthSubsystem extends SubsystemBase {
     all_health_options.put(device, healthOptions);
   }
 
+  public void addGeneric(BooleanSupplier isGood, String name, HealthOptions healthOptions) {
+    all_generics.add(isGood);
+    all_device_names.put(isGood, name);
+    all_health_options.put(isGood, healthOptions);
+  }
+
+  String deviceText(Object device) {
+    StringBuffer sb = new StringBuffer(all_device_names.get(device));
+    var dd = all_device_descriptions.get(device);
+    if (dd != null) {
+      sb.append(" (");
+      sb.append(dd);
+      sb.append(")");
+    }
+    return sb.toString();
+  }
+
   String deviceDescription(Object device) {
     String device_description = device.getClass().getSimpleName();
     if (device instanceof ParentDevice) {
@@ -153,4 +228,67 @@ public class HealthSubsystem extends SubsystemBase {
       logger.info("{} is {}, options {}", device_name, device_description, health_options);
     }
   }
+
+  public static class HealthOptions {
+    // if this is set, then put the device temperature into the network tables
+    private boolean doLogTemperature = false;
+
+    // if this is set, then put changes from health to sick into the TaggedLogger
+    private boolean doLogHealthChanges = false;
+
+    // temperature that we get nervous about motor temps at
+    private double motorTemperatureThreshold = 120;
+
+    public HealthOptions() {
+    }
+
+    public HealthOptions(HealthOptions template) {
+      this();
+      // copy fields over
+      doLogTemperature = template.doLogTemperature;
+      doLogHealthChanges = template.doLogHealthChanges;
+      motorTemperatureThreshold = template.motorTemperatureThreshold;
+    }
+
+    public HealthOptions withDoLogTemperature(boolean v) {
+      HealthOptions rv = new HealthOptions(this);
+      rv.doLogTemperature = v;
+      return rv;
+    }
+
+    public boolean getDoLogTemperature() {
+      return doLogTemperature;
+    }
+
+    public HealthOptions withDoLogHealthChanges(boolean v) {
+      HealthOptions rv = new HealthOptions(this);
+      rv.doLogHealthChanges = v;
+      return rv;
+    }
+
+    public boolean getDoLogHealthChanges() {
+      return doLogHealthChanges;
+    }
+
+    public HealthOptions withMotorTemperatureThreshold(double fahrenheit) {
+      HealthOptions rv = new HealthOptions(this);
+      rv.motorTemperatureThreshold = fahrenheit;
+      return rv;
+    }
+
+    public double getMotorTemperatureThreshold() {
+      return motorTemperatureThreshold;
+    }
+
+    @Override
+    public String toString() {
+      return "HealthOptions [doLogTemperature=" + doLogTemperature + ", doLogHealthChanges=" + doLogHealthChanges
+          + ", motorTemperatureThreshold=" + motorTemperatureThreshold + "]";
+    }
+  }
+
+  public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
+  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions().withDoLogTemperature(true);
+  public final static HealthOptions healthOptionsForCTRESwerveSensors = new HealthOptions();
+
 }

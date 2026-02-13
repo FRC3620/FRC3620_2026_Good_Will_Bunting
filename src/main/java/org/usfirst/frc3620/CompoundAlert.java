@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 
 public class CompoundAlert {
   String name;
+  String currentText = "";
+  AlertType currentAlertType = null;
 
   final Alert infoAlert, warningAlert, errorAlert;
 
@@ -36,26 +38,34 @@ public class CompoundAlert {
     errorAlert.setText("");
   }
 
-  void setAlert(Alert a, String text) {
-    reset();
-    if (name != null) text = name + ": " + text;
-    a.setText(text);
-    a.set(true);
+  void setAlert(Alert a, AlertType alertType, String text) {
+    var alertTypeText  = alertType == null ? "(null)" : alertType.toString();
+    if (currentAlertType != alertType || currentText != text) {
+      reset();
+      if (text != null && a != null) {
+        if (name != null)
+          text = name + ": " + text;
+        a.setText(text);
+        a.set(true);
+      }
+      currentAlertType = alertType;
+      currentText = text;
+    }
   }
 
   public void info(String text) {
-    setAlert(infoAlert, text);
+    setAlert(infoAlert, AlertType.kInfo, text);
   }
 
   public void warning(String text) {
-    setAlert(warningAlert, text);
+    setAlert(warningAlert, AlertType.kWarning, text);
   }
 
   public void error(String text) {
-    setAlert(errorAlert, text);
+    setAlert(errorAlert, AlertType.kError, text);
   }
 
   public void none() {
-    reset();
+    setAlert(null, null, null);
   }
 }
