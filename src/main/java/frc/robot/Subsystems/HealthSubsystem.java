@@ -21,7 +21,9 @@ import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -59,6 +61,7 @@ public class HealthSubsystem extends SubsystemBase {
   Map<Object, String> all_device_names = new HashMap<>();
   Map<Object, String> all_device_descriptions = new HashMap<>();
   Map<Object, HealthOptions> all_health_options = new HashMap<>();
+  Map<Object, Alert> all_generic_alerts = new HashMap<>();
 
   Timer timer = new Timer();
 
@@ -70,16 +73,21 @@ public class HealthSubsystem extends SubsystemBase {
     thingy_timer.reset();
     thingy_timer.start();
 
-    this.addGeneric(() -> thingy(), "Test Thingy", new HealthOptions());
+    this.addGeneric(() -> thingy1(), "Thingy1 is busted", new HealthOptions());
+    this.addGeneric(() -> thingy2(), "Thingy2 is busted", new HealthOptions());
   }
 
   Timer thingy_timer = new Timer();
 
-  boolean thingy() {
+  boolean thingy1() {
     var t = thingy_timer.get();
     var rv = t % 5 > 2.5;
-    SmartDashboard.putNumber("thingy_t", t);
-    SmartDashboard.putBoolean("thingy", rv);
+    return rv;
+  }
+
+  boolean thingy2() {
+    var t = thingy_timer.get();
+    var rv = t % 2 > 1;
     return rv;
   }
 
@@ -163,18 +171,15 @@ public class HealthSubsystem extends SubsystemBase {
 
   public Health checkGenerics() {
     Health rv = Health.GOOD;
-    Set<String> text_for_broken_devices = new LinkedHashSet<>();
     for (var device : all_generics) {
+      var alert = all_generic_alerts.get(device);
       boolean isOk = device.getAsBoolean();
       if (!isOk) {
-        text_for_broken_devices.add(deviceText(device));
+        rv = Health.BAD;
+        alert.set(true);
+      } else {
+        alert.set(false);
       }
-    }
-    if (text_for_broken_devices.size() > 0) {
-      rv = Health.BAD;
-      alertForGenerics.error(text_for_broken_devices.toString());
-    } else {
-      alertForGenerics.none();
     }
     return rv;
   }
@@ -198,6 +203,9 @@ public class HealthSubsystem extends SubsystemBase {
     all_generics.add(isGood);
     all_device_names.put(isGood, name);
     all_health_options.put(isGood, healthOptions);
+    Alert alert = new Alert(alertGroupName, name, AlertType.kError);
+    alert.set(false);
+    all_generic_alerts.put(isGood, alert);
   }
 
   String deviceText(Object device) {
