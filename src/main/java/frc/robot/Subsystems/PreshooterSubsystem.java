@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
+import org.usfirst.frc3620.CANDeviceType;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -36,7 +38,7 @@ public class PreshooterSubsystem extends SubsystemBase {
 
     public PreshooterSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
-                org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
+                CANDeviceType.TALON_PHOENIX6,
                 motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
         if (makeDevices) {
             motor = new TalonFX(motorId);

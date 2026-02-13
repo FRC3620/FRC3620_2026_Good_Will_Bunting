@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 import org.tinylog.TaggedLogger;
-import org.usfirst.frc3620.CompoundAlert;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
 import com.ctre.phoenix6.StatusSignal;
@@ -25,16 +24,13 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
 public class HealthSubsystem extends SubsystemBase {
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
   private final static String alertGroupName = "Health Alerts";
-
-  CompoundAlert alertForCANFaults = new CompoundAlert(alertGroupName, "Disconnected from CAN bus");
-  CompoundAlert alertForHotMotors = new CompoundAlert(alertGroupName, "Hot motors");
-  CompoundAlert alertForGenerics = new CompoundAlert(alertGroupName, "Generics");
 
   public enum Health {
     GOOD, MEDIOCRE, BAD, DEATHROW;
@@ -56,10 +52,9 @@ public class HealthSubsystem extends SubsystemBase {
   Set<ParentDevice> all_ctre = new LinkedHashSet<>();
   Set<BooleanSupplier> all_generics = new LinkedHashSet<>();
 
-  Map<Object, String> all_device_names = new HashMap<>();
   Map<Object, String> all_device_descriptions = new HashMap<>();
   Map<Object, HealthOptions> all_health_options = new HashMap<>();
-  Map<Object, Alert> all_generic_alerts = new HashMap<>();
+  Map<Object, Alert> all_alerts = new HashMap<>();
 
   Timer timer = new Timer();
 
@@ -71,15 +66,17 @@ public class HealthSubsystem extends SubsystemBase {
     thingy_timer.reset();
     thingy_timer.start();
 
-    this.addGeneric(() -> thingy1(), "Thingy1 is busted", new HealthOptions());
-    this.addGeneric(() -> thingy2(), "Thingy2 is busted", new HealthOptions());
+    if (Robot.isSimulation()) {
+      this.addGeneric(() -> thingy1(), "Thingy1 is busted", new HealthOptions());
+      this.addGeneric(() -> thingy2(), "Thingy2 is busted", new HealthOptions());
+    }
   }
 
   Timer thingy_timer = new Timer();
 
   boolean thingy1() {
     var t = thingy_timer.get();
-    var rv = t % 5 > 2.5;
+    var rv = t % 10 > 5;
     return rv;
   }
 
@@ -103,7 +100,8 @@ public class HealthSubsystem extends SubsystemBase {
       } else {
         missingDeviceHealth = Health.MEDIOCRE;
         for (var missingDevice : missingDeviceSet) {
-          Alert alert = new Alert (alertGroupName, missingDevice.toString() + " is not on CAN bus", AlertType.kWarning);
+          @SuppressWarnings("resource")
+          Alert alert = new Alert(alertGroupName, missingDevice.toString() + " is not on CAN bus", AlertType.kWarning);
           alert.set(true);
         }
       }
@@ -131,8 +129,8 @@ public class HealthSubsystem extends SubsystemBase {
 
   public Health checkTalonTemperatures() {
     Health rv = Health.GOOD;
-    Set<String> text_for_broken_devices = new LinkedHashSet<>();
     for (var device : all_Fxs) {
+      var alert = all_alerts.get(device);
       var healthOptionsForDevice = all_health_options.get(device);
 
       StatusSignal<Temperature> tempuratreSignal = device.getDeviceTemp();
@@ -140,32 +138,26 @@ public class HealthSubsystem extends SubsystemBase {
 
       double tempuratreFahrenheit = tempuratre.in(Fahrenheit);
       if (tempuratreFahrenheit > healthOptionsForDevice.getMotorTemperatureThreshold()) {
-        text_for_broken_devices.add(deviceText(device));
+        rv = Health.BAD;
+        alert.set(true);
+      } else {
+        alert.set(false);
       }
-    }
-    if (text_for_broken_devices.size() > 0) {
-      rv = Health.BAD;
-      alertForHotMotors.error(text_for_broken_devices.toString());
-    } else {
-      alertForHotMotors.none();
     }
     return rv;
   }
 
   public Health checkCTREconnections() {
     Health rv = Health.GOOD;
-    Set<String> text_for_broken_devices = new LinkedHashSet<>();
     for (var device : all_ctre) {
-      boolean isConnected = device.isConnected();
-      if (!isConnected) {
-        text_for_broken_devices.add(deviceText(device));
+      var alert = all_alerts.get(device);
+      boolean isOk = device.isConnected();
+      if (!isOk) {
+        rv = Health.BAD;
+        alert.set(true);
+      } else {
+        alert.set(false);
       }
-    }
-    if (text_for_broken_devices.size() > 0) {
-      rv = Health.BAD;
-      alertForCANFaults.error(text_for_broken_devices.toString());
-    } else {
-      alertForCANFaults.none();
     }
     return rv;
   }
@@ -173,7 +165,7 @@ public class HealthSubsystem extends SubsystemBase {
   public Health checkGenerics() {
     Health rv = Health.GOOD;
     for (var device : all_generics) {
-      var alert = all_generic_alerts.get(device);
+      var alert = all_alerts.get(device);
       boolean isOk = device.getAsBoolean();
       if (!isOk) {
         rv = Health.BAD;
@@ -188,53 +180,52 @@ public class HealthSubsystem extends SubsystemBase {
   public void addMotorToWatch(CoreTalonFX device, String name, HealthOptions healthOptions) {
     all_Fxs.add(device);
     all_ctre.add(device);
-    all_device_names.put(device, name);
-    all_device_descriptions.put(device, deviceDescription(device));
+    all_device_descriptions.put(device, makeDeviceDescription(name, device));
     all_health_options.put(device, healthOptions);
+    Alert alert = new Alert(alertGroupName, name, AlertType.kError);
+    alert.set(false);
+    all_alerts.put(device, alert);
   }
 
   public void addCTRESensorToWatch(ParentDevice device, String name, HealthOptions healthOptions) {
     all_ctre.add(device);
-    all_device_names.put(device, name);
-    all_device_descriptions.put(device, deviceDescription(device));
+    all_device_descriptions.put(device, makeDeviceDescription(name, device));
     all_health_options.put(device, healthOptions);
+    Alert alert = new Alert(alertGroupName, name, AlertType.kError);
+    alert.set(false);
+    all_alerts.put(device, alert);
   }
 
   public void addGeneric(BooleanSupplier isGood, String name, HealthOptions healthOptions) {
     all_generics.add(isGood);
-    all_device_names.put(isGood, name);
+    all_device_descriptions.put(isGood, makeDeviceDescription(name, null));
     all_health_options.put(isGood, healthOptions);
     Alert alert = new Alert(alertGroupName, name, AlertType.kError);
     alert.set(false);
-    all_generic_alerts.put(isGood, alert);
+    all_alerts.put(isGood, alert);
   }
 
-  String deviceText(Object device) {
-    StringBuffer sb = new StringBuffer(all_device_names.get(device));
-    var dd = all_device_descriptions.get(device);
-    if (dd != null) {
+  String makeDeviceDescription(String name, Object device) {
+    StringBuffer sb = new StringBuffer(name);
+    if (device != null) {
       sb.append(" (");
-      sb.append(dd);
+      sb.append(device.getClass().getSimpleName());
+      if (device instanceof ParentDevice) {
+        sb.append(" #");
+        sb.append(((ParentDevice) device).getDeviceID());
+      }
       sb.append(")");
     }
-    return sb.toString();
-  }
-
-  String deviceDescription(Object device) {
-    String device_description = device.getClass().getSimpleName();
-    if (device instanceof ParentDevice) {
-      device_description = device_description + " " + ((ParentDevice) device).getDeviceID();
-    }
-    return device_description;
+    String s = sb.toString();
+    return s;
   }
 
   public void dumpDatabase() {
-    for (var device_name_entry : all_device_names.entrySet()) {
-      Object device = device_name_entry.getKey();
-      String device_name = device_name_entry.getValue();
+    for (var device_description_entry : all_device_descriptions.entrySet()) {
+      Object device = device_description_entry.getKey();
       String device_description = all_device_descriptions.get(device);
       Object health_options = all_health_options.get(device);
-      logger.info("{} is {}, options {}", device_name, device_description, health_options);
+      logger.info("{}, options {}", device_description, health_options);
     }
   }
 
