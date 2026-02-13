@@ -24,7 +24,6 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 
@@ -33,7 +32,6 @@ public class HealthSubsystem extends SubsystemBase {
 
   private final static String alertGroupName = "Health Alerts";
 
-  CompoundAlert alertForMissingDevices = new CompoundAlert(alertGroupName, "Missing from CAN bus at startup");
   CompoundAlert alertForCANFaults = new CompoundAlert(alertGroupName, "Disconnected from CAN bus");
   CompoundAlert alertForHotMotors = new CompoundAlert(alertGroupName, "Hot motors");
   CompoundAlert alertForGenerics = new CompoundAlert(alertGroupName, "Generics");
@@ -100,11 +98,14 @@ public class HealthSubsystem extends SubsystemBase {
     // only need to do this once at the beginning
     if (missingDeviceHealth == null) {
       var missingDeviceSet = RobotContainer.canDeviceFinder.getMissingDeviceSet();
-      if (RobotContainer.canDeviceFinder.getMissingDeviceSet().isEmpty()) {
+      if (missingDeviceSet.isEmpty()) {
         missingDeviceHealth = Health.GOOD;
       } else {
         missingDeviceHealth = Health.MEDIOCRE;
-        alertForMissingDevices.warning(missingDeviceSet.toString());
+        for (var missingDevice : missingDeviceSet) {
+          Alert alert = new Alert (alertGroupName, missingDevice.toString() + " is not on CAN bus", AlertType.kWarning);
+          alert.set(true);
+        }
       }
     }
     newHealth = newHealth.worstOfThisAnd(missingDeviceHealth);
