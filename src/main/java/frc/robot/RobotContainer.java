@@ -62,7 +62,7 @@ import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
-import frc.robot.Generated.JoeHannTunerConstants;
+import frc.robot.Generated.RaptorTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
 
 import frc.robot.Subsystems.IntakeRollerSubsytem;
@@ -241,7 +241,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (robotVariant.equals("Chudbot")) {
       return ChudbotTunerConstants.createDrivetrain();
     } else if (robotVariant.equals("JoeHann")) {
-      return JoeHannTunerConstants.createDrivetrain();
+      return RaptorTunerConstants.createDrivetrain();
     } else {
       return TunerConstants.createDrivetrain();
     }
