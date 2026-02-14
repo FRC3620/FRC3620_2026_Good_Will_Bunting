@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
@@ -24,8 +25,6 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_HEIGHT = 23.5;
   private final double QUEST_NAV_FORWARD_CENTER_OFFSET = -11.25;
   private final double QUEST_NAV_DEGREE_YAW_OFFSET = 180;
-
-  HealthSubsystem healthSubsystem = new HealthSubsystem();
 
   // private Transform2d QUEST_TO_ROBOT2D = new
   // Transform2d(Units.inchesToMeters(15.0), Units.inchesToMeters(0), new
@@ -45,11 +44,11 @@ public class QuestNavSubsystem extends SubsystemBase {
   public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
       Pose3d initialQuestNavPose) {
 
-    healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnected(), "is Questnav Connected",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnected(), "is Questnav Connected",
         new HealthOptions());
-    healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "is Questnav Tracking",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "is Questnav Tracking",
         new HealthOptions());
-         healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(), "is Questnav Sufficiently Charged",
+         RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(), "is Questnav Sufficiently Charged",
         new HealthOptions());
 
     this.swerveSubsystem = swerveSubsystem;
