@@ -8,13 +8,15 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
 import org.usfirst.frc3620.odo.OdoIdsFlySky;
 import org.usfirst.frc3620.odo.OdoIdsXBox;
 import org.usfirst.frc3620.odo.OdoJoystick;
 import org.usfirst.frc3620.odo.OdoJoystick.JoystickType;
 
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -29,10 +31,10 @@ import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 
+import java.util.EnumSet;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -42,17 +44,14 @@ import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Subsystems.HealthSubsystem;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.states.ClimbingState;
 import frc.robot.fsm.states.DeadeyeState;
 import frc.robot.fsm.states.HoardingState;
-import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.PassingState;
 import frc.robot.fsm.states.ScoringState;
 import frc.robot.Subsystems.QuestNavSubsystem;
@@ -62,7 +61,6 @@ import frc.robot.Generated.TunerConstants;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
-import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.JoeHannTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -96,7 +94,6 @@ public class RobotContainer implements RobotModeChangeListener {
   private DeadeyeState deadeyeState;
   private HoardingState hoardingState;
 
-
   private static StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
   private FMSTriggers fmsTriggers;
@@ -114,6 +111,9 @@ public class RobotContainer implements RobotModeChangeListener {
   private SwerveRequest.SwerveDriveBrake brake;
   private SwerveRequest.PointWheelsAt point;
   private SwerveTelemetry swerveLogger;
+
+  public static HealthSubsystem healthSubsystem;
+
   public static SwerveSubsystem swerveSubsystem;
 
   public static LimelightSubsystem limelightSubsystem;
@@ -182,6 +182,7 @@ public class RobotContainer implements RobotModeChangeListener {
     configureButtonBindings();
 
     FollowPathCommand.warmupCommand().schedule();
+  
 
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
@@ -197,6 +198,7 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void makeSubsystems() {
+    healthSubsystem = new HealthSubsystem();
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 1,
         "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevices) {
@@ -209,29 +211,33 @@ public class RobotContainer implements RobotModeChangeListener {
 
       swerveLogger = new SwerveTelemetry(MaxSpeed);
       swerveSubsystem = configureSwerveDrive();
+
+      sendSwerveSubsystemToHealthSubsystem();
     }
 
     questNavSubsystem = new QuestNavSubsystem(swerveSubsystem, new Pose3d());
     limelightSubsystem = new LimelightSubsystem();
 
     turretSubsystem = new TurretSubsystem();
-    // climberSubsystem = new ClimberSubsystem();
+    climberSubsystem = new ClimberSubsystem();
     shooterSubsystem = new ShooterSubsystem();
-    // intakeShoulderSubsystem = new IntakeShoulderSubsystem();
+    intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
 
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     shooterTriggerSubsystem = new ShooterTriggerSubsystem();
-    // preshooterSubsystem = new PreshooterSubsystem();
+    preshooterSubsystem = new PreshooterSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
+
+    healthSubsystem.dumpDatabase();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
-
     String serialNumber = RobotController.getSerialNumber();
     SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
     String robotVariant = robotParameters.getVariant();
     SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
+    SwerveSubsystem rv = null;
     if (robotVariant.equals("Chudbot")) {
       return ChudbotTunerConstants.createDrivetrain();
     } else if (robotVariant.equals("JoeHann")) {
@@ -264,53 +270,54 @@ public class RobotContainer implements RobotModeChangeListener {
         scoringState));
 
     passingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone), 
-      hoardingState));
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone),
+        hoardingState));
     passingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterDeadZone), 
-      hoardingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterDeadZone),
+        hoardingState));
     passingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone), 
-      hoardingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone),
+        hoardingState));
 
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost), 
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
+        passingState));
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot), 
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
+        passingState));
 
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot), 
-      hoardingState));
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot),
+        hoardingState));
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost), 
-      hoardingState));
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost),
+        hoardingState));
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone), 
-      hoardingState));
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone),
+        hoardingState));
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone), 
-      hoardingState));
-    
-/* 
-    scoringState.addTransition(new StateTransition(
-      fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.climb), 
-      climbingState));
-*/
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone),
+        hoardingState));
+
+    /*
+     * scoringState.addTransition(new StateTransition(
+     * fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.
+     * climb),
+     * climbingState));
+     */
     hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      scoringState));
-    
+        fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
+        scoringState));
+
     hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentDepot),
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentDepot),
+        passingState));
     hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentOutpost),
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOpponentOutpost),
+        passingState));
     hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
+        passingState));
     hoardingState.addTransition(new StateTransition(
       fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
       passingState));
@@ -396,6 +403,10 @@ public class RobotContainer implements RobotModeChangeListener {
     operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
         .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
 
+    operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+        .whileTrue(intakeRollerSubsystem.rollersOn());
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
         .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
@@ -444,6 +455,35 @@ public class RobotContainer implements RobotModeChangeListener {
 
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
+  }
+
+  void sendSwerveSubsystemToHealthSubsystem() {
+    var modules = swerveSubsystem.getModules();
+    var locations = swerveSubsystem.getModuleLocations();
+    for (var i = 0; i < modules.length; i++) {
+      var module = modules[i];
+      var location = locations[i];
+      // X and Y seem swapped, but look at TunerConstants.
+      // +X is to front of robot, +Y is to left
+      /*
+       * ·· +Y
+       * -X [> +X (front)
+       * ·· -Y
+       */
+      var location_name = ((location.getX() > 0) ? "Front" : "Back") + ((location.getY() > 0) ? "Left" : "Right");
+
+      CoreTalonFX steer_motor = module.getSteerMotor();
+      healthSubsystem.addMotorToWatch(steer_motor, "Swerve/" + location_name + "/steer",
+          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+      CoreTalonFX drive_motor = module.getDriveMotor();
+      healthSubsystem.addMotorToWatch(drive_motor, "Swerve/" + location_name + "/drive",
+          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+      CANcoder cancoder = module.getEncoder();
+      healthSubsystem.addCTRESensorToWatch(cancoder, "Swerve/" + location_name + "/cancoder",
+          HealthSubsystem.healthOptionsForCTRESwerveSensors);
+    }
+    Pigeon2 pigeon = swerveSubsystem.getPigeon2();
+    healthSubsystem.addCTRESensorToWatch(pigeon, "Swerve/pigeon", HealthSubsystem.healthOptionsForCTRESwerveSensors);
   }
 
   /**

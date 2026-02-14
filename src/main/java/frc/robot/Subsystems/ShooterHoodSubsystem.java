@@ -4,9 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
@@ -29,25 +27,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants;
-import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
-import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.config.PivotConfig;
-import yams.mechanisms.positional.Arm;
 import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXSWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class ShooterHoodSubsystem extends SubsystemBase {
+    int motorId = Constants.MOTORID_HOOD;
+    String telemetryPrefix = "Hood";
 
     TalonFX motor = null;
     private Pivot pivot = null;
@@ -72,7 +66,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public ShooterHoodSubsystem() {
 
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6,
-                Constants.MOTORID_HOOD) ||
+                motorId, telemetryPrefix) ||
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
@@ -129,7 +123,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-        // setAngle(intake /\)
         if (pivot != null) {
             pivot.simIterate();
         }
