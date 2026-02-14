@@ -1,0 +1,98 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.299600570613409,
+        "y": 3.8862054208273893
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.441925820256776,
+        "y": 5.852881597717547
+      },
+      "isLocked": false,
+      "linkedName": "Center Neutral Collect"
+    },
+    {
+      "anchor": {
+        "x": 1.0631669044222536,
+        "y": 4.727218259629101
+      },
+      "prevControl": {
+        "x": 3.0686590584878735,
+        "y": 6.1245934379457925
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Left Climb"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.6865671641790967,
+      "rotationDegrees": -135.0
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.40513166779202486,
+      "maxWaypointRelativePos": 0.6698176907494872,
+      "constraints": {
+        "maxVelocity": 2.0,
+        "maxAcceleration": 2.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.8723835246455031,
+      "maxWaypointRelativePos": 1.0,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 1.5,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Reset QuestNav",
+      "waypointRelativePos": 0.6860229574611764,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Reset QuestNav"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Left Bump Start",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -146.0
+  },
+  "useDefaultConstraints": false
+}

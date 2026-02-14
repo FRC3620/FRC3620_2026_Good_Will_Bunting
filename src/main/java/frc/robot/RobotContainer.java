@@ -392,7 +392,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     
     // fix questnav correction command
-    CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
+    CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command().andThen(new InstantCommand(() -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
+      .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation())))));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
@@ -452,7 +453,8 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   public static void setupPathPlannerCommands() {
-    NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
+    NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command().andThen(new InstantCommand(() -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
+      .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation())))).withTimeout(1));
   }
 
   void sendSwerveSubsystemToHealthSubsystem() {
