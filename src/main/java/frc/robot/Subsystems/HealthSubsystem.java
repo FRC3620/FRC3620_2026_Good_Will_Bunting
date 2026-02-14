@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LoggingMaster;
@@ -21,6 +22,7 @@ import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 
@@ -32,13 +34,14 @@ public class HealthSubsystem extends SubsystemBase {
 
   public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
   public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveSensors =  new HealthOptions();
+  public final static HealthOptions healthOptionsForCTRESwerveSensors = new HealthOptions();
 
   public enum Health {
     GOOD, MEDIOCRE, BAD, DEATHROW;
 
     public Health worstOf(Health h) {
-      if (this.compareTo(h) > 0) return this;
+      if (this.compareTo(h) > 0)
+        return this;
       return h;
     }
   }
@@ -51,6 +54,7 @@ public class HealthSubsystem extends SubsystemBase {
 
   Set<CoreTalonFX> all_Fxs = new HashSet<>();
   Set<ParentDevice> all_ctre = new HashSet<>();
+  Set<BooleanSupplier> all_booleanSuppliers = new HashSet<>();
 
   Map<Object, String> all_device_names = new HashMap<>();
   Map<Object, String> all_device_descriptions = new HashMap<>();
@@ -62,6 +66,9 @@ public class HealthSubsystem extends SubsystemBase {
   public HealthSubsystem() {
     timer.reset();
     timer.start();
+
+    addHealthyBooleanSupplier(() -> true, "HealthyThing", new HealthOptions());
+    addHealthyBooleanSupplier(() -> false, "SickThing", new HealthOptions());
   }
 
   @Override
@@ -74,17 +81,18 @@ public class HealthSubsystem extends SubsystemBase {
       newHealth = Health.MEDIOCRE;
     }
 
-    if (timer.advanceIfElapsed(0.5)) {
-      Health talonTemperatureHealth = checkTalonTemperatures();
-      newHealth = newHealth.worstOf(talonTemperatureHealth);
+    Health talonTemperatureHealth = checkTalonTemperatures();
+    newHealth = newHealth.worstOf(talonTemperatureHealth);
 
-      Health ctreConnectionHealth = checkCTREconnections();
-      newHealth = newHealth.worstOf(ctreConnectionHealth);
+    Health ctreConnectionHealth = checkCTREconnections();
+    newHealth = newHealth.worstOf(ctreConnectionHealth);
 
-      /*
-       * Check questnav and limelights
-       */
-    }
+    Health booleanSupplierHealth = checkBooleanSuppliers();
+    newHealth = newHealth.worstOf(booleanSupplierHealth);
+
+    /*
+     * Check questnav and limelights
+     */
 
     // all done, save the result
     currentHealth = newHealth;
@@ -113,8 +121,21 @@ public class HealthSubsystem extends SubsystemBase {
       var healthOptionsForDevice = all_health_options.get(device);
       var deviceName = all_device_names.get(device);
 
-      boolean isConnected = device.isConnected();
-      if (!isConnected) {
+      boolean isOk = device.isConnected();
+      if (!isOk) {
+        rv = Health.BAD;
+      }
+    }
+    return rv;
+  }
+
+  public Health checkBooleanSuppliers() {
+    Health rv = Health.GOOD;
+    for (var device : all_booleanSuppliers) {
+      var deviceName = all_device_names.get(device);
+      boolean isOk = device.getAsBoolean();
+      SmartDashboard.putBoolean("Health/" + deviceName + "/healthy", isOk);
+      if (!isOk) {
         rv = Health.BAD;
       }
     }
@@ -134,6 +155,13 @@ public class HealthSubsystem extends SubsystemBase {
     all_device_names.put(device, name);
     all_device_descriptions.put(device, deviceDescription(device));
     all_health_options.put(device, healthOptions);
+  }
+
+  public void addHealthyBooleanSupplier(BooleanSupplier booleanSupplier, String name, HealthOptions healthOptions) {
+     all_booleanSuppliers.add(booleanSupplier);
+    all_device_names.put(booleanSupplier, name);
+    all_device_descriptions.put(booleanSupplier, deviceDescription(booleanSupplier));
+    all_health_options.put(booleanSupplier, healthOptions);
   }
 
   String deviceDescription(Object device) {
