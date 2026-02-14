@@ -187,11 +187,11 @@ public class RobotContainer implements RobotModeChangeListener {
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
     // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
+    //shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
-    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(30)));
+    //shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(30)));
     shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
@@ -418,6 +418,8 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void setupSmartDashboardCommands() {
+    SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
+    SmartDashboard.putData("frc3620/SubsystemDashboardControl", new SubsystemDashboardControl(shooterSubsystem, shooterHoodSubsystem));
     // SmartDashboard.putData(new xxxxCommand());
   }
 

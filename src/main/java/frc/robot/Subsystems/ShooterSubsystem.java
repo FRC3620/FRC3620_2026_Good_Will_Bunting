@@ -22,6 +22,7 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -89,7 +90,7 @@ public class ShooterSubsystem extends SubsystemBase {
         // Mass of the flywheel.
         .withMass(Pounds.of(0.6))
         // Maximum speed of the flywheel.
-        .withUpperSoftLimit(RPM.of(1000))
+        .withUpperSoftLimit(RPM.of(5000))
         // Telemetry name and verbosity for the arm.
         .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
     flywheel = new FlyWheel(Config);
@@ -122,6 +123,12 @@ public class ShooterSubsystem extends SubsystemBase {
       });
   }
 
+  public void setVelocityDirect(AngularVelocity speed) {
+    if(flywheel != null) {
+      flywheel.setSpeed(speed);
+    }
+  }
+
   /**
    * Set the dutycycle of the flywheel.
    *
@@ -136,6 +143,9 @@ public class ShooterSubsystem extends SubsystemBase {
         // RobotContainer.logger.error("Flywheel not initialized");
       });
   }
+
+
+
 
   @Override
   public void periodic() {
