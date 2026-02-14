@@ -20,7 +20,7 @@
         "y": 2.695848787446506
       },
       "prevControl": {
-        "x": 5.46231098430813,
+        "x": 5.462310984308129,
         "y": 2.2041797432239663
       },
       "nextControl": null,
@@ -44,8 +44,8 @@
       "minWaypointRelativePos": 0.4726536124240407,
       "maxWaypointRelativePos": 0.7886563133018294,
       "constraints": {
-        "maxVelocity": 2.0,
-        "maxAcceleration": 2.0,
+        "maxVelocity": 2.5,
+        "maxAcceleration": 2.5,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -54,7 +54,7 @@
     },
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8966914247130297,
+      "minWaypointRelativePos": 0.810263335584064,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
         "maxVelocity": 1.5,
@@ -70,7 +70,7 @@
   "eventMarkers": [
     {
       "name": "Reset QuestNav",
-      "waypointRelativePos": 0.7913571910871022,
+      "waypointRelativePos": 0.7859554355165467,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
@@ -81,8 +81,8 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
-    "maxAcceleration": 2.5,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,

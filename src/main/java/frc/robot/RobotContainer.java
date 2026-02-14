@@ -431,7 +431,7 @@ public class RobotContainer {
 
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command().andThen(new InstantCommand(() -> swerveSubsystem.getPigeon2().setYaw(limelightSubsystem.getMegaTag1Rotation().getDegrees()))
-      .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation())))));
+      .andThen(new InstantCommand(() -> swerveSubsystem.seedFieldCentric(limelightSubsystem.getMegaTag1Rotation())))).withTimeout(1));
   }
 
   /**
