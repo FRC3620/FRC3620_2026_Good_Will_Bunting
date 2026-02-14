@@ -9,6 +9,8 @@ import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.Supplier;
+
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -25,6 +27,7 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -96,7 +99,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             // .withMOI(Feet.of(4), Pound.of(4));
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
 
-        
             createPivot(HOOD_CALIBRATED_POS);
         }
 
@@ -107,19 +109,19 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         if (pivot != null) {
             pivot.updateTelemetry();
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
-            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder", Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
+            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
+                    Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
         }
     }
 
     private void createPivot(Angle startingAngle) {
-    pivot = new Pivot(new PivotConfig(motorController)
-            .withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
-            .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
-            .withStartingPosition(startingAngle)
-            .withMOI(Inches.of(55.7), Pound.of(1))
-            .withTelemetry("Shooter Hood", TelemetryVerbosity.HIGH));
-}
-
+        pivot = new Pivot(new PivotConfig(motorController)
+                .withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
+                .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
+                .withStartingPosition(startingAngle)
+                .withMOI(Inches.of(55.7), Pound.of(1))
+                .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+    }
 
     @Override
     public void simulationPeriodic() {
@@ -129,18 +131,14 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     public Command setAngle(Angle angle) {
-        if (pivot != null)
-            return pivot.setAngle(angle).withName("Shooter Hood setAngle");
-        else
-            return this.run(() -> {
-                // RobotContainer.logger.error("Shooter Hood not initialized");
-            }).withName("Shooter Hood setAngle");
-    }
-
-    public void setAngleDirect(Angle angle) {
+        Command rv;
         if (pivot != null) {
-            pivot.setAngle(angle);
+            rv = pivot.setAngle(() -> angle);
+        } else {
+            rv = idle();
         }
+        return rv.withName("Shooter Hood setAngle");
+
     }
 
     public Angle getAngle() {
@@ -152,7 +150,18 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     }
 
-    
+    public Command setAngleDashboardCommand() {
+        if (pivot != null) {
+            Supplier<Angle> angSupplier = () -> {
+                return Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Setpoint", 30));
+            };
+            return     
+            new InstantCommand(() -> SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Setpoint", 30)).andThen(
+            pivot.setAngle(angSupplier));
+        }
+        return idle();
+
+    }
 
     public Command calibrate() {
         return new Command() {
@@ -186,7 +195,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             public void end(boolean interrupted) {
                 motorController.setVoltage(Volts.zero());
-                
+
                 motorController.setPosition(HOOD_CALIBRATED_POS);
 
                 createPivot(HOOD_CALIBRATED_POS);
@@ -195,7 +204,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             }
         }
-        .withName("Shooter Hood Calibration");
+                .withName("Shooter Hood Calibration");
     }
 
 }

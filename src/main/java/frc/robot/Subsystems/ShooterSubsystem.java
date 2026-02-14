@@ -12,6 +12,8 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -24,6 +26,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -120,11 +123,23 @@ public class ShooterSubsystem extends SubsystemBase {
   public Command setVelocity(AngularVelocity speed) {
     Command rv;
     if (flywheel != null) {
-      rv = flywheel.setSpeed(speed);
+      rv = flywheel.setSpeed(() -> speed);
     } else {
       rv = idle();
     }
     return rv.withName(telemetryPrefix + " SetVelocity");
+  }
+
+  public Command setVelocityDashbaordCommand(){
+    if(flywheel != null){
+      Supplier<AngularVelocity> RPMSupplier = () -> {
+        return RPM.of(SmartDashboard.getNumber("frc3620/Shooter/flywheel RPM Setpoint", 0));
+      };
+      return 
+      new InstantCommand(() -> SmartDashboard.putNumber("frc3620/Shooter/flywheel RPM Setpoint", 0)).andThen(
+            flywheel.setSpeed(RPMSupplier));
+    }
+    return idle();
   }
 
   /**
