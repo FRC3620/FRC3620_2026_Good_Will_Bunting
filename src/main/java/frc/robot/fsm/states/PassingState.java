@@ -12,27 +12,14 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateTransition;
+import frc.robot.fsm.SuperState;
 
-public class PassingState implements IState {
+public class PassingState extends SuperState {
 
-    public final static TaggedLogger logger = LoggingMaster.getLogger(PassingState.class);
-
-    private List<StateTransition> stateTransitions = new ArrayList<>();
-
-    public PassingState() {
-
-    }
-
-    public void addTransition(StateTransition transition) {
-        if (stateTransitions != null) {
-            stateTransitions.add(transition);
-        }
-    }
 
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
-        logger.info("Entering Passing State");
     }
 
     @Override
@@ -47,15 +34,4 @@ public class PassingState implements IState {
 
     }
 
-    @Override
-    public Optional<IState> nextState() {
-        // Logic to determine the next state
-        for (StateTransition transition : stateTransitions) {
-            if (transition.triggerToState().getAsBoolean()) {
-                logger.info("Transitioning from Passing to {}", transition.targetState().getClass().getSimpleName());
-                return Optional.of(transition.targetState());
-            }
-        }
-        return Optional.empty();
-    }
 }

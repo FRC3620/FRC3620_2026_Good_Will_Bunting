@@ -1,5 +1,8 @@
 package frc.robot;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.tinylog.TaggedLogger;
 
 import org.usfirst.frc3620.*;
@@ -8,12 +11,9 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
 
-import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -33,17 +33,21 @@ public class Robot extends TimedRobot {
 
   static private RobotMode currentRobotMode = RobotMode.INIT, previousRobotMode;
 
+  static private List<RobotModeChangeListener> robotModeChangeListeners = new ArrayList<>();
+
   public Robot() {
     // get data logging going
-    DogLog.setOptions(new DogLogOptions().withCaptureDs(true).withCaptureNt(false));
+    DogLog.setOptions(new DogLogOptions().withCaptureDs(true).withCaptureNt(true));
     DataLogManager.start();
 
     logger = LoggingMaster.getLogger(getClass());
     logger.info ("I'm alive! {}", GitNess.gitDescription());
     Utilities.logMetadataToDataLog();
 
-    Utilities.addDataLogForNT("frc3620");
-    Utilities.addDataLogForNT("SmartDashboard/frc3620");
+    if (! DogLog.getOptions().captureNt()) {
+      Utilities.addDataLogForNT("frc3620");
+      Utilities.addDataLogForNT("SmartDashboard/frc3620");
+    }
 
     // whenever a command initializes, the function declared below will run.
     CommandScheduler.getInstance().onCommandInitialize(command ->
@@ -61,7 +65,7 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
 
-    FileSaver.add("networktables.json");
+    // FileSaver.add("networktables.json");
 
     enableLiveWindowInTest(true);
 
@@ -166,10 +170,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("frc3620/mode", newMode.toString());
     SmartDashboard.putNumber("frc3620/modeInt", newMode.ordinal());
 
-    // if any subsystems need to know about mode changes, let
-    // them know here.
-    // exampleSubsystem.processRobotModeChange(newMode);
-    
+    for (var listener : robotModeChangeListeners) {
+      listener.processRobotModeChange(currentRobotMode, previousRobotMode);
+    }
   }
 
   public static RobotMode getCurrentRobotMode(){
@@ -178,6 +181,10 @@ public class Robot extends TimedRobot {
 
   public static RobotMode getPreviousRobotMode(){
     return previousRobotMode;
+  }
+
+  public static void addRobotModeChangeListener(RobotModeChangeListener robotModeChangeListener) {
+    robotModeChangeListeners.add(robotModeChangeListener);
   }
 
   void logMatchInfo() {

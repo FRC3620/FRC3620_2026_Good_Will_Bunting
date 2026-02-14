@@ -4,30 +4,24 @@
 
 package frc.robot;
 
-import org.tinylog.TaggedLogger;
-import org.usfirst.frc3620.logger.LoggingMaster;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.LimelightHelpers.PoseEstimate;
-import frc.robot.Subsystems.QuestNavSubsystem;
+import frc.robot.Subsystems.SwerveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class SetQuestNavPoseFromMegaTag1Command extends Command {
-  boolean resetQN;
-  TaggedLogger logger = LoggingMaster.getLogger(getClass());
+public class SetPigeonFromMegaTag1Command extends Command {
+  boolean resetPigeon;
 
-
-  /** Creates a new SetQuestNavPoseFromMegaTag1Command. */
-  public SetQuestNavPoseFromMegaTag1Command() {
+  /** Creates a new SetPigeonFromMegaTag1Command. */
+  public SetPigeonFromMegaTag1Command() {
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    resetQN = false;
-    logger.info("initializing");
+    resetPigeon = false;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -47,25 +41,22 @@ public class SetQuestNavPoseFromMegaTag1Command extends Command {
       }
     }
     if (pose != null) {
-      if (RobotContainer.questNavSubsystem != null){
-        QuestNavSubsystem qn = RobotContainer.questNavSubsystem;
-        qn.setQuestNavPose(pose);
-        resetQN = true;
-
+      if (RobotContainer.swerveSubsystem != null){
+        SwerveSubsystem sd = RobotContainer.swerveSubsystem;
+        sd.getPigeon2().setYaw(pose.getRotation().getDegrees());
+        resetPigeon = true;
       }
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {
-    logger.info("ended");
-  }
+  public void end(boolean interrupted) {}
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return resetQN;
+    return resetPigeon;
   }
 
   @Override

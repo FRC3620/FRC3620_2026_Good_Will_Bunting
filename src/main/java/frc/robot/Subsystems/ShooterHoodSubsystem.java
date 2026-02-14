@@ -4,8 +4,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Feet;
-import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pound;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -18,78 +17,82 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants;
-import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
-import yams.mechanisms.config.ArmConfig;
-import yams.mechanisms.positional.Arm;
+import yams.mechanisms.config.PivotConfig;
+import yams.mechanisms.positional.Pivot;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXSWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class ShooterHoodSubsystem extends SubsystemBase {
+    int motorId = Constants.MOTORID_HOOD;
+    String telemetryPrefix = "Hood";
 
     TalonFX motor = null;
-    private Arm arm = null;
+    private Pivot pivot = null;
     private SmartMotorController motorController = null;
 
     public ShooterHoodSubsystem() {
 
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6,
-                Constants.MOTORID_HOOD) ||
+                motorId, telemetryPrefix) ||
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
-            motor = new TalonFX(Constants.MOTORID_HOOD);
-            SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-                    .withSoftLimit(Degrees.of(-30), Degrees.of(100))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(7, 1)))
+            motor = new TalonFX(motorId);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+
+            SmartMotorControllerConfig motorControllerConfig = new SmartMotorControllerConfig(this)
+                    .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(7), DegreesPerSecondPerSecond.of(5))
+                    .withSoftLimit(Degrees.of(25), Degrees.of(65))
+                    .withMotorInverted(true)
+                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(40))
+                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
+                    .withStatorCurrentLimit(Amps.of(15))
                     .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
+                    .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
+                    .withStartingPosition(Degrees.of(10))
                     .withControlMode(ControlMode.CLOSED_LOOP);
             // .withMOI(Feet.of(4), Pound.of(4));
-            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
-            arm = new Arm(new ArmConfig(motorController)
-                    .withHardLimit(Degrees.of(45), Degrees.of(90))
-                    .withStartingPosition(Degrees.of(45))
-                    .withTelemetry("Shooter Hood", TelemetryVerbosity.HIGH)
-                    .withLength(Feet.of(1))
-                    .withMass(Pound.of(0.5)));
+
+            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorControllerConfig);
+
+            pivot = new Pivot(new PivotConfig(motorController)
+                    .withHardLimit(Degrees.of(10), Degrees.of(60))
+                    .withStartingPosition(Degrees.of(10))
+                    .withMOI(Inches.of(55.7), Pound.of(1))
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
         }
 
     }
 
     @Override
     public void periodic() {
-        if (arm != null) {
-            arm.updateTelemetry();
+        if (pivot != null) {
+            pivot.updateTelemetry();
         }
     }
 
     @Override
     public void simulationPeriodic() {
-        // setAngle(intake /\)
-        if (arm != null) {
-            arm.simIterate();
+        if (pivot != null) {
+            pivot.simIterate();
         }
     }
 
-    public Command setAngle(Angle angle){
-        if (arm != null)
-            return arm.setAngle(angle).withName("Shooter Hood setAngle");
-        else
-            return this.run(() -> {
-                // RobotContainer.logger.error("Shooter Hood Arm not initialized");
-            }).withName("Shooter Hood setAngle");
+    public Command setAngle(Angle angle) {
+        Command rv;
+        if (pivot != null) {
+            rv = pivot.setAngle(angle);
+        } else {
+            rv = idle();
+        }
+        return rv.withName(telemetryPrefix + " SetAngle");
     }
 }
