@@ -20,6 +20,7 @@ import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -51,12 +52,15 @@ public class ClimberSubsystem extends SubsystemBase {
     if (makeDevice) {
       motor = new TalonFX(motorId);
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
-      
+
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           // Mechanism Circumference is the distance traveled by each mechanism rotation
           // converting rotations to meters.
-          .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
+          // .withMechanismCircumference(Meters.of(Inches.of(0.25).in(Meters) * 22))
+          .withMechanismCircumference(
+              Inches.of(Math.PI * 0.25))
+
           // Feedback Constants (PID Constants)
           .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
           .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
@@ -128,6 +132,20 @@ public class ClimberSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     if (elevator != null) {
       elevator.updateTelemetry();
+      elevator.getMechanismSetpoint().ifPresent((setpoint) -> SmartDashboard.putNumber(
+          "frc3620/" + telemetryPrefix + "/setPos",
+          setpoint.in(edu.wpi.first.units.Units.Radians)));
+
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualPos", getPosition());
+
+    }
+  }
+
+  public double getPosition() {
+    if (elevator != null) {
+      return elevator.getHeight().in(Meters);
+    } else {
+      return 0;
     }
   }
 

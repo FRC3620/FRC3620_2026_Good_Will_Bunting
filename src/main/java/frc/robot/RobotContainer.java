@@ -35,6 +35,7 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -62,7 +63,7 @@ import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
-import frc.robot.Generated.RaptorTunerConstants;
+// import frc.robot.Generated.RaptorTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
 
 import frc.robot.Subsystems.IntakeRollerSubsytem;
@@ -186,7 +187,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
-    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
@@ -242,8 +243,8 @@ public class RobotContainer implements RobotModeChangeListener {
     SwerveSubsystem rv = null;
     if (robotVariant.equals("Chudbot")) {
       return ChudbotTunerConstants.createDrivetrain();
-    } else if (robotVariant.equals("JoeHann")) {
-      return RaptorTunerConstants.createDrivetrain();
+    // } else if (robotVariant.equals("JoeHann")) {
+    //   // return RaptorTunerConstants.createDrivetrain();
     } else {
       return TunerConstants.createDrivetrain();
     }
@@ -379,7 +380,7 @@ public class RobotContainer implements RobotModeChangeListener {
           ))).withName("Point"));
           
           driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.X)
-              .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)).withName("Intake shoulder test"));
+              .whileTrue(climberSubsystem.setHeight(Meters.of(2)).withName("Climber test"));
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
       
       driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
@@ -436,10 +437,10 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void setupSmartDashboardCommands() {
     // SmartDashboard.putData(new xxxxCommand());
-    SmartDashboard.putData(
-    "frc3620/IntakeShoulder/ Set 60",
-    intakeShoulderSubsystem.setAngle(Degrees.of(60))
-);
+//     SmartDashboard.putData(
+//     "frc3620/IntakeShoulder/ Set 60",
+//     intakeShoulderSubsystem.setAngle(Degrees.of(60))
+// );
 
   }
 
