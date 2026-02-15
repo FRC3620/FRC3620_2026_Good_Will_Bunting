@@ -7,6 +7,9 @@ package org.usfirst.frc3620;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -226,7 +229,7 @@ public class Utilities {
   }
 
   /*
-   * DW: I should be able to figure out how to do both Distance and Angle with 
+   * DW: I should be able to figure out how to do both Distance and Angle with
    * one method using generics, but I ain't that smart. This works!
    * 
    */
@@ -241,7 +244,8 @@ public class Utilities {
   }
 
   public static Distance changeValuesUnitsTo(Distance v, DistanceUnit u) {
-    if (v.unit() == u) return v;
+    if (v.unit() == u)
+      return v;
     return u.of(v.in(u));
   }
 
@@ -255,7 +259,30 @@ public class Utilities {
   }
 
   private static Angle changeValuesUnitsTo(Angle v, AngleUnit u) {
-    if (v.unit() == u) return v;
+    if (v.unit() == u)
+      return v;
     return u.of(v.in(u));
   }
+
+  public static <T> T extractPrivateField(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
+    try {
+      Field privateField = clazz.getDeclaredField(name);
+      privateField.setAccessible(true);
+      T rv = returnClazz.cast(privateField.get(o));
+      return rv;
+    } catch (SecurityException | IllegalAccessException | ClassCastException | NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T callMethod(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
+    try {
+      Method method = clazz.getMethod(name, new Class[] { } );
+      T rv = returnClazz.cast(method.invoke(o, new Object[] {} ));
+      return rv;
+    } catch (SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+      throw new RuntimeException(e); 
+    }
+  }
+
 }
