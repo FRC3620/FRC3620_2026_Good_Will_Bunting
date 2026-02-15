@@ -34,6 +34,7 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -182,7 +183,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
-    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
