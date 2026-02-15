@@ -1,4 +1,6 @@
 package frc.robot;
+
+import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -250,7 +252,8 @@ public class RobotContainer implements RobotModeChangeListener {
     if (shouldMakeSwerve) {
       rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
     }
-    logger.info("looked for swerve motor {}, got {}, made swerve {} from {}", motorId, shouldMakeSwerve, rv.getClass().getName(), tunerConstantsClass);
+    logger.info("looked for swerve motor {}, got {}, made swerve {} from {}", motorId, shouldMakeSwerve,
+        rv.getClass().getName(), tunerConstantsClass);
     return rv;
   }
 
@@ -376,16 +379,16 @@ public class RobotContainer implements RobotModeChangeListener {
 
       driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
           .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
-          driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
           .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
-          -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
-          -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
+              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
+              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
           ))).withName("Point"));
-          
-          driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.X)
-              .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)).withName("Intake shoulder test"));
+
+      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.X)
+          .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)).withName("Intake shoulder test"));
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
-      
+
       driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
           .whileTrue(swerveSubsystem.applyRequest(() -> drive
               // Drive forward with negative Y(forward)
@@ -395,14 +398,13 @@ public class RobotContainer implements RobotModeChangeListener {
               .withRotationalRate(0) // Drive coun
           ).withName("Drive Slow"));
 
-          
       CommandScheduler.getInstance().schedule(
           new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
     }
 
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
-
+/* 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(45)));
 
@@ -412,6 +414,17 @@ public class RobotContainer implements RobotModeChangeListener {
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+*/
+    operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(
+            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(
+            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
@@ -441,9 +454,8 @@ public class RobotContainer implements RobotModeChangeListener {
     SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashbaordCommand());
     // SmartDashboard.putData(new xxxxCommand());
     SmartDashboard.putData(
-    "frc3620/IntakeShoulder/ Set 60",
-    intakeShoulderSubsystem.setAngle(Degrees.of(60))
-);
+        "frc3620/IntakeShoulder/ Set 60",
+        intakeShoulderSubsystem.setAngle(Degrees.of(60)));
 
   }
 
