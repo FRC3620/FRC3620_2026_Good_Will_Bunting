@@ -189,7 +189,6 @@ public class RobotContainer implements RobotModeChangeListener {
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(30)));
-    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
