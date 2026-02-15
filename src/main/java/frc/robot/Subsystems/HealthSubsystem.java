@@ -8,13 +8,8 @@ import static edu.wpi.first.units.Units.Fahrenheit;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.tinylog.TaggedLogger;
-import org.usfirst.frc3620.Utilities;
-import org.usfirst.frc3620.CANDeviceFinder.NamedCANDevice;
 import org.usfirst.frc3620.Utilities.GlobMatcher;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
@@ -24,8 +19,10 @@ import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.RobotController.RadioLEDState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -36,7 +33,7 @@ public class HealthSubsystem extends SubsystemBase {
   private final static String alertGroupName = "Health Alerts";
 
   public enum Health {
-    GOOD, MEDIOCRE, BAD, DEATHROW;
+    INVALID, GOOD, MEDIOCRE, BAD, DEATHROW;
 
     public Health worstOf(Health h) {
       if (this.compareTo(h) > 0)
@@ -45,7 +42,7 @@ public class HealthSubsystem extends SubsystemBase {
     }
   }
 
-  Health currentHealth = Health.DEATHROW;
+  Health currentHealth = Health.INVALID;
 
   public Health getCurrentHealth() {
     return currentHealth;
@@ -100,7 +97,36 @@ public class HealthSubsystem extends SubsystemBase {
     newHealth = newHealth.worstOf(booleanSupplierHealth);
 
     currentHealth = newHealth;
+
+    RadioLEDState newRadioLEDState = null;
+    switch (newHealth) {
+      case GOOD:
+        newRadioLEDState = RadioLEDState.kGreen;
+        break;
+    
+      case MEDIOCRE:
+        newRadioLEDState = RadioLEDState.kOrange;
+        break;
+
+      case BAD:
+        newRadioLEDState = RadioLEDState.kRed;
+        break;
+
+      case DEATHROW:
+        newRadioLEDState = ((RobotController.getFPGATime() % 200000) > 100000) ? RadioLEDState.kRed : RadioLEDState.kOff;
+        break;
+
+      default:
+        newRadioLEDState = ((RobotController.getFPGATime() % 200000) > 100000) ? RadioLEDState.kRed : RadioLEDState.kOrange;
+    }
+
+    if (newRadioLEDState != radioLEDState) {
+      RobotController.setRadioLEDState(newRadioLEDState);
+      radioLEDState = newRadioLEDState;
+    }
   }
+
+  RadioLEDState radioLEDState = null;
 
   Health checkForMissingDevices() {
     Health rv = Health.GOOD;
