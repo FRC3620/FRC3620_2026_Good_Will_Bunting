@@ -64,6 +64,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     private final Angle ZERO_ENCODER_OFFSET = Degrees.of(0); // place holders
 
+    private Angle setpoint = Degrees.of(0);
+
     Double requestedCalibrationPos = null;
 
     public ShooterHoodSubsystem() {
@@ -100,7 +102,10 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
 
             createPivot(HOOD_CALIBRATED_POS);
+
+            setDefaultCommand(pivot.setAngle(() -> setpoint));
         }
+        SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
 
     }
 
@@ -109,6 +114,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         if (pivot != null) {
             pivot.updateTelemetry();
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
+            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Setpoint", setpoint.in(Degrees));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
                     Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
         }
@@ -130,10 +136,12 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         }
     }
 
-    public Command setAngle(Angle angle) {
+    public Command setAngle(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
-            rv = pivot.setAngle(() -> angle);
+            rv = run(() -> {
+                setpoint = angle.get();
+            });
         } else {
             rv = idle();
         }
@@ -152,12 +160,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public Command setAngleDashboardCommand() {
         if (pivot != null) {
-            Supplier<Angle> angSupplier = () -> {
-                return Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Setpoint", 30));
-            };
-            return     
-            new InstantCommand(() -> SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Setpoint", 30)).andThen(
-            pivot.setAngle(angSupplier));
+            return run(() -> {
+                setpoint = Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30));
+            }).withName("Shooter Hood setAngle Dashboard");
         }
         return idle();
 
