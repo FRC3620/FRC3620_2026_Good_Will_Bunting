@@ -1,5 +1,4 @@
 package frc.robot;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -69,7 +68,6 @@ import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
 
-import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
@@ -142,7 +140,6 @@ public class RobotContainer implements RobotModeChangeListener {
   public IntakeRollerSubsytem intakeRollerSubsystem;
 
   public ShooterHoodSubsystem shooterHoodSubsystem;
-  public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
@@ -192,7 +189,6 @@ public class RobotContainer implements RobotModeChangeListener {
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
     shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
-    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
   }
 
@@ -223,7 +219,6 @@ public class RobotContainer implements RobotModeChangeListener {
     intakeRollerSubsystem = new IntakeRollerSubsytem();
 
     shooterHoodSubsystem = new ShooterHoodSubsystem();
-    shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     preshooterSubsystem = new PreshooterSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
@@ -406,9 +401,6 @@ public class RobotContainer implements RobotModeChangeListener {
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.B)
         .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
-
-    operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
-        .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
