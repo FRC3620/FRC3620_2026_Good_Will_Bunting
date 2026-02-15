@@ -286,6 +286,61 @@ public class HealthSubsystem extends SubsystemBase {
   }
 
   public static class HealthOptions {
+    // if this is set, then put the device temperature into the network tables
+    private boolean doLogTemperature = false;
+
+    // if this is set, then put changes from health to sick into the TaggedLogger
+    private boolean doLogHealthChanges = false;
+
+    // temperature that we get nervous about motor temps at
+    private double motorTemperatureThreshold = 120;
+
+    public HealthOptions() {
+    }
+
+    public HealthOptions(HealthOptions template) {
+      this();
+      // copy fields over
+      doLogTemperature = template.doLogTemperature;
+      doLogHealthChanges = template.doLogHealthChanges;
+      motorTemperatureThreshold = template.motorTemperatureThreshold;
+    }
+
+    public HealthOptions withDoLogTemperature(boolean v) {
+      HealthOptions rv = new HealthOptions(this);
+      rv.doLogTemperature = v;
+      return rv;
+    }
+
+    public boolean getDoLogTemperature() {
+      return doLogTemperature;
+    }
+
+    public HealthOptions withDoLogHealthChanges(boolean v) {
+      HealthOptions rv = new HealthOptions(this);
+      rv.doLogHealthChanges = v;
+      return rv;
+    }
+
+    public boolean getDoLogHealthChanges() {
+      return doLogHealthChanges;
+    }
+
+    public HealthOptions withMotorTemperatureThreshold(double fahrenheit) {
+      HealthOptions rv = new HealthOptions(this);
+      rv.motorTemperatureThreshold = fahrenheit;
+      return rv;
+    }
+
+    public double getMotorTemperatureThreshold() {
+      return motorTemperatureThreshold;
+    }
+
+    @Override
+    public String toString() {
+      return "HealthOptions [doLogTemperature=" + doLogTemperature + ", doLogHealthChanges=" + doLogHealthChanges
+          + ", motorTemperatureThreshold=" + motorTemperatureThreshold + "]";
+    }
   }
 
   public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
