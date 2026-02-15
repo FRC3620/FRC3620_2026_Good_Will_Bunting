@@ -1,5 +1,4 @@
 package frc.robot;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -62,14 +61,13 @@ import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Generated.ChudbotTunerConstants;
-import frc.robot.Generated.JoeHannTunerConstants;
+import frc.robot.Generated.RaptorTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
 
 import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
 
-import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
@@ -142,7 +140,6 @@ public class RobotContainer implements RobotModeChangeListener {
   public IntakeRollerSubsytem intakeRollerSubsystem;
 
   public ShooterHoodSubsystem shooterHoodSubsystem;
-  public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
@@ -182,7 +179,6 @@ public class RobotContainer implements RobotModeChangeListener {
     configureButtonBindings();
 
     FollowPathCommand.warmupCommand().schedule();
-  
 
     // default commands
     turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
@@ -199,9 +195,9 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void makeSubsystems() {
     healthSubsystem = new HealthSubsystem();
-    boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 1,
-        "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
-    if (makeDevices) {
+
+    swerveSubsystem = configureSwerveDrive();
+    if (swerveSubsystem != null) {
       /* Setting up bindings for necessary control of the swerve drive platform */
       drive = new SwerveRequest.FieldCentric()
           .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -210,7 +206,6 @@ public class RobotContainer implements RobotModeChangeListener {
       point = new SwerveRequest.PointWheelsAt();
 
       swerveLogger = new SwerveTelemetry(MaxSpeed);
-      swerveSubsystem = configureSwerveDrive();
 
       sendSwerveSubsystemToHealthSubsystem();
     }
@@ -225,7 +220,6 @@ public class RobotContainer implements RobotModeChangeListener {
     intakeRollerSubsystem = new IntakeRollerSubsytem();
 
     shooterHoodSubsystem = new ShooterHoodSubsystem();
-    shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     preshooterSubsystem = new PreshooterSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
@@ -237,15 +231,25 @@ public class RobotContainer implements RobotModeChangeListener {
     SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
     String robotVariant = robotParameters.getVariant();
     SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
-    SwerveSubsystem rv = null;
-    if (robotVariant.equals("Chudbot")) {
-      return ChudbotTunerConstants.createDrivetrain();
-    } else if (robotVariant.equals("JoeHann")) {
-      return JoeHannTunerConstants.createDrivetrain();
+
+    Class<?> tunerConstantsClass;
+    if (robotVariant.toLowerCase().equals("chudbot")) {
+      tunerConstantsClass = ChudbotTunerConstants.class;
+    } else if (robotVariant.toLowerCase().equals("raptor")) {
+      tunerConstantsClass = RaptorTunerConstants.class;
     } else {
-      return TunerConstants.createDrivetrain();
+      tunerConstantsClass = TunerConstants.class;
     }
 
+    Integer motorId = Utilities.extractPrivateField(Integer.class, tunerConstantsClass, null, "kFrontLeftDriveMotorId");
+    boolean shouldMakeSwerve = canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
+        "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+    SwerveSubsystem rv = null;
+    if (shouldMakeSwerve) {
+      rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
+    }
+    logger.info("looked for swerve motor {}, got {}, made swerve {} from {}", motorId, shouldMakeSwerve, rv.getClass().getName(), tunerConstantsClass);
+    return rv;
   }
 
   private void makeStates() {
@@ -319,8 +323,8 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
         passingState));
     hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
+        passingState));
   }
 
   private void makeStateMachine() {
@@ -390,7 +394,6 @@ public class RobotContainer implements RobotModeChangeListener {
           new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
     }
 
-    
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
@@ -400,16 +403,14 @@ public class RobotContainer implements RobotModeChangeListener {
     operatorJoystick.button(OdoIdsXBox.ButtonId.B)
         .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(35)));
 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
-        .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
-
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
+            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+            .ignoringDisable(true));
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
@@ -418,8 +419,8 @@ public class RobotContainer implements RobotModeChangeListener {
       String driveControllerName = realDriverJoystick.getName();
       int n_axes = realDriverJoystick.getAxisCount();
       int n_buttons = realDriverJoystick.getButtonCount();
-      logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName, 
-        realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
+      logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName,
+          realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
       if (driveControllerName.startsWith("Flysky")) {
         driverJoystick.setJoystickType(JoystickType.A);
       } else {
@@ -444,7 +445,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (autoChooser != null) {
       SmartDashboard.putData("Auto Mode", autoChooser);
-    } 
+    }
   }
 
   public Command getAutonomousCommand() {
@@ -549,6 +550,5 @@ public class RobotContainer implements RobotModeChangeListener {
 
     return false;
   }
-
 
 }
