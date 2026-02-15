@@ -28,6 +28,7 @@ public final class Constants {
     public static final int MOTORID_INTAKE_SHOULDER = 49;
 
     public static final int MOTORID_SHOOTER_TRIGGER = 40;
+    public static final int MOTORID_CONVEYER = 45;
 
     public static final int MOTORID_PRESHOOTER = 25;
 
