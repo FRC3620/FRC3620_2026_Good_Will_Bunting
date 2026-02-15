@@ -293,7 +293,7 @@ public class HealthSubsystem extends SubsystemBase {
     private boolean sendHealthChangesToTinyLog = false;
 
     // temperature that we get nervous about motor temps at
-    private double motorTemperatureThreshold = 120;
+    private Temperature motorTemperatureThreshold = Fahrenheit.of(120);
 
     public HealthOptions() {
     }
@@ -326,13 +326,13 @@ public class HealthSubsystem extends SubsystemBase {
       return sendHealthChangesToTinyLog;
     }
 
-    public HealthOptions withMotorTemperatureThreshold(double fahrenheit) {
+    public HealthOptions withMotorTemperatureThreshold(Temperature threshold) {
       HealthOptions rv = new HealthOptions(this);
-      rv.motorTemperatureThreshold = fahrenheit;
+      rv.motorTemperatureThreshold = threshold;
       return rv;
     }
 
-    public double getMotorTemperatureThreshold() {
+    public Temperature getMotorTemperatureThreshold() {
       return motorTemperatureThreshold;
     }
 
