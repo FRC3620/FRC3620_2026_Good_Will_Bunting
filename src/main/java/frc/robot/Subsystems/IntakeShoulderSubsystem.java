@@ -14,7 +14,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -33,10 +35,11 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class IntakeShoulderSubsystem extends SubsystemBase {
   int motorId = Constants.MOTORID_INTAKE_SHOULDER;
   String telemetryPrefix = "IntakeShoulder";
-
+  public double set_angle=0.0;
   private TalonFX motor = null;
   private SmartMotorController motorControler = null;
   private Arm arm = null;
+
 
   public enum IntakeShoulderPositions {
     UP(90.0),
@@ -79,6 +82,16 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     if (arm != null) {
       arm.updateTelemetry();
+      arm.getMechanismSetpoint().ifPresent(setpoint ->
+    SmartDashboard.putNumber(
+        "frc3620/" + telemetryPrefix + "/setPos",
+        setpoint.in(Degrees)
+    )
+);
+      SmartDashboard.putNumber("frc3620/"+telemetryPrefix+"/actualPos", getPosition());
+      SmartDashboard.putData("frc3620/"+telemetryPrefix+"/setAngle", RobotContainer.intakeShoulderSubsystem.setAngle(Degrees.of(60)));
+
+
     }
   }
 
@@ -90,12 +103,21 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   }
 
   public Command setAngle(Angle angle) {
-    Command rv;
+    Command rv;   
     if (arm != null) {
       rv = arm.setAngle(angle);
+      RobotContainer.intakeShoulderSubsystem.set_angle= angle.in(Degrees);
     } else {
       rv = idle();
     }
     return rv.withName(telemetryPrefix + " SetAngle");
   }
+
+  public double getPosition(){
+    if(arm==null)
+    return Math.PI;
+    else{
+      return arm.getAngle().in(Degrees);
+    }
+  } 
 }
