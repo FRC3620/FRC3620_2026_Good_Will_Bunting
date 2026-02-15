@@ -73,7 +73,7 @@ public class ConveyerSubsystem extends SubsystemBase {
             if (flyWheel != null) {
                return flyWheel.setSpeed(RPM.of(speed));
             } else {
-                return null;
+                return idle();
             }
     }
     
