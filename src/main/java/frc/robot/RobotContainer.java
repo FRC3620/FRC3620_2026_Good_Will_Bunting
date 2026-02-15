@@ -188,7 +188,7 @@ public class RobotContainer implements RobotModeChangeListener {
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
 
-    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(30)));
     // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
 
     Robot.addRobotModeChangeListener(this);
@@ -403,10 +403,10 @@ public class RobotContainer implements RobotModeChangeListener {
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
+        .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(45)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
+        .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(35)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
@@ -435,6 +435,9 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void setupSmartDashboardCommands() {
+    SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
+    SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
+    SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashbaordCommand());
     // SmartDashboard.putData(new xxxxCommand());
     SmartDashboard.putData(
     "frc3620/IntakeShoulder/ Set 60",
