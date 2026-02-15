@@ -1,14 +1,14 @@
 [
   {
     "name": "Raptor",
-    "serialNumber": "?",
-    "makeAllCANDevices": true,
-    "competitionRobot": true,
+    "serialNumber": "0327BA54",
+    "makeAllCANDevices": false,
+    "competitionRobot": false,
     "variant": "Raptor"
   },
   {
     "name": "Chudbot",
-    "serialNumber": ["0326F30D",  "0327BA54"],
+    "serialNumber": ["0326F30D"],
     "makeAllCANDevices": false,
     "competitionRobot": false,
     "variant": "Chudbot"
