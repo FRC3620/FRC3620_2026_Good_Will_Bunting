@@ -87,7 +87,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           .withMass(Pound.of(5)));
 
-      elevator.setHeight(() -> setpoint);
+      setDefaultCommand(elevator.setHeight(() -> setpoint));
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
   }

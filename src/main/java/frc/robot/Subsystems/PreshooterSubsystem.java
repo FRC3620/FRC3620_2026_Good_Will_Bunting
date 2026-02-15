@@ -70,7 +70,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withUpperSoftLimit(RPM.of(2000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
 
-            flyWheel.setSpeed(() -> setpoint);
+            setDefaultCommand(flyWheel.setSpeed(() -> setpoint));
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
     }

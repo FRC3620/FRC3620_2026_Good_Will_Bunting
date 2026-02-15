@@ -104,9 +104,10 @@ public class ShooterSubsystem extends SubsystemBase {
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
       flywheel = new FlyWheel(Config);
 
-      flywheel.setSpeed(() -> setpoint);
+      setDefaultCommand(flywheel.setSpeed(() -> setpoint));
     }
     SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
+
   }
 
   /**

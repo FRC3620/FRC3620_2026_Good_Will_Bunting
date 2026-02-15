@@ -73,7 +73,7 @@ public class ConveyerSubsystem extends SubsystemBase {
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
 
-            flyWheel.setSpeed(() -> setpoint);
+            setDefaultCommand(flyWheel.setSpeed(() -> setpoint));
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
     }

@@ -82,7 +82,7 @@ public class TurretSubsystem extends SubsystemBase {
           // MOI Calculation
           .withMOI(Meters.of(0.25), Pounds.of(2)));
 
-      pivot.setAngle(() -> setpoint);
+      setDefaultCommand(pivot.setAngle(() -> setpoint));
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 0);
   }
