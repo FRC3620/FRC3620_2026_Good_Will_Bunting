@@ -287,10 +287,10 @@ public class HealthSubsystem extends SubsystemBase {
 
   public static class HealthOptions {
     // if this is set, then put the device temperature into the network tables
-    private boolean doLogTemperature = false;
+    private boolean sendTemperatureToNT = false;
 
     // if this is set, then put changes from health to sick into the TaggedLogger
-    private boolean doLogHealthChanges = false;
+    private boolean sendHealthChangesToTinyLog = false;
 
     // temperature that we get nervous about motor temps at
     private double motorTemperatureThreshold = 120;
@@ -301,29 +301,29 @@ public class HealthSubsystem extends SubsystemBase {
     public HealthOptions(HealthOptions template) {
       this();
       // copy fields over
-      doLogTemperature = template.doLogTemperature;
-      doLogHealthChanges = template.doLogHealthChanges;
+      sendTemperatureToNT = template.sendTemperatureToNT;
+      sendHealthChangesToTinyLog = template.sendHealthChangesToTinyLog;
       motorTemperatureThreshold = template.motorTemperatureThreshold;
     }
 
-    public HealthOptions withDoLogTemperature(boolean v) {
+    public HealthOptions withSendTemperatureToNT(boolean v) {
       HealthOptions rv = new HealthOptions(this);
-      rv.doLogTemperature = v;
+      rv.sendTemperatureToNT = v;
       return rv;
     }
 
-    public boolean getDoLogTemperature() {
-      return doLogTemperature;
+    public boolean getSendTemperatureToNT() {
+      return sendTemperatureToNT;
     }
 
-    public HealthOptions withDoLogHealthChanges(boolean v) {
+    public HealthOptions withSendHealthChangesToTinylog(boolean v) {
       HealthOptions rv = new HealthOptions(this);
-      rv.doLogHealthChanges = v;
+      rv.sendHealthChangesToTinyLog = v;
       return rv;
     }
 
-    public boolean getDoLogHealthChanges() {
-      return doLogHealthChanges;
+    public boolean getSendHealthChangesToTinyLog() {
+      return sendHealthChangesToTinyLog;
     }
 
     public HealthOptions withMotorTemperatureThreshold(double fahrenheit) {
@@ -338,7 +338,7 @@ public class HealthSubsystem extends SubsystemBase {
 
     @Override
     public String toString() {
-      return "HealthOptions [doLogTemperature=" + doLogTemperature + ", doLogHealthChanges=" + doLogHealthChanges
+      return "HealthOptions [doLogTemperature=" + sendTemperatureToNT + ", doLogHealthChanges=" + sendHealthChangesToTinyLog
           + ", motorTemperatureThreshold=" + motorTemperatureThreshold + "]";
     }
   }
