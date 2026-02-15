@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class RobotParameters extends RobotParametersBase {
     String variant = "Other";   // default value if not specified in JSON file
     List<String> nonCriticalCANDevices = new ArrayList<>();
+    List<String> ignoreHealth = new ArrayList<>();
 
     public String getVariant() {
         return variant;
@@ -21,5 +22,10 @@ public class RobotParameters extends RobotParametersBase {
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public List<String> getNonCriticalCANDevices() {
         return nonCriticalCANDevices;
+    }
+
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    public List<String> getIgnoreHealth() {
+        return ignoreHealth;
     }
 }

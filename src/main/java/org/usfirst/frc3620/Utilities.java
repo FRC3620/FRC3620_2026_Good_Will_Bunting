@@ -7,9 +7,11 @@ package org.usfirst.frc3620;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LoggingMaster;
@@ -352,5 +354,33 @@ public class Utilities {
     return sb.toString();
   }
 
+  public static class GlobMatcher {
+    List<Pattern> patterns = new ArrayList<>();
+
+    public GlobMatcher(Collection<String> globs) {
+      for (var glob : globs) {
+        String regexp = Utilities.convertGlobToRegEx(glob);
+        Pattern pattern = null;
+        try {
+          pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+          logger.info("glob '{}' -> regexp '{}'", glob, pattern);
+        } catch (PatternSyntaxException ex) {
+          logger.warn("Unable to parse regexp from glob: '{}' -> '{}': {}", glob, regexp,
+              ex);
+        }
+        if (pattern != null) {
+          patterns.add(pattern);
+        }
+      }
+    }
+
+    public boolean matches(String string) {
+        for (var pattern : patterns) {
+          Matcher m = pattern.matcher(string);
+          if (m.find()) return true;
+        }
+        return false;
+    }
+  }
+
 }
-  

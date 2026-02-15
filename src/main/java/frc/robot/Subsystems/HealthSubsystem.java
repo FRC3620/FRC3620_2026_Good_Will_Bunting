@@ -15,6 +15,7 @@ import java.util.regex.PatternSyntaxException;
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.CANDeviceFinder.NamedCANDevice;
+import org.usfirst.frc3620.Utilities.GlobMatcher;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
 import com.ctre.phoenix6.StatusSignal;
@@ -64,12 +65,18 @@ public class HealthSubsystem extends SubsystemBase {
   public HealthSubsystem() {
     timer.reset();
     timer.start();
+
+    booleanSupplierIgnores = new GlobMatcher(RobotContainer.robotParameters.getIgnoreHealth());
   }
 
   Health missingDeviceHealth = null;
   Health talonTemperatureHealth = Health.GOOD;
+  Map<Object, Alert> talonTemperatureAlerts = new HashMap<>();
   Health ctreConnectionHealth = Health.GOOD;
+  Map<Object, Alert> ctreConnectionAlerts = new HashMap<>();
   Health booleanSupplierHealth = Health.GOOD;
+  Map<Object, Alert> booleanSupplierAlerts = new HashMap<>();
+  GlobMatcher booleanSupplierIgnores;
 
   @Override
   public void periodic() {
@@ -99,19 +106,7 @@ public class HealthSubsystem extends SubsystemBase {
     Health rv = Health.GOOD;
     var missingDevices = RobotContainer.canDeviceFinder.getMissingDeviceSet();
     if (missingDevices.size() > 0) {
-      List<Pattern> nonCriticalCANDevicePatterns = new ArrayList<>();
-      
-      for (var glob: RobotContainer.robotParameters.getNonCriticalCANDevices()) {
-        String regexp = Utilities.convertGlobToRegEx(glob);
-        Pattern pattern = null;
-        try {
-          pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
-          logger.info ("glob '{}' -> regexp '{}'", glob, pattern);
-        } catch (PatternSyntaxException ex) {
-          logger.warn("Unable to parse regexp in RobotParameter.nonCriticalCANDevices: '{}' -> '{}': {}", glob,regexp, ex);
-        }
-        if (pattern != null) nonCriticalCANDevicePatterns.add(pattern);
-      }
+      GlobMatcher globMatcher = new GlobMatcher(RobotContainer.robotParameters.getNonCriticalCANDevices());
 
       List<String> missingDeviceNames = new ArrayList<>();
       for (var missingDevice : missingDevices) {
@@ -123,15 +118,7 @@ public class HealthSubsystem extends SubsystemBase {
       List<String> nonCriticalDeviceNames = new ArrayList<>();
 
       for (var deviceName : missingDeviceNames) {
-        boolean nonCritical = false;
-        for (var pattern : nonCriticalCANDevicePatterns) {
-          Matcher m = pattern.matcher(deviceName);
-          if (m.find()) {
-            nonCritical = true;
-            break;
-          }
-        }
-        if (nonCritical) {
+        if (globMatcher.matches(deviceName)) {
           nonCriticalDeviceNames.add(deviceName);
         } else {
           criticalDeviceNames.add(deviceName);
@@ -162,7 +149,8 @@ public class HealthSubsystem extends SubsystemBase {
       sb.append(heading);
     }
     for (var name : names) {
-      if (sb.length() > 0) sb.append("\n");
+      if (sb.length() > 0)
+        sb.append("\n");
       sb.append(name);
     }
     return sb.toString();
@@ -173,6 +161,7 @@ public class HealthSubsystem extends SubsystemBase {
     for (var device : all_Fxs) {
       // var healthOptionsForDevice = all_health_options.get(device);
       // var deviceName = all_device_names.get(device);
+      var alert = talonTemperatureAlerts.get(device);
 
       StatusSignal<Temperature> tempuratreSignal = device.getDeviceTemp();
       var tempuratre = tempuratreSignal.getValue();
@@ -180,6 +169,9 @@ public class HealthSubsystem extends SubsystemBase {
       double tempuratreFahrenheit = tempuratre.in(Fahrenheit);
       if (tempuratreFahrenheit > 90) {
         rv = Health.BAD;
+        alert.set(true);
+      } else {
+        alert.set(false);
       }
     }
     return rv;
@@ -190,10 +182,14 @@ public class HealthSubsystem extends SubsystemBase {
     for (var device : all_ctre) {
       // var healthOptionsForDevice = all_health_options.get(device);
       // var deviceName = all_device_names.get(device);
+      var alert = ctreConnectionAlerts.get(device);
 
       boolean isOk = device.isConnected();
       if (!isOk) {
         rv = Health.BAD;
+        alert.set(true);
+      } else {
+        alert.set(false);
       }
     }
     return rv;
@@ -203,11 +199,17 @@ public class HealthSubsystem extends SubsystemBase {
     Health rv = Health.GOOD;
     for (var device : all_booleanSuppliers) {
       // var healthOptionsForDevice = all_health_options.get(device);
+      var alert = booleanSupplierAlerts.get(device);
       var deviceName = all_device_names.get(device);
       boolean isOk = device.getAsBoolean();
       SmartDashboard.putBoolean("Health/" + deviceName + "/healthy", isOk);
-      if (!isOk) {
-        rv = Health.BAD;
+      if (!booleanSupplierIgnores.matches(deviceName)) {
+        if (!isOk) {
+          rv = Health.BAD;
+          alert.set(true);
+        } else {
+          alert.set(false);
+        }
       }
     }
     return rv;
@@ -219,6 +221,8 @@ public class HealthSubsystem extends SubsystemBase {
     all_device_names.put(device, name);
     all_device_descriptions.put(device, deviceDescription(device));
     all_health_options.put(device, healthOptions);
+    talonTemperatureAlerts.put(device, new Alert(alertGroupName, name + " is hot!", AlertType.kError));
+    ctreConnectionAlerts.put(device, new Alert(alertGroupName, name + " is disconnected!", AlertType.kError));
   }
 
   public void addCTRESensorToWatch(ParentDevice device, String name, HealthOptions healthOptions) {
@@ -226,6 +230,7 @@ public class HealthSubsystem extends SubsystemBase {
     all_device_names.put(device, name);
     all_device_descriptions.put(device, deviceDescription(device));
     all_health_options.put(device, healthOptions);
+    ctreConnectionAlerts.put(device, new Alert(alertGroupName, name + " is disconnected!", AlertType.kError));
   }
 
   public void addHealthyBooleanSupplier(BooleanSupplier booleanSupplier, String name, HealthOptions healthOptions) {
@@ -233,6 +238,7 @@ public class HealthSubsystem extends SubsystemBase {
     all_device_names.put(booleanSupplier, name);
     all_device_descriptions.put(booleanSupplier, deviceDescription(booleanSupplier));
     all_health_options.put(booleanSupplier, healthOptions);
+    booleanSupplierAlerts.put(booleanSupplier, new Alert(alertGroupName, name, AlertType.kError));
   }
 
   String deviceDescription(Object device) {
