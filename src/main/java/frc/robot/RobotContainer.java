@@ -46,6 +46,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
+import frc.robot.Subsystems.ConveyerSubsystem;
 import frc.robot.Subsystems.HealthSubsystem;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
@@ -72,6 +73,7 @@ import frc.robot.Subsystems.LimelightSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem.IntakeShoulderPositions;
 import frc.robot.Subsystems.PreshooterSubsystem;
 
 /**
@@ -139,6 +141,7 @@ public class RobotContainer implements RobotModeChangeListener {
   public ShooterSubsystem shooterSubsystem;
   public static IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
+  public ConveyerSubsystem conveyerSubsystem;
 
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
@@ -182,15 +185,15 @@ public class RobotContainer implements RobotModeChangeListener {
     FollowPathCommand.warmupCommand().schedule();
 
     // default commands
-    turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
+    turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() -> Degrees.of(0)));
     climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
-    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
+    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() -> RPM.of(0)));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(() -> IntakeShoulderPositions.IN.getDistance()));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-
-    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(30)));
-    // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
+    conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
+    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() -> Degrees.of(30)));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(() ->RPM.of(0)));
 
     Robot.addRobotModeChangeListener(this);
   }
@@ -223,6 +226,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     preshooterSubsystem = new PreshooterSubsystem();
+    conveyerSubsystem = new ConveyerSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
     healthSubsystem.dumpDatabase();
@@ -382,8 +386,6 @@ public class RobotContainer implements RobotModeChangeListener {
           -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
           ))).withName("Point"));
           
-          driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.X)
-              .whileTrue(intakeShoulderSubsystem.setAngle(Degrees.of(0)).withName("Intake shoulder test"));
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
       
       driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
@@ -404,10 +406,10 @@ public class RobotContainer implements RobotModeChangeListener {
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-        .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(45)));
+        .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(45)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-        .whileTrue(shooterHoodSubsystem.setAngle(Degrees.of(35)));
+        .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(35)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
@@ -438,12 +440,12 @@ public class RobotContainer implements RobotModeChangeListener {
   private void setupSmartDashboardCommands() {
     SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
     SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
-    SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashbaordCommand());
+    SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand());
+    SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl", intakeShoulderSubsystem.setExtensionDashboardCommand());
+    SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand());
+    SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
+    SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
     // SmartDashboard.putData(new xxxxCommand());
-    SmartDashboard.putData(
-    "frc3620/IntakeShoulder/ Set 60",
-    intakeShoulderSubsystem.setAngle(Degrees.of(60))
-);
 
   }
 

@@ -7,10 +7,13 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -33,6 +36,8 @@ public class PreshooterSubsystem extends SubsystemBase {
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
+
+    private AngularVelocity setpoint = RPM.of(0);
 
     public PreshooterSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
@@ -65,7 +70,9 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withUpperSoftLimit(RPM.of(2000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
 
+            flyWheel.setSpeed(() -> setpoint);
         }
+        SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
     }
 
     /*
@@ -73,15 +80,34 @@ public class PreshooterSubsystem extends SubsystemBase {
      * 
      * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
      */
-    public Command setVelocityCommand(AngularVelocity speed) {
+    public Command setVelocityCommand(Supplier<AngularVelocity> speed) {
         Command rv;
         if (flyWheel == null) {
             rv = idle();
         } else {
-            rv = flyWheel.setSpeed(speed);
+            rv = run(() -> {
+                setpoint = speed.get();
+            });
         }
         return rv.withName(telemetryPrefix + " SetVelocity");
     }
+
+    public Command setVelocityDashboardCommand() {
+        Command rv;
+        if (flyWheel == null) {
+            rv = idle();
+        } else {
+            rv = run(() -> {
+                setpoint = RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0));
+            });
+        }
+        return rv.withName(telemetryPrefix + " SetVelocityDashboard");
+    }
+
+     /*
+     * @parma dutyCycle duty cycle to set
+     * 
+     * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
 
     // ** */
     public Command setDutyCycleCommand(double dutyCycle) {
@@ -98,6 +124,8 @@ public class PreshooterSubsystem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setVelocity", setpoint.in(RPM));
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualVelocity", flyWheel.getSpeed().in(RPM));
         }
     }
 

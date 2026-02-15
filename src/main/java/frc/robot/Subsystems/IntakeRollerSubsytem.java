@@ -52,15 +52,15 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(40))
-                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withStatorCurrentLimit(Amps.of(20))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(4))
+                    .withDiameter(Inch.of(1.5))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(2000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));

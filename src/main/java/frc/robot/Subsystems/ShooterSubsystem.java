@@ -52,6 +52,8 @@ public class ShooterSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private FlyWheel flywheel = null;
 
+  private AngularVelocity setpoint = RPM.of(0);
+
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
@@ -62,8 +64,10 @@ public class ShooterSubsystem extends SubsystemBase {
       RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId2,
           telemetryPrefix + " #2");
       motor2 = new TalonFX(motorId2);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix + "#1", HealthSubsystem.healthOptionsForYAMS);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix + "#2", HealthSubsystem.healthOptionsForYAMS);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix + "#1",
+          HealthSubsystem.healthOptionsForYAMS);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix + "#2",
+          HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
@@ -89,17 +93,20 @@ public class ShooterSubsystem extends SubsystemBase {
 
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
 
-    FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
-        // Diameter of the flywheel.
-        .withDiameter(Inches.of(4))
-        // Mass of the flywheel.
-        .withMass(Pounds.of(0.6))
-        // Maximum speed of the flywheel.
-        .withUpperSoftLimit(RPM.of(5000))
-        // Telemetry name and verbosity for the arm.
-        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
-    flywheel = new FlyWheel(Config);
+      FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
+          // Diameter of the flywheel.
+          .withDiameter(Inches.of(4))
+          // Mass of the flywheel.
+          .withMass(Pounds.of(0.6))
+          // Maximum speed of the flywheel.
+          .withUpperSoftLimit(RPM.of(5000))
+          // Telemetry name and verbosity for the arm.
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
+      flywheel = new FlyWheel(Config);
+
+      flywheel.setSpeed(() -> setpoint);
     }
+    SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
   }
 
   /**
@@ -109,7 +116,7 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public AngularVelocity getVelocity() {
     if (flywheel == null)
-      return RPM.of(50);
+      return RPM.of(999999);
     else
       return flywheel.getSpeed();
   }
@@ -120,26 +127,22 @@ public class ShooterSubsystem extends SubsystemBase {
    * @param speed Speed to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command setVelocity(AngularVelocity speed) {
-    Command rv;
-    if (flywheel != null) {
-      rv = flywheel.setSpeed(() -> speed);
-    } else {
-      rv = idle();
-    }
-    return rv.withName(telemetryPrefix + " SetVelocity");
+  public Command setVelocity(Supplier<AngularVelocity> speed) {
+    if (flywheel == null)
+      return idle();
+
+    return run(() -> {
+      setpoint = speed.get();
+    }).withName(telemetryPrefix + " SetVelocity");
   }
 
-  public Command setVelocityDashbaordCommand(){
-    if(flywheel != null){
-      Supplier<AngularVelocity> RPMSupplier = () -> {
-        return RPM.of(SmartDashboard.getNumber("frc3620/Shooter/flywheel RPM Setpoint", 0));
-      };
-      return 
-      new InstantCommand(() -> SmartDashboard.putNumber("frc3620/Shooter/flywheel RPM Setpoint", 0)).andThen(
-            flywheel.setSpeed(RPMSupplier));
-    }
-    return idle();
+  public Command setVelocityDashboardCommand() {
+    if (flywheel == null)
+      return idle();
+
+    return run(() -> {
+      setpoint = RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0));
+    });
   }
 
   /**
@@ -158,14 +161,13 @@ public class ShooterSubsystem extends SubsystemBase {
     return rv.withName(telemetryPrefix + " Set");
   }
 
-
-
-
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     if (flywheel != null) {
       flywheel.updateTelemetry();
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Actual", getVelocity().in(RPM));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Setpoint", setpoint.in(RPM));
     }
   }
 
