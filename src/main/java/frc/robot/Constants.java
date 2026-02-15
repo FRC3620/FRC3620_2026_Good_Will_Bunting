@@ -33,6 +33,9 @@ public final class Constants {
     public static final int MOTORID_CLIMBER = 39;
     
     
+    public static final int ENCODERID_TURRET_A = 41;
+    public static final int ENCODERID_TURRET_B = 42;
+    
   public static boolean disableHAL = false;
 
   public static void disableHAL() {
