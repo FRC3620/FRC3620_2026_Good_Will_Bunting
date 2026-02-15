@@ -186,11 +186,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // default commands
     //turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() -> Degrees.of(0)));
-    //climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     //shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() -> RPM.of(0)));
     //intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(() -> IntakeShoulderPositions.IN.getDistance()));
-    //intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     //conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
     //shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() -> Degrees.of(30)));
     //preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(() ->RPM.of(0)));
