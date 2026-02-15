@@ -6,14 +6,15 @@ package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Fahrenheit;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BooleanSupplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.tinylog.TaggedLogger;
+import org.usfirst.frc3620.Utilities;
+import org.usfirst.frc3620.CANDeviceFinder.NamedCANDevice;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
 import com.ctre.phoenix6.StatusSignal;
@@ -21,7 +22,9 @@ import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
 import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -29,12 +32,7 @@ import frc.robot.RobotContainer;
 public class HealthSubsystem extends SubsystemBase {
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
-  public static class HealthOptions {
-  }
-
-  public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveSensors = new HealthOptions();
+  private final static String alertGroupName = "Health Alerts";
 
   public enum Health {
     GOOD, MEDIOCRE, BAD, DEATHROW;
@@ -66,43 +64,115 @@ public class HealthSubsystem extends SubsystemBase {
   public HealthSubsystem() {
     timer.reset();
     timer.start();
-
-    addHealthyBooleanSupplier(() -> true, "HealthyThing", new HealthOptions());
-    addHealthyBooleanSupplier(() -> false, "SickThing", new HealthOptions());
   }
+
+  Health missingDeviceHealth = null;
+  Health talonTemperatureHealth = Health.GOOD;
+  Health ctreConnectionHealth = Health.GOOD;
+  Health booleanSupplierHealth = Health.GOOD;
 
   @Override
   public void periodic() {
-
     Health newHealth = Health.GOOD;
 
-    int numberOfMissingMotors = RobotContainer.canDeviceFinder.getMissingDeviceSet().size();
-    if (numberOfMissingMotors > 0) {
-      newHealth = Health.MEDIOCRE;
+    // only need to do this once
+    if (missingDeviceHealth == null) {
+      missingDeviceHealth = checkForMissingDevices();
     }
+    newHealth = newHealth.worstOf(missingDeviceHealth);
 
-    Health talonTemperatureHealth = checkTalonTemperatures();
+    if (timer.advanceIfElapsed(0.5)) {
+      // only check these a couple times a second
+      talonTemperatureHealth = checkTalonTemperatures();
+      ctreConnectionHealth = checkCTREconnections();
+    }
     newHealth = newHealth.worstOf(talonTemperatureHealth);
-
-    Health ctreConnectionHealth = checkCTREconnections();
     newHealth = newHealth.worstOf(ctreConnectionHealth);
 
-    Health booleanSupplierHealth = checkBooleanSuppliers();
+    booleanSupplierHealth = checkBooleanSuppliers();
     newHealth = newHealth.worstOf(booleanSupplierHealth);
 
-    /*
-     * Check questnav and limelights
-     */
-
-    // all done, save the result
     currentHealth = newHealth;
   }
 
-  public Health checkTalonTemperatures() {
+  Health checkForMissingDevices() {
+    Health rv = Health.GOOD;
+    var missingDevices = RobotContainer.canDeviceFinder.getMissingDeviceSet();
+    if (missingDevices.size() > 0) {
+      List<Pattern> nonCriticalCANDevicePatterns = new ArrayList<>();
+      
+      for (var glob: RobotContainer.robotParameters.getNonCriticalCANDevices()) {
+        String regexp = Utilities.convertGlobToRegEx(glob);
+        Pattern pattern = null;
+        try {
+          pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+          logger.info ("glob '{}' -> regexp '{}'", glob, pattern);
+        } catch (PatternSyntaxException ex) {
+          logger.warn("Unable to parse regexp in RobotParameter.nonCriticalCANDevices: '{}' -> '{}': {}", glob,regexp, ex);
+        }
+        if (pattern != null) nonCriticalCANDevicePatterns.add(pattern);
+      }
+
+      List<String> missingDeviceNames = new ArrayList<>();
+      for (var missingDevice : missingDevices) {
+        missingDeviceNames.add(missingDevice.toString());
+      }
+      Collections.sort(missingDeviceNames);
+
+      List<String> criticalDeviceNames = new ArrayList<>();
+      List<String> nonCriticalDeviceNames = new ArrayList<>();
+
+      for (var deviceName : missingDeviceNames) {
+        boolean nonCritical = false;
+        for (var pattern : nonCriticalCANDevicePatterns) {
+          Matcher m = pattern.matcher(deviceName);
+          if (m.find()) {
+            nonCritical = true;
+            break;
+          }
+        }
+        if (nonCritical) {
+          nonCriticalDeviceNames.add(deviceName);
+        } else {
+          criticalDeviceNames.add(deviceName);
+        }
+      }
+
+      if (nonCriticalDeviceNames.size() > 0) {
+        String text = namesForAlert("Missing from CAN bus, but we don't care", nonCriticalDeviceNames);
+        @SuppressWarnings("resource")
+        Alert alert = new Alert(alertGroupName, text, AlertType.kInfo);
+        alert.set(true);
+      }
+
+      if (criticalDeviceNames.size() > 0) {
+        rv = Health.MEDIOCRE;
+        String text = namesForAlert("Missing from CAN bus", criticalDeviceNames);
+        @SuppressWarnings("resource")
+        Alert alert = new Alert(alertGroupName, text, AlertType.kWarning);
+        alert.set(true);
+      }
+    }
+    return rv;
+  }
+
+  String namesForAlert(String heading, Collection<String> names) {
+    StringBuilder sb = new StringBuilder();
+    if (heading != null) {
+      sb.append(heading);
+    }
+    for (var name : names) {
+      if (sb.length() > 0) sb.append("\n");
+      sb.append(name);
+    }
+    return sb.toString();
+  }
+
+  Health checkTalonTemperatures() {
     Health rv = Health.GOOD;
     for (var device : all_Fxs) {
-      var healthOptionsForDevice = all_health_options.get(device);
-      var deviceName = all_device_names.get(device);
+      // var healthOptionsForDevice = all_health_options.get(device);
+      // var deviceName = all_device_names.get(device);
 
       StatusSignal<Temperature> tempuratreSignal = device.getDeviceTemp();
       var tempuratre = tempuratreSignal.getValue();
@@ -115,11 +185,11 @@ public class HealthSubsystem extends SubsystemBase {
     return rv;
   }
 
-  public Health checkCTREconnections() {
+  Health checkCTREconnections() {
     Health rv = Health.GOOD;
     for (var device : all_ctre) {
-      var healthOptionsForDevice = all_health_options.get(device);
-      var deviceName = all_device_names.get(device);
+      // var healthOptionsForDevice = all_health_options.get(device);
+      // var deviceName = all_device_names.get(device);
 
       boolean isOk = device.isConnected();
       if (!isOk) {
@@ -132,6 +202,7 @@ public class HealthSubsystem extends SubsystemBase {
   public Health checkBooleanSuppliers() {
     Health rv = Health.GOOD;
     for (var device : all_booleanSuppliers) {
+      // var healthOptionsForDevice = all_health_options.get(device);
       var deviceName = all_device_names.get(device);
       boolean isOk = device.getAsBoolean();
       SmartDashboard.putBoolean("Health/" + deviceName + "/healthy", isOk);
@@ -158,7 +229,7 @@ public class HealthSubsystem extends SubsystemBase {
   }
 
   public void addHealthyBooleanSupplier(BooleanSupplier booleanSupplier, String name, HealthOptions healthOptions) {
-     all_booleanSuppliers.add(booleanSupplier);
+    all_booleanSuppliers.add(booleanSupplier);
     all_device_names.put(booleanSupplier, name);
     all_device_descriptions.put(booleanSupplier, deviceDescription(booleanSupplier));
     all_health_options.put(booleanSupplier, healthOptions);
@@ -181,4 +252,11 @@ public class HealthSubsystem extends SubsystemBase {
       logger.info("{} is {}, options {}", device_name, device_description, health_options);
     }
   }
+
+  public static class HealthOptions {
+  }
+
+  public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
+  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions();
+  public final static HealthOptions healthOptionsForCTRESwerveSensors = new HealthOptions();
 }

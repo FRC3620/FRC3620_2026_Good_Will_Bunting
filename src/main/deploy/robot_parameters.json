@@ -2,7 +2,8 @@
   {
     "name": "simulator",
     "serialNumber": "(simulation)",
-    "makeAllCANDevices": true
+    "makeAllCANDevices": true,
+    "nonCriticalCANDevices": "(Shooter*)"
   },
   {
     "name": "PlexiMuleboard",
