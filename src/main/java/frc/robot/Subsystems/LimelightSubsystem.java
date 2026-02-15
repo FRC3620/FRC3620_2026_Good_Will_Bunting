@@ -29,12 +29,14 @@ import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.RobotContainer;
+import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import frc.robot.Subsystems.LimelightSubsystem.CameraData.MegaTagData;
 
 public class LimelightSubsystem extends SubsystemBase {
@@ -65,9 +67,17 @@ public class LimelightSubsystem extends SubsystemBase {
     public final MegaTagData megaTag2 = new MegaTagData("megaTag2");
     boolean useThisCamera = true;
     int countOfSwerveUpdatesFromThisCamera = 0;
+    public long timeLastRecieved = 0;
 
     CameraData(Camera c) {
+      RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isAlive(), c.limelightName,
+          new HealthOptions());
       limelightName = c.limelightName;
+      var hbentry = LimelightHelpers.getLimelightNTTableEntry(c.limelightName, "hb");
+      inst.addListener(
+          hbentry,
+          EnumSet.of(NetworkTableEvent.Kind.kValueAll),
+          event -> timeLastRecieved = RobotController.getFPGATime());
       /*
        * see
        * https://docs.wpilib.org/en/stable/docs/software/networktables/listening-for-
@@ -106,6 +116,16 @@ public class LimelightSubsystem extends SubsystemBase {
     public int bumpCountOfSwerveUpdatesFromThisCamera() {
       return ++countOfSwerveUpdatesFromThisCamera;
     }
+
+    public boolean isAlive() {
+      long now = RobotController.getFPGATime();
+      long howLongSinceLastHeard = now - timeLastRecieved;
+      if (howLongSinceLastHeard > 500000) {
+        return false;
+      } else {
+        return true;
+      }
+    };
 
     public class MegaTagData {
       // gets set whenever we have new data
@@ -248,10 +268,10 @@ public class LimelightSubsystem extends SubsystemBase {
     for (var cameraData : allCameraData.values()) {
       var sdPrefix = "frc3620/vision/" + cameraData.getLimelightName() + "/";
 
-      if(cameraData.megaTag1.poseEstimate==null)
-      continue;
-      if(cameraData.megaTag2.poseEstimate==null)
-      continue;
+      if (cameraData.megaTag1.poseEstimate == null)
+        continue;
+      if (cameraData.megaTag2.poseEstimate == null)
+        continue;
 
       LimelightHelpers.SetRobotOrientation(cameraData.limelightName, yaw, yawRate, pitch, 0, 0, 0);
       processMegaTag(cameraData.megaTag1, () -> LimelightHelpers.getBotPoseEstimate_wpiBlue(cameraData.limelightName),
@@ -321,7 +341,8 @@ public class LimelightSubsystem extends SubsystemBase {
       SmartDashboard.putString(sdPrefix + "rejectionMessage", error);
     }
 
-   // SmartDashboard.putNumber("errorBetweenMegaTag2Readings", getErrorBetweenCameras().in(Meters));
+    // SmartDashboard.putNumber("errorBetweenMegaTag2Readings",
+    // getErrorBetweenCameras().in(Meters));
   }
 
   public CameraData getCameraData(Camera camera) {
@@ -368,7 +389,7 @@ public class LimelightSubsystem extends SubsystemBase {
     if (error != null) {
 
       return error;
-    }else{
+    } else {
       return Meters.of(100);
     }
   }

@@ -14,6 +14,8 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
+import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
 
@@ -28,7 +30,8 @@ public class QuestNavSubsystem extends SubsystemBase {
   // Transform2d(Units.inchesToMeters(15.0), Units.inchesToMeters(0), new
   // Rotation2d(0));
   private Transform3d QUEST_TO_ROBOT = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET), 0,
-      Units.inchesToMeters(QUEST_NAV_HEIGHT), new Rotation3d(Units.degreesToRadians(0), 0, Units.degreesToRadians(QUEST_NAV_DEGREE_YAW_OFFSET)));
+      Units.inchesToMeters(QUEST_NAV_HEIGHT),
+      new Rotation3d(Units.degreesToRadians(0), 0, Units.degreesToRadians(QUEST_NAV_DEGREE_YAW_OFFSET)));
   private SwerveSubsystem swerveSubsystem;
   Pose3d roboPose = new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0));
 
@@ -38,7 +41,16 @@ public class QuestNavSubsystem extends SubsystemBase {
       .publish();
 
   /** Creates a new QuestNav. */
-  public QuestNavSubsystem(SwerveSubsystem swerveSubsystem, Pose3d initialQuestNavPose) {
+  public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
+      Pose3d initialQuestNavPose) {
+
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnected(), "is Questnav Connected",
+        new HealthOptions());
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "is Questnav Tracking",
+        new HealthOptions());
+         RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(), "is Questnav Sufficiently Charged",
+        new HealthOptions());
+
     this.swerveSubsystem = swerveSubsystem;
 
     // Set intial Position -- Right now, this assumes we're sitting in front of
@@ -85,6 +97,14 @@ public class QuestNavSubsystem extends SubsystemBase {
         roboPose = robotPose;
 
       }
+    }
+  }
+
+  public boolean isQuestnavSufficientlyCharged() {
+    if (getQuestNavPower() < 15)
+      return false;
+    else {
+      return true;
     }
   }
 
