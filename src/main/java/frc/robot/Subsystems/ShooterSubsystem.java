@@ -12,6 +12,8 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -22,7 +24,9 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -65,7 +69,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(10, 0, 0, DegreesPerSecond.of(1440), DegreesPerSecondPerSecond.of(720))
+          .withClosedLoopController(10, 0, 0.1, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
           .withSimClosedLoopController(10, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
@@ -85,15 +89,16 @@ public class ShooterSubsystem extends SubsystemBase {
 
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
 
-      flywheel = new FlyWheel(new FlyWheelConfig(smartMotorController)
-          // Diameter of the flywheel.
-          .withDiameter(Inches.of(4))
-          // Mass of the flywheel.
-          .withMass(Pounds.of(0.6))
-          // Maximum speed of the flywheel.
-          .withUpperSoftLimit(RPM.of(1000))
-          // Telemetry name and verbosity for the arm.
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+    FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
+        // Diameter of the flywheel.
+        .withDiameter(Inches.of(4))
+        // Mass of the flywheel.
+        .withMass(Pounds.of(0.6))
+        // Maximum speed of the flywheel.
+        .withUpperSoftLimit(RPM.of(5000))
+        // Telemetry name and verbosity for the arm.
+        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
+    flywheel = new FlyWheel(Config);
     }
   }
 
@@ -118,11 +123,23 @@ public class ShooterSubsystem extends SubsystemBase {
   public Command setVelocity(AngularVelocity speed) {
     Command rv;
     if (flywheel != null) {
-      rv = flywheel.setSpeed(speed);
+      rv = flywheel.setSpeed(() -> speed);
     } else {
       rv = idle();
     }
     return rv.withName(telemetryPrefix + " SetVelocity");
+  }
+
+  public Command setVelocityDashbaordCommand(){
+    if(flywheel != null){
+      Supplier<AngularVelocity> RPMSupplier = () -> {
+        return RPM.of(SmartDashboard.getNumber("frc3620/Shooter/flywheel RPM Setpoint", 0));
+      };
+      return 
+      new InstantCommand(() -> SmartDashboard.putNumber("frc3620/Shooter/flywheel RPM Setpoint", 0)).andThen(
+            flywheel.setSpeed(RPMSupplier));
+    }
+    return idle();
   }
 
   /**
@@ -140,6 +157,9 @@ public class ShooterSubsystem extends SubsystemBase {
     }
     return rv.withName(telemetryPrefix + " Set");
   }
+
+
+
 
   @Override
   public void periodic() {
