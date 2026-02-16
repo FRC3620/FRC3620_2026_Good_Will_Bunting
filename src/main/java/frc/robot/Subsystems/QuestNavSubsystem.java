@@ -45,11 +45,11 @@ public class QuestNavSubsystem extends SubsystemBase {
       Pose3d initialQuestNavPose) {
 
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnected(), "is Questnav Connected",
-        new HealthOptions());
+        new HealthOptions().withShowAlertWhenBad(true));
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "is Questnav Tracking",
-        new HealthOptions());
-         RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(), "is Questnav Sufficiently Charged",
-        new HealthOptions());
+        new HealthOptions().withShowAlertWhenBad(true));
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(), "is Questnav Sufficiently Charged",
+        new HealthOptions().withShowAlertWhenBad(true));
 
     this.swerveSubsystem = swerveSubsystem;
 

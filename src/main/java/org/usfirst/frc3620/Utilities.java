@@ -357,29 +357,42 @@ public class Utilities {
   public static class GlobMatcher {
     List<Pattern> patterns = new ArrayList<>();
 
+    public GlobMatcher() {
+
+    }
+
     public GlobMatcher(Collection<String> globs) {
+      addGlobs(globs);
+    }
+
+    public void addGlobs(Collection<String> globs) {
       for (var glob : globs) {
-        String regexp = Utilities.convertGlobToRegEx(glob);
-        Pattern pattern = null;
-        try {
-          pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
-          logger.info("glob '{}' -> regexp '{}'", glob, pattern);
-        } catch (PatternSyntaxException ex) {
-          logger.warn("Unable to parse regexp from glob: '{}' -> '{}': {}", glob, regexp,
-              ex);
-        }
-        if (pattern != null) {
-          patterns.add(pattern);
-        }
+        addGlob(glob);
+      }
+    }
+
+    public void addGlob(String glob) {
+      String regexp = Utilities.convertGlobToRegEx(glob);
+      Pattern pattern = null;
+      try {
+        pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+        logger.info("glob '{}' -> regexp '{}'", glob, pattern);
+      } catch (PatternSyntaxException ex) {
+        logger.warn("Unable to parse regexp from glob: '{}' -> '{}': {}", glob, regexp,
+            ex);
+      }
+      if (pattern != null) {
+        patterns.add(pattern);
       }
     }
 
     public boolean matches(String string) {
-        for (var pattern : patterns) {
-          Matcher m = pattern.matcher(string);
-          if (m.find()) return true;
-        }
-        return false;
+      for (var pattern : patterns) {
+        Matcher m = pattern.matcher(string);
+        if (m.find())
+          return true;
+      }
+      return false;
     }
   }
 
