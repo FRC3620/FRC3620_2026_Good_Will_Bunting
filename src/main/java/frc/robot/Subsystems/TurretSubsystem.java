@@ -12,12 +12,15 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -40,6 +43,8 @@ public class TurretSubsystem extends SubsystemBase {
   private TalonFX motor = null;
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
+
+  private Angle setpoint = Degrees.of(0);
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -76,17 +81,42 @@ public class TurretSubsystem extends SubsystemBase {
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
           .withMOI(Meters.of(0.25), Pounds.of(2)));
+
+      setDefaultCommand(pivot.setAngle(() -> setpoint));
     }
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 0);
   }
 
-  public Command setAngle(Angle angle) {
+  public Command setAngle(Supplier<Angle> angle) {
     Command rv;
     if (pivot == null) {
       rv = idle();
     } else {
-      rv = pivot.setAngle(angle);
+      rv = run(() -> {
+        setpoint = angle.get();
+      });
     }
     return rv.withName(telemetryPrefix + " setAngle");
+  }
+
+  public Angle getAngle() {
+    if (pivot != null) {
+      return pivot.getAngle();
+    } else {
+      return Degrees.of(9999999);
+    }
+  }
+
+  public Command setAngleDashboardCommand() {
+    Command rv;
+    if (pivot == null) {
+      rv = idle();
+    } else {
+      rv = run(() -> {
+        setpoint = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 0));
+      });
+    }
+    return rv.withName(telemetryPrefix + " setAngleDashboard");
   }
 
   @Override
@@ -94,6 +124,8 @@ public class TurretSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     if (pivot != null) {
       pivot.updateTelemetry();
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees", getAngle().in(Degrees));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees Setpoint", setpoint.in(Degrees));
     }
   }
 

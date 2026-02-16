@@ -8,6 +8,11 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
 import java.util.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -393,6 +398,27 @@ public class Utilities {
           return true;
       }
       return false;
+    }
+  }
+    
+  public static <T> T extractPrivateField(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
+    try {
+      Field privateField = clazz.getDeclaredField(name);
+      privateField.setAccessible(true);
+      T rv = returnClazz.cast(privateField.get(o));
+      return rv;
+    } catch (SecurityException | IllegalAccessException | ClassCastException | NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T callMethod(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
+    try {
+      Method method = clazz.getMethod(name, new Class[] { } );
+      T rv = returnClazz.cast(method.invoke(o, new Object[] {} ));
+      return rv;
+    } catch (SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+      throw new RuntimeException(e); 
     }
   }
 
