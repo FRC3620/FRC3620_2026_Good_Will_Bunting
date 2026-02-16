@@ -162,24 +162,24 @@ public class TurretSubsystem extends SubsystemBase {
       startTimer = true;
     }
 
-    if (startUpTimer.hasElapsed(5)) {
-      delayForCRTDone = true;
-    }
-
-    if (SmartDashboard.getBoolean(RERUN_SEED, false) && delayForCRTDone) {
-      SmartDashboard.putBoolean(RERUN_SEED, false);
-      rerunCrtSeed();
-    }
-    SmartDashboard.putNumber(
-        "Turret/CRT/CurrentPositionDeg", smartMotorController.getMechanismPosition().in(Degrees));
-    if (!rotorSeededFromAbs && delayForCRTDone) {
-      attemptRotorSeedFromCANCoders();
-    }
-
     if (pivot != null) {
+
+      if (startUpTimer.hasElapsed(5)) {
+        delayForCRTDone = true;
+      }
+
+      if (SmartDashboard.getBoolean(RERUN_SEED, false) && delayForCRTDone) {
+        SmartDashboard.putBoolean(RERUN_SEED, false);
+        rerunCrtSeed();
+      }
+      if (!rotorSeededFromAbs && delayForCRTDone) {
+        attemptRotorSeedFromCANCoders();
+      }
       pivot.updateTelemetry();
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees", getAngle().in(Degrees));
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees Setpoint", setpoint.in(Degrees));
+      SmartDashboard.putNumber("Turret/CRT/CurrentPositionDeg",
+          smartMotorController.getMechanismPosition().in(Degrees));
     }
   }
 
@@ -290,8 +290,8 @@ public class TurretSubsystem extends SubsystemBase {
     }
   }
 
-  private static record AbsSensorRead(boolean ok, double absA, double absB, String status) {}
-
+  private static record AbsSensorRead(boolean ok, double absA, double absB, String status) {
+  }
 
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
