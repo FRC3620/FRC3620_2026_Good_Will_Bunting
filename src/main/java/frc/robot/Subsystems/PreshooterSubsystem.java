@@ -7,10 +7,13 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -34,6 +37,8 @@ public class PreshooterSubsystem extends SubsystemBase {
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
 
+    private AngularVelocity setpoint = RPM.of(0);
+
     public PreshooterSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
                 org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
@@ -44,19 +49,20 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            0.1, // kP - tune this
+                            1.5, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             RotationsPerSecond.of(100),
                             RotationsPerSecondPerSecond.of(200))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
-                    .withIdleMode(MotorMode.BRAKE)
+                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
+                    .withIdleMode(MotorMode.COAST)
+                    .withMotorInverted(true)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
-            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(2), motorConfig);
+            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
@@ -65,7 +71,9 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withUpperSoftLimit(RPM.of(2000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
 
+            setDefaultCommand(flyWheel.setSpeed(() -> setpoint));
         }
+        SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
     }
 
     /*
@@ -73,15 +81,34 @@ public class PreshooterSubsystem extends SubsystemBase {
      * 
      * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
      */
-    public Command setVelocityCommand(AngularVelocity speed) {
+    public Command setVelocityCommand(Supplier<AngularVelocity> speed) {
         Command rv;
         if (flyWheel == null) {
             rv = idle();
         } else {
-            rv = flyWheel.setSpeed(speed);
+            rv = run(() -> {
+                setpoint = speed.get();
+            });
         }
         return rv.withName(telemetryPrefix + " SetVelocity");
     }
+
+    public Command setVelocityDashboardCommand() {
+        Command rv;
+        if (flyWheel == null) {
+            rv = idle();
+        } else {
+            rv = run(() -> {
+                setpoint = RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0));
+            });
+        }
+        return rv.withName(telemetryPrefix + " SetVelocityDashboard");
+    }
+
+     /*
+     * @parma dutyCycle duty cycle to set
+     * 
+     * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
 
     // ** */
     public Command setDutyCycleCommand(double dutyCycle) {
@@ -98,6 +125,8 @@ public class PreshooterSubsystem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setVelocity", setpoint.in(RPM));
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualVelocity", flyWheel.getSpeed().in(RPM));
         }
     }
 

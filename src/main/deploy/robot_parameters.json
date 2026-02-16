@@ -1,5 +1,19 @@
 [
   {
+    "name": "Raptor",
+    "serialNumber": "0327BA54",
+    "makeAllCANDevices": false,
+    "competitionRobot": false,
+    "variant": "Raptor"
+  },
+  {
+    "name": "Chudbot",
+    "serialNumber": ["0326F30D"],
+    "makeAllCANDevices": false,
+    "competitionRobot": false,
+    "variant": "Chudbot"
+  },
+  {
     "name": "simulator",
     "serialNumber": "(simulation)",
     "makeAllCANDevices": true
@@ -13,13 +27,6 @@
     "name": "CheepCheep",
     "serialNumber": "030a8289",
     "makeAllCANDevices": false
-  },
-  {
-    "name": "Chudbot",
-    "serialNumber": ["0326F30D",  "0327BA54"],
-    "makeAllCANDevices": false,
-    "competitionRobot": false,
-    "variant": "Chudbot"
   },
   {
     "name": "Muleboard",

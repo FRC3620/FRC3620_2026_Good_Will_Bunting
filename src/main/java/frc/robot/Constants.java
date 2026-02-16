@@ -18,19 +18,20 @@ package frc.robot;
  */
 @SuppressWarnings("unused")
 public final class Constants {
-    public static final int MOTORID_TURRET = 20;
-    public static final int MOTORID_SHOOTER1 = 21;
-    public static final int MOTORID_SHOOTER2 = 22;
+    public static final int MOTORID_TURRET = 14;
+    public static final int MOTORID_SHOOTER1 = 11;
+    public static final int MOTORID_SHOOTER2 = 12;
    
-    public static final int MOTORID_INTAKEROLLERS = 24;
-    public static final int MOTORID_HOOD = 23;
-    public static final int MOTORID_INTAKE_SHOULDER = 49;
+    public static final int MOTORID_INTAKEROLLERS = 5;
+    public static final int MOTORID_HOOD = 13;
+    public static final int ENCODERID_HOOD = 26;
+    public static final int MOTORID_INTAKE_SHOULDER = 9;
 
-    public static final int MOTORID_SHOOTER_TRIGGER = 40;
+    public static final int MOTORID_CONVEYER = 7;
 
-    public static final int MOTORID_PRESHOOTER = 25;
+    public static final int MOTORID_PRESHOOTER = 6;
 
-    public static final int MOTORID_CLIMBER = 39;
+    public static final int MOTORID_CLIMBER = 10;
     
     
     public static final int ENCODERID_TURRET_A = 41;

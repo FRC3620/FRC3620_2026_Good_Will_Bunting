@@ -12,6 +12,8 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.Supplier;
+
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -22,7 +24,9 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -48,6 +52,8 @@ public class ShooterSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private FlyWheel flywheel = null;
 
+  private AngularVelocity setpoint = RPM.of(0);
+
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
@@ -58,14 +64,16 @@ public class ShooterSubsystem extends SubsystemBase {
       RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId2,
           telemetryPrefix + " #2");
       motor2 = new TalonFX(motorId2);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix + "#1", HealthSubsystem.healthOptionsForYAMS);
-      RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix + "#2", HealthSubsystem.healthOptionsForYAMS);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix + "#1",
+          HealthSubsystem.healthOptionsForYAMS);
+      RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix + "#2",
+          HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig smcConfig1 = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(10, 0, 0, DegreesPerSecond.of(1440), DegreesPerSecondPerSecond.of(720))
+          .withClosedLoopController(10, 0, 0.1, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
           .withSimClosedLoopController(10, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
@@ -85,16 +93,21 @@ public class ShooterSubsystem extends SubsystemBase {
 
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
 
-      flywheel = new FlyWheel(new FlyWheelConfig(smartMotorController)
+      FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
           // Diameter of the flywheel.
           .withDiameter(Inches.of(4))
           // Mass of the flywheel.
           .withMass(Pounds.of(0.6))
           // Maximum speed of the flywheel.
-          .withUpperSoftLimit(RPM.of(1000))
+          .withUpperSoftLimit(RPM.of(5000))
           // Telemetry name and verbosity for the arm.
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
+      flywheel = new FlyWheel(Config);
+
+      setDefaultCommand(flywheel.setSpeed(() -> setpoint));
     }
+    SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
+
   }
 
   /**
@@ -104,7 +117,7 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public AngularVelocity getVelocity() {
     if (flywheel == null)
-      return RPM.of(50);
+      return RPM.of(999999);
     else
       return flywheel.getSpeed();
   }
@@ -115,14 +128,22 @@ public class ShooterSubsystem extends SubsystemBase {
    * @param speed Speed to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command setVelocity(AngularVelocity speed) {
-    Command rv;
-    if (flywheel != null) {
-      rv = flywheel.setSpeed(speed);
-    } else {
-      rv = idle();
-    }
-    return rv.withName(telemetryPrefix + " SetVelocity");
+  public Command setVelocity(Supplier<AngularVelocity> speed) {
+    if (flywheel == null)
+      return idle();
+
+    return run(() -> {
+      setpoint = speed.get();
+    }).withName(telemetryPrefix + " SetVelocity");
+  }
+
+  public Command setVelocityDashboardCommand() {
+    if (flywheel == null)
+      return idle();
+
+    return run(() -> {
+      setpoint = RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0));
+    });
   }
 
   /**
@@ -146,6 +167,8 @@ public class ShooterSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     if (flywheel != null) {
       flywheel.updateTelemetry();
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Actual", getVelocity().in(RPM));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Setpoint", setpoint.in(RPM));
     }
   }
 

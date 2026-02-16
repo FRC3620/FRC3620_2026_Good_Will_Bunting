@@ -1,6 +1,7 @@
 package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
@@ -10,6 +11,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -52,15 +54,15 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(40))
-                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withStatorCurrentLimit(Amps.of(20))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(4))
+                    .withDiameter(Inch.of(1.5))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(2000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
@@ -81,7 +83,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersOff() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(0));
+            rv = flyWheel.set(0);
         } else {
             rv = idle();
         }
@@ -102,6 +104,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
+            SmartDashboard.putNumber(telemetryPrefix + "Intake Velocity", flyWheel.getSpeed().in(RPM));
         }
     }
 

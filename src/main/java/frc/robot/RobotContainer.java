@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,6 +36,7 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -46,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
+import frc.robot.Subsystems.ConveyerSubsystem;
 import frc.robot.Subsystems.HealthSubsystem;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
@@ -69,10 +72,10 @@ import frc.robot.Subsystems.IntakeRollerSubsytem;
 import frc.robot.Subsystems.IntakeShoulderSubsystem;
 import frc.robot.Subsystems.LimelightSubsystem;
 
-import frc.robot.Subsystems.ShooterTriggerSubsystem;
 import frc.robot.Subsystems.ShooterHoodSubsystem;
 import frc.robot.Subsystems.ShooterSubsystem;
 import frc.robot.Subsystems.TurretSubsystem;
+import frc.robot.Subsystems.IntakeShoulderSubsystem.IntakeShoulderPositions;
 import frc.robot.Subsystems.PreshooterSubsystem;
 
 /**
@@ -138,11 +141,11 @@ public class RobotContainer implements RobotModeChangeListener {
   public TurretSubsystem turretSubsystem;
   public ClimberSubsystem climberSubsystem;
   public ShooterSubsystem shooterSubsystem;
-  public IntakeShoulderSubsystem intakeShoulderSubsystem;
+  public static IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
+  public ConveyerSubsystem conveyerSubsystem;
 
   public ShooterHoodSubsystem shooterHoodSubsystem;
-  public static ShooterTriggerSubsystem shooterTriggerSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
@@ -182,26 +185,26 @@ public class RobotContainer implements RobotModeChangeListener {
     configureButtonBindings();
 
     FollowPathCommand.warmupCommand().schedule();
-  
 
     // default commands
-    turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(Degrees.of(0)));
-    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    //turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() -> Degrees.of(0)));
+    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(RPM.of(0)));
-    // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setAngle(Degrees.of(90)));
+    //shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() -> RPM.of(0)));
+    //intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(() -> IntakeShoulderPositions.IN.getDistance()));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    //conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
+    //shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() -> Degrees.of(30)));
+    //preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(() ->RPM.of(0)));
 
-    shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(Degrees.of(45)));
-    shooterTriggerSubsystem.setDefaultCommand(shooterTriggerSubsystem.setSpeed(0.0));
-    // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(RPM.of(0)));
+    Robot.addRobotModeChangeListener(this);
   }
 
   private void makeSubsystems() {
     healthSubsystem = new HealthSubsystem();
-    boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, 1,
-        "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
-    if (makeDevices) {
+
+    swerveSubsystem = configureSwerveDrive();
+    if (swerveSubsystem != null) {
       /* Setting up bindings for necessary control of the swerve drive platform */
       drive = new SwerveRequest.FieldCentric()
           .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
@@ -210,7 +213,6 @@ public class RobotContainer implements RobotModeChangeListener {
       point = new SwerveRequest.PointWheelsAt();
 
       swerveLogger = new SwerveTelemetry(MaxSpeed);
-      swerveSubsystem = configureSwerveDrive();
 
       sendSwerveSubsystemToHealthSubsystem();
     }
@@ -225,8 +227,8 @@ public class RobotContainer implements RobotModeChangeListener {
     intakeRollerSubsystem = new IntakeRollerSubsytem();
 
     shooterHoodSubsystem = new ShooterHoodSubsystem();
-    shooterTriggerSubsystem = new ShooterTriggerSubsystem();
     preshooterSubsystem = new PreshooterSubsystem();
+    conveyerSubsystem = new ConveyerSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
     healthSubsystem.dumpDatabase();
@@ -237,15 +239,26 @@ public class RobotContainer implements RobotModeChangeListener {
     SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
     String robotVariant = robotParameters.getVariant();
     SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
-    SwerveSubsystem rv = null;
-    if (robotVariant.equals("Chudbot")) {
-      return ChudbotTunerConstants.createDrivetrain();
-    } else if (robotVariant.equals("JoeHann")) {
-      return RaptorTunerConstants.createDrivetrain();
+
+    Class<?> tunerConstantsClass;
+    if (robotVariant.toLowerCase().equals("chudbot")) {
+      tunerConstantsClass = ChudbotTunerConstants.class;
+    } else if (robotVariant.toLowerCase().equals("raptor")) {
+      tunerConstantsClass = RaptorTunerConstants.class;
     } else {
-      return TunerConstants.createDrivetrain();
+      tunerConstantsClass = TunerConstants.class;
     }
 
+    Integer motorId = Utilities.extractPrivateField(Integer.class, tunerConstantsClass, null, "kFrontLeftDriveMotorId");
+    boolean shouldMakeSwerve = canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
+        "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+    SwerveSubsystem rv = null;
+    if (shouldMakeSwerve) {
+      rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
+    }
+    logger.info("looked for swerve motor {}, got {}, made swerve {} from {}", motorId, shouldMakeSwerve,
+        rv.getClass().getName(), tunerConstantsClass);
+    return rv;
   }
 
   private void makeStates() {
@@ -319,8 +332,8 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
         passingState));
     hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
-      passingState));
+        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
+        passingState));
   }
 
   private void makeStateMachine() {
@@ -375,7 +388,7 @@ public class RobotContainer implements RobotModeChangeListener {
               -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
               -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
           ))).withName("Point"));
-
+          
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
       driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
@@ -386,30 +399,44 @@ public class RobotContainer implements RobotModeChangeListener {
               .withVelocityY(0)
               .withRotationalRate(0) // Drive coun
           ).withName("Drive Slow"));
+
       CommandScheduler.getInstance().schedule(
           new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
     }
 
-    
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(45)));
+        .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(45)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-        .whileTrue(turretSubsystem.setAngle(Degrees.of(-45)));
-
-    operatorJoystick.button(OdoIdsXBox.ButtonId.Y)
-        .whileTrue(shooterTriggerSubsystem.setSpeed(1500.0));
+        .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(35)));
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
-    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+        
+    operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+        .whileFalse(intakeRollerSubsystem.rollersOff());
+
+
+// SysID commands
+    /*operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(
+            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(
+            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+    */
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-        .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1")).ignoringDisable(true));
+            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+            .ignoringDisable(true));
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
@@ -418,8 +445,8 @@ public class RobotContainer implements RobotModeChangeListener {
       String driveControllerName = realDriverJoystick.getName();
       int n_axes = realDriverJoystick.getAxisCount();
       int n_buttons = realDriverJoystick.getButtonCount();
-      logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName, 
-        realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
+      logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName,
+          realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
       if (driveControllerName.startsWith("Flysky")) {
         driverJoystick.setJoystickType(JoystickType.A);
       } else {
@@ -429,7 +456,15 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void setupSmartDashboardCommands() {
+    SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
+    SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
+    SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand());
+    SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl", intakeShoulderSubsystem.setExtensionDashboardCommand());
+    SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand());
+    SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
+    SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
     // SmartDashboard.putData(new xxxxCommand());
+
   }
 
   public void setUpAutonomousCommands() {
@@ -441,7 +476,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (autoChooser != null) {
       SmartDashboard.putData("Auto Mode", autoChooser);
-    } 
+    }
   }
 
   public Command getAutonomousCommand() {
@@ -546,6 +581,5 @@ public class RobotContainer implements RobotModeChangeListener {
 
     return false;
   }
-
 
 }
