@@ -406,7 +406,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
-/* 
+
     operatorJoystick.button(OdoIdsXBox.ButtonId.A)
         .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(45)));
 
@@ -415,9 +415,13 @@ public class RobotContainer implements RobotModeChangeListener {
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
         .whileTrue(intakeRollerSubsystem.rollersOn());
-    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-*/
-    operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        
+    operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+        .whileFalse(intakeRollerSubsystem.rollersOff());
+
+
+// SysID commands
+    /*operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
         .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
     operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
         .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
@@ -427,6 +431,7 @@ public class RobotContainer implements RobotModeChangeListener {
     operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
         .whileTrue(
             swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+    */
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)

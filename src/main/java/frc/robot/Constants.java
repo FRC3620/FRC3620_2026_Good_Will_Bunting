@@ -27,8 +27,7 @@ public final class Constants {
     public static final int ENCODERID_HOOD = 26;
     public static final int MOTORID_INTAKE_SHOULDER = 9;
 
-    public static final int MOTORID_SHOOTER_TRIGGER = 7;
-    public static final int MOTORID_CONVEYER = 45;
+    public static final int MOTORID_CONVEYER = 7;
 
     public static final int MOTORID_PRESHOOTER = 6;
 

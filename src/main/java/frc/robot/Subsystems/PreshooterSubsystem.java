@@ -49,19 +49,20 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            0.1, // kP - tune this
+                            1.5, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             RotationsPerSecond.of(100),
                             RotationsPerSecondPerSecond.of(200))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
-                    .withIdleMode(MotorMode.BRAKE)
+                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
+                    .withIdleMode(MotorMode.COAST)
+                    .withMotorInverted(true)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
-            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(2), motorConfig);
+            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(new FlyWheelConfig(motorController)

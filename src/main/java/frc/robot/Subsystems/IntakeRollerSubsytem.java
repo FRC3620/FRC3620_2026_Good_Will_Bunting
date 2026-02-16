@@ -1,6 +1,7 @@
 package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
@@ -10,6 +11,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -44,7 +46,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            0.1, // kP - tune this
+                            2.0, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             RotationsPerSecond.of(100),
@@ -81,7 +83,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersOff() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(0));
+            rv = flyWheel.set(0);
         } else {
             rv = idle();
         }
@@ -102,6 +104,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
+            SmartDashboard.putNumber(telemetryPrefix + "Intake Velocity", flyWheel.getSpeed().in(RPM));
         }
     }
 
