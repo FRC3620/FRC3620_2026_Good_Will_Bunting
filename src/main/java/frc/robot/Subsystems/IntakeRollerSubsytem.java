@@ -46,7 +46,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            2.0, // kP - tune this
+                            0.1, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             RotationsPerSecond.of(100),
