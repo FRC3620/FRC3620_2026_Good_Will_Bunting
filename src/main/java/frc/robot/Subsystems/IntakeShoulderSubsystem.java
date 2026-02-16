@@ -51,7 +51,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private SmartMotorController motorController = null;
   private Elevator elevator = null;
 
-  boolean isCalibrated = false;
+  boolean isCalibrated = true;
 
   private final Voltage CALIBRATION_VOLTAGE = Volts.of(-0.5);
   private final double VELOCITY_THRESHOLD = 5.0; // deg/sec
@@ -169,7 +169,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       private double stallStartTime = -1;
 
       public void initialize() {
-        isCalibrated = false;
+        isCalibrated = true;
         stallStartTime = -1;
       }
 
