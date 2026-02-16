@@ -16,7 +16,9 @@
   {
     "name": "simulator",
     "serialNumber": "(simulation)",
-    "makeAllCANDevices": true
+    "makeAllCANDevices": true,
+    "nonCriticalCANDevices": "(Shooter*)",
+    "ignoreHealth": ["limelight-left", "questnav"]
   },
   {
     "name": "PlexiMuleboard",
@@ -32,6 +34,13 @@
     "name": "Muleboard",
     "serialNumber": "0305ccbf",
     "makeAllCANDevices": false
+  },
+  {
+    "name": "Really Destroyed roboRIO",
+    "serialNumber": "030a0dd0",
+    "makeAllCANDevices": false,
+    "nonCriticalCANDevices": "*",
+    "ignoreHealth": ["limelight", "questnav"]
   },
   {
     "name": "unknown",

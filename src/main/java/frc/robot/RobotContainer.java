@@ -231,7 +231,7 @@ public class RobotContainer implements RobotModeChangeListener {
     conveyerSubsystem = new ConveyerSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
-    healthSubsystem.dumpDatabase();
+    // healthSubsystem.dumpDatabase();
   }
 
   private SwerveSubsystem configureSwerveDrive() {
