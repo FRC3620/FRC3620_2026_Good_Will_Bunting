@@ -400,7 +400,7 @@ public class Utilities {
       return false;
     }
   }
-    
+
   public static <T> T extractPrivateField(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
     try {
       Field privateField = clazz.getDeclaredField(name);
@@ -414,11 +414,11 @@ public class Utilities {
 
   public static <T> T callMethod(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
     try {
-      Method method = clazz.getMethod(name, new Class[] { } );
-      T rv = returnClazz.cast(method.invoke(o, new Object[] {} ));
+      Method method = clazz.getMethod(name, new Class[] {});
+      T rv = returnClazz.cast(method.invoke(o, new Object[] {}));
       return rv;
     } catch (SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-      throw new RuntimeException(e); 
+      throw new RuntimeException(e);
     }
   }
 
