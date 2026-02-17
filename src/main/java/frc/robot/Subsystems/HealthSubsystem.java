@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.BooleanSupplier;
 
 import org.tinylog.TaggedLogger;
+import org.usfirst.frc3620.CANDeviceType;
 import org.usfirst.frc3620.Utilities.GlobMatcher;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
@@ -17,11 +18,14 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 
+import edu.wpi.first.hal.PowerDistributionFaults;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController.RadioLEDState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -41,6 +45,7 @@ public class HealthSubsystem extends SubsystemBase {
 
   CTREHealthChecker ctreHealthChecker;
   MotorTemperatureMotorChecker motorTemperatureMotorChecker;
+  CircuitBreakerChecker circuitBreakerChecker;
   YesNoHealthChecker genericChecker;
 
   Timer timer = new Timer();
@@ -55,12 +60,16 @@ public class HealthSubsystem extends SubsystemBase {
     genericChecker = new YesNoHealthChecker();
     genericChecker.addIgnoreGlobs(RobotContainer.robotParameters.getIgnoreHealth());
 
+    if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH") || RobotContainer.shouldMakeAllCANDevices()) {
+      circuitBreakerChecker = new CircuitBreakerChecker();
+    }
   }
 
   Health missingDeviceHealth = null;
   Health talonTemperatureHealth = Health.GOOD;
   Health ctreConnectionHealth = Health.GOOD;
   Health booleanSupplierHealth = Health.GOOD;
+  Health circuitBreakerHealth = Health.GOOD;
 
   @Override
   public void periodic() {
@@ -76,9 +85,11 @@ public class HealthSubsystem extends SubsystemBase {
       // only check these a couple times a second
       talonTemperatureHealth = checkTalonTemperatures();
       ctreConnectionHealth = checkCTREconnections();
+      circuitBreakerHealth = checkCircuitBreakers();
     }
     newHealth = newHealth.worstOf(talonTemperatureHealth);
     newHealth = newHealth.worstOf(ctreConnectionHealth);
+    newHealth = newHealth.worstOf(circuitBreakerHealth);
 
     booleanSupplierHealth = checkBooleanSuppliers();
     newHealth = newHealth.worstOf(booleanSupplierHealth);
@@ -174,6 +185,14 @@ public class HealthSubsystem extends SubsystemBase {
     return rv;
   }
 
+  Health checkCircuitBreakers() {
+    if (circuitBreakerChecker == null)
+      return Health.GOOD;
+    boolean ok = circuitBreakerChecker.allAreOk();
+    Health rv = ok ? Health.GOOD : Health.MEDIOCRE;
+    return rv;
+  }
+
   class YesNoHealthChecker {
     Set<BooleanSupplier> all_booleanSuppliers = new HashSet<>();
     Map<BooleanSupplier, String> all_names = new HashMap<>();
@@ -183,16 +202,6 @@ public class HealthSubsystem extends SubsystemBase {
 
     GlobMatcher thingsToIgnore = new GlobMatcher();
 
-    void add(BooleanSupplier booleanSupplier, String name, HealthOptions healthOptions) {
-      all_booleanSuppliers.add(booleanSupplier);
-      all_names.put(booleanSupplier, name);
-      all_healthOptions.put(booleanSupplier, healthOptions);
-
-      if (healthOptions.shouldShowAlertWhenBad()) {
-        all_alerts.put(booleanSupplier, new Alert(alertGroupName, name, AlertType.kError));
-      }
-    }
-
     void addIgnoreGlob(String glob) {
       thingsToIgnore.addGlob(glob);
     }
@@ -200,6 +209,24 @@ public class HealthSubsystem extends SubsystemBase {
     void addIgnoreGlobs(Collection<String> globs) {
       thingsToIgnore.addGlobs(globs);
     }
+
+    void add(BooleanSupplier booleanSupplier, String name, HealthOptions healthOptions) {
+      all_booleanSuppliers.add(booleanSupplier);
+      all_names.put(booleanSupplier, name);
+      all_healthOptions.put(booleanSupplier, healthOptions);
+
+      if (healthOptions.shouldShowAlertWhenBad()) {
+        if (thingsToIgnore.matches(name)) {
+          all_alerts.put(booleanSupplier, new Alert(alertGroupName, name + ", but we don't care", AlertType.kWarning));
+        } else {
+          all_alerts.put(booleanSupplier, new Alert(alertGroupName, name, AlertType.kError));
+        }
+      }
+    }
+
+    // override these if you need to do something before or after the allAreOk loop
+    void prolog() { }
+    boolean epilog(boolean ok) { return ok; }
 
     boolean allAreOk() {
       boolean ok = true;
@@ -224,8 +251,8 @@ public class HealthSubsystem extends SubsystemBase {
             ok = false;
           }
         }
-
       }
+      ok = epilog(ok);
       return ok;
     }
 
@@ -259,8 +286,56 @@ public class HealthSubsystem extends SubsystemBase {
 
   class CTREHealthChecker extends YesNoHealthChecker {
     void addDevice(ParentDevice device, String name, HealthOptions healthOptions) {
-      add(() -> device.isConnected(), name, healthOptions);
+      logger.info("Add CTRE checker for {} {}", device, name);
+      BooleanSupplier booleanSupplier = () -> {
+        boolean ok = device.isConnected();
+        logger.info ("Checked {} {}: got {}", device, name, ok);
+        return ok;
+      };
+      add(booleanSupplier, name, healthOptions);
     }
+  }
+
+  class CircuitBreakerChecker extends YesNoHealthChecker  {
+    PowerDistribution powerDistribution;
+    Alert alert = new Alert(alertGroupName, "", AlertType.kWarning);
+    Set<Integer> breakersToIgnore = new HashSet<>(RobotContainer.robotParameters.getBreakersToIgnore());
+    CircuitBreakerChecker() {
+      super();
+      powerDistribution = new PowerDistribution(1, ModuleType.kRev);
+      add(() -> isOk(), "PDH", new HealthOptions());
+    }
+
+    public boolean isOk() {
+      boolean ok = true;
+      PowerDistributionFaults faults = powerDistribution.getFaults();
+      Set<String> breakerFaults = new HashSet<>();
+      for (int channel = 0; channel < 24; channel++) {
+        if (faults.getBreakerFault(channel) && ! breakersToIgnore.contains(channel)) {
+          ok = false;
+          breakerFaults.add("Breaker " + channel);
+        }
+      }
+      if (faults.CanWarning) {
+        ok = false;
+        breakerFaults.add("CAN warning");
+      }
+      if (faults.HardwareFault) {
+        ok = false;
+        breakerFaults.add("Hardware Fault");
+      }
+
+      if (!ok) {
+        String text = namesForAlert("PDH issue(s):", breakerFaults);
+        alert.setText(text);
+        alert.set(true);
+      } else {
+        alert.set(false);
+      }
+      return ok;
+    }
+
+
   }
 
   public void addMotorToWatch(CoreTalonFX device, String name, HealthOptions healthOptions) {

@@ -252,16 +252,16 @@ public class RobotContainer implements RobotModeChangeListener {
     Integer motorId = Utilities.extractPrivateField(Integer.class, tunerConstantsClass, null, "kFrontLeftDriveMotorId");
     boolean shouldMakeSwerve = canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
         "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
-    logger.info("looked for swerve motor {}, got {}, making swerve from {}", motorId, shouldMakeSwerve,
-        tunerConstantsClass);
+    logger.info("looked for swerve motor {}, got {}", motorId, shouldMakeSwerve);
     SwerveSubsystem rv = null;
     if (shouldMakeSwerve) {
+      logger.info("making swerve from {}", tunerConstantsClass);
       rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
-      if (rv == null) {
-        logger.error ("no swerve drive was created!");
-      } else {
-        logger.info ("swerve drive = {}", rv);
-      }
+    }
+    if (rv == null) {
+      logger.error ("no swerve drive was created!");
+    } else {
+      logger.info ("swerve drive = {}", rv);
     }
     return rv;
   }
@@ -511,7 +511,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (preshooterSubsystem != null) {
       SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
     }
-    
+
     if (turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
     }

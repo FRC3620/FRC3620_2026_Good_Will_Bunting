@@ -37,6 +37,13 @@ public class RobotParameters extends RobotParametersBase {
         return ignoreHealth;
     }
 
+    @Override
+    public String toString() {
+        return "RobotParameters [variant=" + variant + ", nonCriticalCANDevices=" + nonCriticalCANDevices
+                + ", ignoreHealth=" + ignoreHealth + ", breakersToIgnore=" + breakersToIgnore + ", name=" + name
+                + ", makeAllCANDevices=" + makeAllCANDevices + "]";
+    }
+
     public List<Integer> getBreakersToIgnore() {
         return breakersToIgnore;
     }
