@@ -35,9 +35,7 @@
       "(Turret*)",
       "(Conveyer*)",
       "(Preshooter*)",
-      "(Intake*)",
-      "CANCODER_PHOENIX6 9",
-      "CANCODER_PHOENIX6 10"
+      "(Intake*)"
     ],
     "ignoreHealth": [
       "limelight",

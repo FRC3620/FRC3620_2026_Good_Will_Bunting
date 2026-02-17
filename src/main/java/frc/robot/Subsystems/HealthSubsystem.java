@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController.RadioLEDState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 
@@ -60,7 +61,8 @@ public class HealthSubsystem extends SubsystemBase {
     genericChecker = new YesNoHealthChecker();
     genericChecker.addIgnoreGlobs(RobotContainer.robotParameters.getIgnoreHealth());
 
-    if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH") || RobotContainer.shouldMakeAllCANDevices()) {
+    if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
+        || RobotContainer.shouldMakeAllCANDevices()) {
       circuitBreakerChecker = new CircuitBreakerChecker();
     }
   }
@@ -78,23 +80,29 @@ public class HealthSubsystem extends SubsystemBase {
     // only need to do this once
     if (missingDeviceHealth == null) {
       missingDeviceHealth = checkForMissingDevices();
+      SmartDashboard.putString("Health/Missing Devices", missingDeviceHealth.toString());
     }
     newHealth = newHealth.worstOf(missingDeviceHealth);
 
     if (timer.advanceIfElapsed(0.5)) {
       // only check these a couple times a second
       talonTemperatureHealth = checkTalonTemperatures();
+      SmartDashboard.putString("Health/Talon Temperature", talonTemperatureHealth.toString());
       ctreConnectionHealth = checkCTREconnections();
+      SmartDashboard.putString("Health/CTRE Connections", ctreConnectionHealth.toString());
       circuitBreakerHealth = checkCircuitBreakers();
+      SmartDashboard.putString("Health/Circuit Breakers", circuitBreakerHealth.toString());
     }
     newHealth = newHealth.worstOf(talonTemperatureHealth);
     newHealth = newHealth.worstOf(ctreConnectionHealth);
     newHealth = newHealth.worstOf(circuitBreakerHealth);
 
     booleanSupplierHealth = checkBooleanSuppliers();
+    SmartDashboard.putString("Health/Misc", booleanSupplierHealth.toString());
     newHealth = newHealth.worstOf(booleanSupplierHealth);
 
     currentHealth = newHealth;
+    SmartDashboard.putString("Health/Overall", currentHealth.toString());
 
     RadioLEDState newRadioLEDState = null;
     switch (newHealth) {
@@ -141,11 +149,16 @@ public class HealthSubsystem extends SubsystemBase {
       List<String> criticalDeviceNames = new ArrayList<>();
       List<String> nonCriticalDeviceNames = new ArrayList<>();
 
+      boolean competition_robot = RobotContainer.amIACompBot();
       for (var deviceName : missingDeviceNames) {
-        if (globMatcher.matches(deviceName)) {
-          nonCriticalDeviceNames.add(deviceName);
-        } else {
+        if (competition_robot) {
           criticalDeviceNames.add(deviceName);
+        } else {
+          if (globMatcher.matches(deviceName)) {
+            nonCriticalDeviceNames.add(deviceName);
+          } else {
+            criticalDeviceNames.add(deviceName);
+          }
         }
       }
 
@@ -157,10 +170,10 @@ public class HealthSubsystem extends SubsystemBase {
       }
 
       if (criticalDeviceNames.size() > 0) {
-        rv = Health.MEDIOCRE;
+        rv = competition_robot ? Health.BAD : Health.MEDIOCRE;
         String text = namesForAlert("Missing from CAN bus", criticalDeviceNames);
         @SuppressWarnings("resource")
-        Alert alert = new Alert(alertGroupName, text, AlertType.kWarning);
+        Alert alert = new Alert(alertGroupName, text, competition_robot ? AlertType.kError : AlertType.kWarning);
         alert.set(true);
       }
     }
@@ -225,11 +238,16 @@ public class HealthSubsystem extends SubsystemBase {
     }
 
     // override these if you need to do something before or after the allAreOk loop
-    void prolog() { }
-    boolean epilog(boolean ok) { return ok; }
+    boolean prolog() {
+      return true;
+    }
+
+    boolean epilog(boolean ok) {
+      return ok;
+    }
 
     boolean allAreOk() {
-      boolean ok = true;
+      boolean ok = prolog();
       ill_booleanSuppliers.clear();
       for (var booleanSupplier : all_booleanSuppliers) {
         // HealthOptions healthOptions = all_healthOptions.get(booleanSupplier);
@@ -277,7 +295,8 @@ public class HealthSubsystem extends SubsystemBase {
       BooleanSupplier bs = () -> {
         StatusSignal<Temperature> device_temperature_status = device.getDeviceTemp();
         Temperature device_temperature = device_temperature_status.getValue();
-        return device_temperature.gte(threshold);
+        boolean ok = device_temperature.lt(threshold);
+        return ok;
       };
 
       add(bs, name, healthOptions);
@@ -286,20 +305,19 @@ public class HealthSubsystem extends SubsystemBase {
 
   class CTREHealthChecker extends YesNoHealthChecker {
     void addDevice(ParentDevice device, String name, HealthOptions healthOptions) {
-      logger.info("Add CTRE checker for {} {}", device, name);
       BooleanSupplier booleanSupplier = () -> {
         boolean ok = device.isConnected();
-        logger.info ("Checked {} {}: got {}", device, name, ok);
         return ok;
       };
       add(booleanSupplier, name, healthOptions);
     }
   }
 
-  class CircuitBreakerChecker extends YesNoHealthChecker  {
+  class CircuitBreakerChecker extends YesNoHealthChecker {
     PowerDistribution powerDistribution;
     Alert alert = new Alert(alertGroupName, "", AlertType.kWarning);
     Set<Integer> breakersToIgnore = new HashSet<>(RobotContainer.robotParameters.getBreakersToIgnore());
+
     CircuitBreakerChecker() {
       super();
       powerDistribution = new PowerDistribution(1, ModuleType.kRev);
@@ -310,8 +328,9 @@ public class HealthSubsystem extends SubsystemBase {
       boolean ok = true;
       PowerDistributionFaults faults = powerDistribution.getFaults();
       Set<String> breakerFaults = new HashSet<>();
+      String lastAlertText = "";
       for (int channel = 0; channel < 24; channel++) {
-        if (faults.getBreakerFault(channel) && ! breakersToIgnore.contains(channel)) {
+        if (faults.getBreakerFault(channel) && !breakersToIgnore.contains(channel)) {
           ok = false;
           breakerFaults.add("Breaker " + channel);
         }
@@ -326,16 +345,17 @@ public class HealthSubsystem extends SubsystemBase {
       }
 
       if (!ok) {
-        String text = namesForAlert("PDH issue(s):", breakerFaults);
-        alert.setText(text);
+        String alertText = namesForAlert("PDH issue(s):", breakerFaults);
+        if (!lastAlertText.equals(alertText)) {
+          alert.setText(alertText);
+          lastAlertText = alertText;
+        }
         alert.set(true);
       } else {
         alert.set(false);
       }
       return ok;
     }
-
-
   }
 
   public void addMotorToWatch(CoreTalonFX device, String name, HealthOptions healthOptions) {
@@ -442,15 +462,15 @@ public class HealthSubsystem extends SubsystemBase {
 
     @Override
     public String toString() {
-      return "HealthOptions [doLogTemperature=" + sendTemperatureToNT + ", doLogHealthChanges="
-          + sendHealthChangesToTinyLog
-          + ", motorTemperatureThreshold=" + motorTemperatureThreshold + "]";
+      return "HealthOptions [sendTemperatureToNT=" + sendTemperatureToNT + ", sendHealthChangesToTinyLog="
+          + sendHealthChangesToTinyLog + ", motorTemperatureThreshold=" + motorTemperatureThreshold
+          + ", showAlertWhenBad=" + showAlertWhenBad + "]";
     }
   }
 
-  public final static HealthOptions healthOptionsForYAMS = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions();
-  public final static HealthOptions healthOptionsForCTRESwerveSensors = new HealthOptions();
+  public final static HealthOptions healthOptionsForYAMS = new HealthOptions().withShowAlertWhenBad(true);
+  public final static HealthOptions healthOptionsForCTRESwerveMotors = new HealthOptions().withShowAlertWhenBad(true);
+  public final static HealthOptions healthOptionsForCTRESwerveSensors = new HealthOptions().withShowAlertWhenBad(true);
 
   public enum Health {
     INVALID, GOOD, MEDIOCRE, BAD, DEATHROW;
