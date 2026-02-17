@@ -23,7 +23,8 @@
   {
     "name": "PlexiMuleboard",
     "serialNumber": "03063d7e",
-    "makeAllCANDevices": false
+    "makeAllCANDevices": false,
+    "breakersToIgnore": [12, 18, 19]
   },
   {
     "name": "CheepCheep",
