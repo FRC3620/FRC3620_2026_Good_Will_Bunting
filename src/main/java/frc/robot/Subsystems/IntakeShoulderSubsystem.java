@@ -63,7 +63,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   }
 
   public IntakeShoulderSubsystem() {
-    boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, motorId)
+    boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId, telemetryPrefix)
         || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);

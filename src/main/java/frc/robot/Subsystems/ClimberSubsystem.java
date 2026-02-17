@@ -47,8 +47,8 @@ public class ClimberSubsystem extends SubsystemBase {
 
   public ClimberSubsystem() {
 
-    boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6,
-        motorId) || RobotContainer.shouldMakeAllCANDevices();
+    boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6,
+        motorId,telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
