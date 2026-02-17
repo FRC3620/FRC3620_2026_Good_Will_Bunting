@@ -252,12 +252,17 @@ public class RobotContainer implements RobotModeChangeListener {
     Integer motorId = Utilities.extractPrivateField(Integer.class, tunerConstantsClass, null, "kFrontLeftDriveMotorId");
     boolean shouldMakeSwerve = canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
         "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+    logger.info("looked for swerve motor {}, got {}", motorId, shouldMakeSwerve);
     SwerveSubsystem rv = null;
     if (shouldMakeSwerve) {
+      logger.info("making swerve from {}", tunerConstantsClass);
       rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
     }
-    logger.info("looked for swerve motor {}, got {}, made swerve {} from {}", motorId, shouldMakeSwerve,
-        rv.getClass().getName(), tunerConstantsClass);
+    if (rv == null) {
+      logger.error ("no swerve drive was created!");
+    } else {
+      logger.info ("swerve drive = {}", rv);
+    }
     return rv;
   }
 
@@ -350,16 +355,7 @@ public class RobotContainer implements RobotModeChangeListener {
     operatorKeyboard = new Joystick(2);
   }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be
-   * created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing
-   * it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
-  private void configureButtonBindings() {
-    if (swerveSubsystem != null) {
+  private void configureSwerveButtonBindings() {
       swerveSubsystem.setDefaultCommand(
           // Drivetrain will execute this command periodically
           swerveSubsystem.applyRequest(
@@ -388,7 +384,7 @@ public class RobotContainer implements RobotModeChangeListener {
               -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
               -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
           ))).withName("Point"));
-          
+
       swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
       driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
@@ -402,36 +398,69 @@ public class RobotContainer implements RobotModeChangeListener {
 
       CommandScheduler.getInstance().schedule(
           new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
+
+      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+
+      operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+          .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+              .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+              .ignoringDisable(true));
+
+
+  }
+
+  private void configureButtonBindings() {
+    if (swerveSubsystem != null) {
+      /*
+       **********************************************************************************
+       **********************************************************************************
+       **********************************************************************************
+       * Put anything having to do with swerve in configureSwerveButtonBindings so we
+       * can use mule boards!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       **********************************************************************************
+       **********************************************************************************
+       **********************************************************************************
+       */
+      configureSwerveButtonBindings();
     }
 
     // fix questnav correction command
     CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
-/* 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-        .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(45)));
 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-        .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(35)));
+    /*
+     **********************************************************************************
+     **********************************************************************************
+     **********************************************************************************
+     * Check to make sure your subsystem is not null before adding commands that use
+     * them!
+     **********************************************************************************
+     **********************************************************************************
+     **********************************************************************************
+     */
+    if (shooterHoodSubsystem != null) {
+      operatorJoystick.button(OdoIdsXBox.ButtonId.A)
+          .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(45)));
 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
-        .whileTrue(intakeRollerSubsystem.rollersOn());
-    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-*/
-    operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-    operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
-    operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(
-            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-    operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(
-            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+      operatorJoystick.button(OdoIdsXBox.ButtonId.B)
+          .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(35)));
+    }
 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
-        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
-            .ignoringDisable(true));
+    if (intakeRollerSubsystem != null) {
+      operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+          .whileTrue(intakeRollerSubsystem.rollersOn());
+      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    }
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
@@ -451,15 +480,41 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void setupSmartDashboardCommands() {
-    SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
-    SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
-    SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand());
-    SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl", intakeShoulderSubsystem.setExtensionDashboardCommand());
-    SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand());
-    SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
-    SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
-    // SmartDashboard.putData(new xxxxCommand());
+    /*
+     **********************************************************************************
+     **********************************************************************************
+     **********************************************************************************
+     * Check to make sure your subsystem is not null before adding commands that use
+     * them!
+     **********************************************************************************
+     **********************************************************************************
+     **********************************************************************************
+     */
+    if (shooterHoodSubsystem != null) {
+      SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
+      SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
+    }
 
+    if (shooterSubsystem != null) {
+      SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand());
+    }
+
+    if (intakeShoulderSubsystem != null) {
+      SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl",
+          intakeShoulderSubsystem.setExtensionDashboardCommand());
+    }
+
+    if (conveyerSubsystem != null) {
+      SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand());
+    }
+
+    if (preshooterSubsystem != null) {
+      SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
+    }
+
+    if (turretSubsystem != null) {
+      SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
+    }
   }
 
   public void setUpAutonomousCommands() {
