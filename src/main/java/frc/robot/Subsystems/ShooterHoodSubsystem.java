@@ -98,7 +98,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             createPivot(HOOD_CALIBRATED_POS);
 
-            setDefaultCommand(pivot.setAngle(() -> setpoint));
+            //setDefaultCommand(pivot.setAngle(() -> setpoint));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
 
