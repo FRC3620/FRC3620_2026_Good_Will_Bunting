@@ -1,5 +1,6 @@
 package frc.robot.Subsystems;
 
+import static edu.wpi.first.units.Units.Amp;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -11,6 +12,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pound;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
@@ -23,7 +25,10 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -55,10 +60,12 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   boolean isCalibrated = false;
   boolean activeCalibrating = false;
+  private Command calibrationCommand;
 
   private final Voltage CALIBRATION_VOLTAGE = Volts.of(-.5);
-  private final double VELOCITY_THRESHOLD = 10.0; // deg/sec
-  private final double STALL_TIME_SECONDS = .1;
+  private final LinearVelocity VELOCITY_THRESHOLD = MetersPerSecond.of(0.01);
+  private final Current CURRENT_THRESHOLD = Amps.of(10);
+  private final Time STALL_TIME_SECONDS = Seconds.of(.1);
 
   private final Distance CALIBRATED_POS = Meters.of(0.0); // place holders
 
@@ -100,6 +107,9 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
       setDefaultCommand(elevator.setHeight(() -> setpoint));
 
+      calibrationCommand = calibrate();
+      CommandScheduler.getInstance().schedule(calibrationCommand);
+
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
   }
@@ -115,10 +125,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     if (elevator != null) {
-
-      if (!isCalibrated && !activeCalibrating) {
-        CommandScheduler.getInstance().schedule(calibrate());
-      }
 
       elevator.updateTelemetry();
       elevator.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(
@@ -169,36 +175,41 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public Command calibrate() {
     return new Command() {
-      private double stallStartTime = -1;
+      private Time stallStartTime = Seconds.of(-1);
+
+      {
+        addRequirements(IntakeShoulderSubsystem.this);
+      }
 
       public void initialize() {
         motorController.stopClosedLoopController();
         isCalibrated = false;
         activeCalibrating = true;
-        stallStartTime = -1;
+        stallStartTime = Seconds.of(-1);
       }
 
       public void execute() {
 
         motorController.setVoltage(CALIBRATION_VOLTAGE);
 
-        double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
-        double current = motorController.getStatorCurrent().in(Amps);
+        LinearVelocity velocity = motorController.getMeasurementVelocity();
+        Current current = motorController.getStatorCurrent();
 
-        if (Math.abs(velocity) < VELOCITY_THRESHOLD && current > 10) {
-          if (stallStartTime < 0) {
-            stallStartTime = Timer.getFPGATimestamp();
+        if (Math.abs(velocity.in(MetersPerSecond)) < VELOCITY_THRESHOLD.in(MetersPerSecond)
+            && current.gte(CURRENT_THRESHOLD)) {
+          if (stallStartTime.lt(Seconds.zero())) {
+            stallStartTime = Seconds.of(Timer.getFPGATimestamp());
           }
         } else {
-          stallStartTime = -1;
+          stallStartTime = Seconds.of(-1);
         }
       }
 
       public boolean isFinished() {
-        if (stallStartTime < 0)
+        if (stallStartTime.lt(Seconds.zero()))
           return false;
 
-        return Timer.getFPGATimestamp() - stallStartTime > STALL_TIME_SECONDS;
+        return (Seconds.of(Timer.getFPGATimestamp()).minus(stallStartTime)).gte(STALL_TIME_SECONDS);
       }
 
       public void end(boolean interrupted) {
@@ -206,7 +217,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
         motorController.setPosition(CALIBRATED_POS);
 
-        createElevator(CALIBRATED_POS);
+        motorController.startClosedLoopController();
+
         isCalibrated = true;
         activeCalibrating = false;
       }
