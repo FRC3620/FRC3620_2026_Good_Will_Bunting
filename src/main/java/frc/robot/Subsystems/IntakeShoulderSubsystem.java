@@ -172,12 +172,14 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       private double stallStartTime = -1;
 
       public void initialize() {
+        motorController.stopClosedLoopController();
         isCalibrated = false;
         activeCalibrating = true;
         stallStartTime = -1;
       }
 
       public void execute() {
+
         motorController.setVoltage(CALIBRATION_VOLTAGE);
 
         double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
