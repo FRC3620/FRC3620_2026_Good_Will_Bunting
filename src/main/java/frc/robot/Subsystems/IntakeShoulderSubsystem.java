@@ -62,8 +62,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   boolean activeCalibrating = false;
   private Command calibrationCommand;
 
-  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-.5);
-  private final LinearVelocity VELOCITY_THRESHOLD = MetersPerSecond.of(0.01);
+  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.5);
+  private final LinearVelocity VELOCITY_THRESHOLD = MetersPerSecond.of(.03);
   private final Current CURRENT_THRESHOLD = Amps.of(10);
   private final Time STALL_TIME_SECONDS = Seconds.of(.1);
 
@@ -92,10 +92,10 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withMechanismCircumference(Inches.of(3.5).times(Math.PI))
+          .withMechanismCircumference(Inches.of(2.75).times(Math.PI))
           .withClosedLoopController(100, 0, 0, MetersPerSecond.of(0.2), MetersPerSecondPerSecond.of(0.2))
           .withFeedforward(new ArmFeedforward(0.0, 0, 0, 0))
-          .withGearing(new MechanismGearing(GearBox.fromTeeth(24, 36)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(45)))
           .withIdleMode(MotorMode.BRAKE)
           .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
           .withStatorCurrentLimit(Amps.of(40))
@@ -106,9 +106,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       createElevator(CALIBRATED_POS);
 
       setDefaultCommand(elevator.setHeight(() -> setpoint));
-
-      calibrationCommand = calibrate();
-      CommandScheduler.getInstance().schedule(calibrationCommand);
 
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
@@ -126,12 +123,23 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     if (elevator != null) {
 
+      if (!activeCalibrating && !isCalibrated) {
+        calibrationCommand = calibrate();
+        CommandScheduler.getInstance().schedule(calibrationCommand);
+      }
+
       elevator.updateTelemetry();
       elevator.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(
           "frc3620/" + telemetryPrefix + "/setPos",
           setpoint.in(Degrees)));
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setpoint meters", setpoint.in(Meters));
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualPosMeters", getExtension().in(Meters));
+
+      LinearVelocity velocity = motorController.getMeasurementVelocity();
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/measurementVelocity", velocity.in(MetersPerSecond));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorVoltage", motorController.getVoltage().in(Volts));
+      SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/isCalibrated", isCalibrated);
+
     }
   }
 
@@ -195,8 +203,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         LinearVelocity velocity = motorController.getMeasurementVelocity();
         Current current = motorController.getStatorCurrent();
 
-        if (Math.abs(velocity.in(MetersPerSecond)) < VELOCITY_THRESHOLD.in(MetersPerSecond)
-            && current.gte(CURRENT_THRESHOLD)) {
+        if (Math.abs(velocity.in(MetersPerSecond)) < VELOCITY_THRESHOLD.in(MetersPerSecond)) {
           if (stallStartTime.lt(Seconds.zero())) {
             stallStartTime = Seconds.of(Timer.getFPGATimestamp());
           }
@@ -218,6 +225,10 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         motorController.setPosition(CALIBRATED_POS);
 
         motorController.startClosedLoopController();
+
+        createElevator(CALIBRATED_POS);
+
+        setDefaultCommand(elevator.setHeight(() -> setpoint));
 
         isCalibrated = true;
         activeCalibrating = false;
