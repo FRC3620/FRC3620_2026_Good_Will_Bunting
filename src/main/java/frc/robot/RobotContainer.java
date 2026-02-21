@@ -479,6 +479,7 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(intakeRollerSubsystem.rollersOn());
       intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     }
+
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
@@ -519,7 +520,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeShoulderSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl",
-          intakeShoulderSubsystem.setExtensionDashboardCommand());
+          intakeShoulderSubsystem.setExtensionDashboardCommand().ignoringDisable(true));
     }
 
     if (conveyerSubsystem != null) {

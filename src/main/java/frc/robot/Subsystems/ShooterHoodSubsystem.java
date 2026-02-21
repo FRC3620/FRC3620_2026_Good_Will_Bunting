@@ -22,11 +22,13 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Power;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -55,14 +57,18 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     Timer calibrationTimer;
 
-    private final Voltage CALIBRATION_VOLTAGE = Volts.of(-0.5);
+    boolean isCalibrated = false;
+    boolean activeCalibrating = false;
+    Command calibrationCommand;
+
+    private final Voltage CALIBRATION_VOLTAGE = Volts.of(0.5);
     private final double VELOCITY_THRESHOLD = 2.0; // deg/sec
     private final double STALL_TIME_SECONDS = 0.25;
 
     private final Angle HOOD_CALIBRATED_POS = Degrees.of(30); // place holders
     private final Angle MAXPOSITION = Degrees.of(60); // place holders
 
-    private final Angle ZERO_ENCODER_OFFSET = Degrees.of(0); // place holders
+    private final Angle ZERO_ENCODER_OFFSET = Rotations.of(0.281982); // place holders
 
     private Angle setpoint = Degrees.of(30);
 
@@ -86,19 +92,20 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
-                    .withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
-                    .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
+                    //.withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
+                    //.withMechanismCircumference(Inches.of(20.5).times(Math.PI))
                     .withControlMode(ControlMode.CLOSED_LOOP)
-                    /* .withExternalEncoder(shooterHoodEncoder)
+                    /*.withExternalEncoder(shooterHoodEncoder)
+                    .withExternalEncoderZeroOffset(ZERO_ENCODER_OFFSET)
                     .withExternalEncoderInverted(false)
-                    .withExternalEncoderGearing(1)
-                    .withUseExternalFeedbackEncoder(true)*/;
-                    //.withMOI(Feet.of(4), Pound.of(4));
+                    .withExternalEncoderGearing(360/29)
+                    .withUseExternalFeedbackEncoder(true);
+                    //.withMOI(Feet.of(4), Pound.of(4))*/;
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
 
             createPivot(HOOD_CALIBRATED_POS);
 
-            //setDefaultCommand(pivot.setAngle(() -> setpoint));
+            setDefaultCommand(pivot.setAngle(() -> setpoint));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
 
@@ -107,9 +114,18 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (pivot != null) {
+
+            if(!isCalibrated && !activeCalibrating) {
+                calibrationCommand = calibrate();
+                CommandScheduler.getInstance().schedule(calibrationCommand);
+            }
+
             pivot.updateTelemetry();
+            SmartDashboard.putNumber("frc3620/ShooterHood/Voltage", motorController.getVoltage().in(Volts));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Setpoint", setpoint.in(Degrees));
+            SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrated", isCalibrated);
+            SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrating", activeCalibrating);
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
                     Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
         }
@@ -117,9 +133,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     private void createPivot(Angle startingAngle) {
         pivot = new Pivot(new PivotConfig(motorController)
-                .withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
-                .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
-                .withStartingPosition(startingAngle)
+                //.withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
+                //.withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
+                //.withStartingPosition(startingAngle)
                 .withMOI(Inches.of(55.7), Pound.of(1))
                 .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
     }
@@ -165,14 +181,25 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public Command calibrate() {
         return new Command() {
+
+            {
+                addRequirements(ShooterHoodSubsystem.this);
+            }
+
             private double stallStartTime = -1;
 
             public void initialize() {
+                //setDefaultCommand(idle());
+                activeCalibrating = true;
+                isCalibrated = false;
                 stallStartTime = -1;
+                motorController.stopClosedLoopController();
             }
 
             public void execute() {
-                motorController.setVoltage(CALIBRATION_VOLTAGE);
+                DriverStation.reportWarning("executing calibration",false);
+                motorController.setVoltage(Volts.zero().minus(CALIBRATION_VOLTAGE));
+                //motorController.setDutyCycle(-0.2);
 
                 double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
                 double current = motorController.getStatorCurrent().in(Amps);
@@ -195,12 +222,18 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             public void end(boolean interrupted) {
                 motorController.setVoltage(Volts.zero());
+                //motorController.setDutyCycle(0);
+
+                //createPivot(HOOD_CALIBRATED_POS);
+
+                motorController.startClosedLoopController();
 
                 motorController.setPosition(HOOD_CALIBRATED_POS);
 
-                createPivot(HOOD_CALIBRATED_POS);
-
                 shooterHoodEncoder.setPosition(HOOD_CALIBRATED_POS);
+
+                isCalibrated = true;
+                activeCalibrating = false;
 
             }
         }
