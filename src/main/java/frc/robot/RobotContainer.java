@@ -276,6 +276,7 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void makeStateTransitions() {
+    alliance=DriverStation.getAlliance();
     if (swerveSubsystem == null) {
       return;
     }
