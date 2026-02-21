@@ -86,7 +86,7 @@ public class TurretSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
           // Configure Motor and Mechanism properties
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+          .withGearing(new MechanismGearing(GearBox.fromTeeth(14,50,180)))
           .withIdleMode(MotorMode.BRAKE)
           .withMotorInverted(false)
           // Setup Telemetry
@@ -104,7 +104,8 @@ public class TurretSubsystem extends SubsystemBase {
           // Starting position of the Pivot
           .withStartingPosition(Degrees.of(0))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-135), Degrees.of(135))
+          .withHardLimit(Degrees.of(90), Degrees.of(270))
+          .withSoftLimits(Degrees.of(90), Degrees.of(270))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
@@ -209,9 +210,10 @@ public class TurretSubsystem extends SubsystemBase {
         // .withCommonDriveGear(1, 95, 19, 21)
         .withAbsoluteEncoder1GearingStages(140, 18)
         .withAbsoluteEncoder2GearingStages(140, 18, 24, 23)
-        .withAbsoluteEncoderOffsets(Rotations.of(0), Rotations.of(0))
+        .withAbsoluteEncoderOffsets(Rotations.of(0.855469 ), Rotations.of(0.324707))
+        .withAbsoluteEncoderInversions(true,true)
         .withMechanismRange(
-            Rotations.of(-0.4166667), Rotations.of(0.4166667)) // 150 degrees total range
+            Rotations.of(-1), Rotations.of(1)) // 150 degrees total range
         .withMatchTolerance(Rotations.of(0.03))
         .withCrtGearRecommendationInputs(24, 140 / 18.0)
         .withCrtGearRecommendationConstraints(1.1, 11, 60, 40);
