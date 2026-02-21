@@ -56,6 +56,7 @@ public class ConveyerSubsystem extends SubsystemBase {
                             0.0, // kD
                             RotationsPerSecond.of(100),
                             RotationsPerSecondPerSecond.of(200))
+                    .withMotorInverted(false)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.HIGH)

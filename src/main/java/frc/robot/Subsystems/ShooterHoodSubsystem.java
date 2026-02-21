@@ -64,7 +64,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     private final Angle ZERO_ENCODER_OFFSET = Degrees.of(0); // place holders
 
-    private Angle setpoint = Degrees.of(0);
+    private Angle setpoint = Degrees.of(30);
 
     Double requestedCalibrationPos = null;
 
@@ -79,11 +79,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             motor = new TalonFX(Constants.MOTORID_HOOD);
             shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
 
-            encoderConfiguration = new CANcoderConfiguration();
-            encoderConfiguration.MagnetSensor.withMagnetOffset(ZERO_ENCODER_OFFSET.in(Rotations));
-
-            shooterHoodEncoder.getConfigurator().apply(encoderConfiguration);
-
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(100), DegreesPerSecondPerSecond.of(100))
                     .withMotorInverted(true)
@@ -93,17 +88,17 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     .withStatorCurrentLimit(Amps.of(40))
                     .withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
                     .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
-                    .withControlMode(ControlMode.CLOSED_LOOP);
-            // .withExternalEncoder(shooterHoodEncoder)
-            // .withExternalEncoderInverted(false)
-            // .withExternalEncoderGearing(1)
-            // .withUseExternalFeedbackEncoder(true);
-            // .withMOI(Feet.of(4), Pound.of(4));
+                    .withControlMode(ControlMode.CLOSED_LOOP)
+                    /* .withExternalEncoder(shooterHoodEncoder)
+                    .withExternalEncoderInverted(false)
+                    .withExternalEncoderGearing(1)
+                    .withUseExternalFeedbackEncoder(true)*/;
+                    //.withMOI(Feet.of(4), Pound.of(4));
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
 
             createPivot(HOOD_CALIBRATED_POS);
 
-            setDefaultCommand(pivot.setAngle(() -> setpoint));
+            //setDefaultCommand(pivot.setAngle(() -> setpoint));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
 

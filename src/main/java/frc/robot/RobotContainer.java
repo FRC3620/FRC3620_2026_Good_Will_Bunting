@@ -456,6 +456,24 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(35)));
     }
 
+// SysID commands
+    /*operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(
+            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
+    operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+        .whileTrue(
+            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+    */
+
+    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+            .ignoringDisable(true));
+    
     if (intakeRollerSubsystem != null) {
       operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersOn());

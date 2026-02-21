@@ -1,5 +1,6 @@
 package frc.robot.Subsystems;
 
+import static edu.wpi.first.units.Units.Amp;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -8,7 +9,11 @@ import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Pound;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
@@ -20,9 +25,15 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -44,11 +55,22 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   String telemetryPrefix = "IntakeShoulder";
   private Distance setpoint = Meters.of(0);
   private TalonFX motor = null;
-  private SmartMotorController motorControler = null;
+  private SmartMotorController motorController = null;
   private Elevator elevator = null;
 
+  boolean isCalibrated = false;
+  boolean activeCalibrating = false;
+  private Command calibrationCommand;
+
+  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.5);
+  private final LinearVelocity VELOCITY_THRESHOLD = MetersPerSecond.of(.03);
+  private final Current CURRENT_THRESHOLD = Amps.of(10);
+  private final Time STALL_TIME_SECONDS = Seconds.of(.1);
+
+  private final Distance CALIBRATED_POS = Meters.of(0.0); // place holders
+
   public enum IntakeShoulderPositions {
-    Out(Meters.of(0.15)),
+    Out(Meters.of(0.35)),
     IN(Meters.of(0.0));
 
     private final Distance distance;
@@ -70,36 +92,54 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
-          .withFeedforward(new ArmFeedforward(0, 0, 0, 0))
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(70)))
-          .withMechanismCircumference(Inches.of(1).times(Math.PI))
+          .withMechanismCircumference(Inches.of(2.75).times(Math.PI))
+          .withClosedLoopController(100, 0, 0, MetersPerSecond.of(0.2), MetersPerSecondPerSecond.of(0.2))
+          .withFeedforward(new ArmFeedforward(0.0, 0, 0, 0))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(45)))
           .withIdleMode(MotorMode.BRAKE)
           .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
           .withStatorCurrentLimit(Amps.of(40))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
-      motorControler = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
+      motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
-      elevator = new Elevator(new ElevatorConfig(motorControler)
-          .withHardLimits(IntakeShoulderPositions.IN.getDistance(), IntakeShoulderPositions.Out.getDistance())
-          .withStartingHeight(Meters.of(0))
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
-          .withMass(Pound.of(5)));
+      createElevator(CALIBRATED_POS);
 
       setDefaultCommand(elevator.setHeight(() -> setpoint));
+
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
+  }
+
+  private void createElevator(Distance startingHeight) {
+    elevator = new Elevator(new ElevatorConfig(motorController)
+        .withHardLimits(IntakeShoulderPositions.IN.getDistance(), IntakeShoulderPositions.Out.getDistance())
+        .withStartingHeight(startingHeight)
+        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
+        .withMass(Pound.of(5)));
   }
 
   @Override
   public void periodic() {
     if (elevator != null) {
+
+      /*if (!activeCalibrating && !isCalibrated) {
+        calibrationCommand = calibrate();
+        CommandScheduler.getInstance().schedule(calibrationCommand);
+      }*/
+
       elevator.updateTelemetry();
       elevator.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(
           "frc3620/" + telemetryPrefix + "/setPos",
           setpoint.in(Degrees)));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setpoint meters", setpoint.in(Meters));
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualPosMeters", getExtension().in(Meters));
+
+      LinearVelocity velocity = motorController.getMeasurementVelocity();
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/measurementVelocity", velocity.in(MetersPerSecond));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorVoltage", motorController.getVoltage().in(Volts));
+      SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/isCalibrated", isCalibrated);
+
     }
   }
 
@@ -123,13 +163,13 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   }
 
   public Command setExtensionDashboardCommand() {
-    if(elevator == null) {
-      return idle();
-    } else {
+    if (elevator != null) {
+
       return run(() -> {
         setpoint = Meters.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0));
       });
-
+    } else {
+      return idle();
     }
   }
 
@@ -140,4 +180,61 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       return elevator.getHeight();
     }
   }
+
+  public Command calibrate() {
+    return new Command() {
+      private Time stallStartTime = Seconds.of(-1);
+
+      {
+        addRequirements(IntakeShoulderSubsystem.this);
+      }
+
+      public void initialize() {
+        motorController.stopClosedLoopController();
+        isCalibrated = false;
+        activeCalibrating = true;
+        stallStartTime = Seconds.of(-1);
+      }
+
+      public void execute() {
+
+        motorController.setVoltage(CALIBRATION_VOLTAGE);
+
+        LinearVelocity velocity = motorController.getMeasurementVelocity();
+        Current current = motorController.getStatorCurrent();
+
+        if (Math.abs(velocity.in(MetersPerSecond)) < VELOCITY_THRESHOLD.in(MetersPerSecond)) {
+          if (stallStartTime.lt(Seconds.zero())) {
+            stallStartTime = Seconds.of(Timer.getFPGATimestamp());
+          }
+        } else {
+          stallStartTime = Seconds.of(-1);
+        }
+      }
+
+      public boolean isFinished() {
+        if (stallStartTime.lt(Seconds.zero()))
+          return false;
+
+        return (Seconds.of(Timer.getFPGATimestamp()).minus(stallStartTime)).gte(STALL_TIME_SECONDS);
+      }
+
+      public void end(boolean interrupted) {
+        motorController.setVoltage(Volts.zero());
+
+        motorController.setPosition(CALIBRATED_POS);
+
+        motorController.startClosedLoopController();
+
+        createElevator(CALIBRATED_POS);
+
+        setDefaultCommand(elevator.setHeight(() -> setpoint));
+
+        isCalibrated = true;
+        activeCalibrating = false;
+      }
+    }
+        .withName("Intake Shoulder Calibration");
+  }
+
 }
