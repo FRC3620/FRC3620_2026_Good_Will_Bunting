@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.function.Supplier;
 
@@ -45,11 +46,12 @@ public class PreshooterSubsystem extends SubsystemBase {
                 motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
         if (makeDevices) {
             motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
+                    HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            1.5, // kP - tune this
+                            2.0, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             RotationsPerSecond.of(100),
@@ -60,7 +62,9 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
-                    .withControlMode(ControlMode.CLOSED_LOOP);
+                    .withControlMode(ControlMode.CLOSED_LOOP)
+                    .withClosedLoopRampRate(Seconds.of(0.5))
+                    .withOpenLoopRampRate(Seconds.of(0.5));
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
@@ -105,12 +109,13 @@ public class PreshooterSubsystem extends SubsystemBase {
         return rv.withName(telemetryPrefix + " SetVelocityDashboard");
     }
 
-     /*
+    /*
      * @parma dutyCycle duty cycle to set
      * 
      * @return {@link edu.wpi.frist.wpilibj.command.Runcommand}
-
-    // ** */
+     * 
+     * // **
+     */
     public Command setDutyCycleCommand(double dutyCycle) {
         Command rv;
         if (flyWheel == null) {

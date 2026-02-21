@@ -123,10 +123,10 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     if (elevator != null) {
 
-      if (!activeCalibrating && !isCalibrated) {
+      /*if (!activeCalibrating && !isCalibrated) {
         calibrationCommand = calibrate();
         CommandScheduler.getInstance().schedule(calibrationCommand);
-      }
+      }*/
 
       elevator.updateTelemetry();
       elevator.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(

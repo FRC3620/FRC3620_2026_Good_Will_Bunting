@@ -45,18 +45,12 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(
-                            0.1, // kP - tune this
-                            0.0, // kI
-                            0.0, // kD
-                            RotationsPerSecond.of(100),
-                            RotationsPerSecondPerSecond.of(200))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
+                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(20))
-                    .withSupplyCurrentLimit(Amps.of(20))
-                    .withControlMode(ControlMode.CLOSED_LOOP);
+                    .withStatorCurrentLimit(Amps.of(40))
+                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withControlMode(ControlMode.OPEN_LOOP);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
@@ -73,7 +67,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(500));
+            rv = flyWheel.set(.5); // need to test this
         } else {
             rv = idle();
         }
@@ -93,7 +87,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersBackwards() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(-100));
+            rv = flyWheel.set(-.2);
         } else {
             rv = idle();
         }
