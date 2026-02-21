@@ -8,7 +8,9 @@
   },
   {
     "name": "Chudbot",
-    "serialNumber": ["0326F30D"],
+    "serialNumber": [
+      "0326F30D"
+    ],
     "makeAllCANDevices": false,
     "competitionRobot": false,
     "variant": "Chudbot"
@@ -16,12 +18,35 @@
   {
     "name": "simulator",
     "serialNumber": "(simulation)",
-    "makeAllCANDevices": true
+    "makeAllCANDevices": true,
+    "ignoreHealth": [
+      "limelight-left",
+      "questnav"
+    ]
   },
   {
     "name": "PlexiMuleboard",
     "serialNumber": "03063d7e",
-    "makeAllCANDevices": false
+    "makeAllCANDevices": false,
+    "nonCriticalCANDevices": [
+      "(Shooter*)",
+      "(Swerve*)",
+      "(Hood*)",
+      "(Turret*)",
+      "(Conveyer*)",
+      "(Preshooter*)",
+      "(Intake*)"
+    ],
+    "ignoreHealth": [
+      "limelight",
+      "questnav"
+    ],
+    "breakersToIgnore": [
+      1,
+      12,
+      18,
+      19
+    ]
   },
   {
     "name": "CheepCheep",
@@ -32,6 +57,16 @@
     "name": "Muleboard",
     "serialNumber": "0305ccbf",
     "makeAllCANDevices": false
+  },
+  {
+    "name": "Really Destroyed roboRIO",
+    "serialNumber": "030a0dd0",
+    "makeAllCANDevices": false,
+    "nonCriticalCANDevices": "*",
+    "ignoreHealth": [
+      "limelight",
+      "questnav"
+    ]
   },
   {
     "name": "unknown",

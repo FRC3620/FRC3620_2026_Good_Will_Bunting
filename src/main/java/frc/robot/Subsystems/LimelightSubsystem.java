@@ -70,8 +70,8 @@ public class LimelightSubsystem extends SubsystemBase {
     public long timeLastRecieved = 0;
 
     CameraData(Camera c) {
-      RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isAlive(), c.limelightName,
-          new HealthOptions());
+      RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isAlive(), c.limelightName + " is disconnected",
+          new HealthOptions().withShowAlertWhenBad(true));
       limelightName = c.limelightName;
       var hbentry = LimelightHelpers.getLimelightNTTableEntry(c.limelightName, "hb");
       inst.addListener(
