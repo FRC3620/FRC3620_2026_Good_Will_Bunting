@@ -81,7 +81,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
-            RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, Constants.ENCODERID_HOOD, telemetryPrefix);
+            RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, Constants.ENCODERID_HOOD,
+                    telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
             shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
 
@@ -92,15 +93,17 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
-                    //.withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
-                    //.withMechanismCircumference(Inches.of(20.5).times(Math.PI))
+                    // .withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
+                    // .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
                     .withControlMode(ControlMode.CLOSED_LOOP)
-                    /*.withExternalEncoder(shooterHoodEncoder)
-                    .withExternalEncoderZeroOffset(ZERO_ENCODER_OFFSET)
-                    .withExternalEncoderInverted(false)
-                    .withExternalEncoderGearing(360/29)
-                    .withUseExternalFeedbackEncoder(true);
-                    //.withMOI(Feet.of(4), Pound.of(4))*/;
+            /*
+             * .withExternalEncoder(shooterHoodEncoder)
+             * .withExternalEncoderZeroOffset(ZERO_ENCODER_OFFSET)
+             * .withExternalEncoderInverted(false)
+             * .withExternalEncoderGearing(360/29)
+             * .withUseExternalFeedbackEncoder(true);
+             * //.withMOI(Feet.of(4), Pound.of(4))
+             */;
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
 
             createPivot(MAXPOSITION);
@@ -108,6 +111,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             setDefaultCommand(pivot.setAngle(() -> setpoint));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
+        SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
 
     }
 
@@ -115,13 +119,17 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public void periodic() {
         if (pivot != null) {
 
-            if(!isCalibrated && !activeCalibrating) {
+            if (!isCalibrated && !activeCalibrating) {
                 calibrationCommand = calibrate();
                 CommandScheduler.getInstance().schedule(calibrationCommand);
             }
 
             pivot.updateTelemetry();
             SmartDashboard.putNumber("frc3620/ShooterHood/Voltage", motorController.getVoltage().in(Volts));
+            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Velocity Deg p SEc",
+                    motorController.getMechanismVelocity().in(DegreesPerSecond));
+            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Stator Current",
+                    motorController.getStatorCurrent().in(Amps));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Setpoint", setpoint.in(Degrees));
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrated", isCalibrated);
@@ -189,7 +197,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             private double stallStartTime = -1;
 
             public void initialize() {
-                //setDefaultCommand(idle());
+                // setDefaultCommand(idle());
                 activeCalibrating = true;
                 isCalibrated = false;
                 stallStartTime = -1;
@@ -197,40 +205,40 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             }
 
             public void execute() {
-                DriverStation.reportWarning("executing calibration",false);
                 motorController.setVoltage(CALIBRATION_VOLTAGE);
-                //motorController.setDutyCycle(-0.2);
+                // motorController.setDutyCycle(-0.2);
 
                 double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
                 double current = motorController.getStatorCurrent().in(Amps);
 
-                if (Math.abs(velocity) < VELOCITY_THRESHOLD && current > 20) {
+                if (Math.abs(velocity) < VELOCITY_THRESHOLD && current > 10) {
                     if (stallStartTime < 0) {
                         stallStartTime = Timer.getFPGATimestamp();
                     }
                 } else {
                     stallStartTime = -1;
                 }
+
+                SmartDashboard.putNumber("frc3620/ShooterHood/Timer", Timer.getFPGATimestamp() - stallStartTime);
             }
 
             public boolean isFinished() {
                 if (stallStartTime < 0)
                     return false;
 
-                return Timer.getFPGATimestamp() - stallStartTime > STALL_TIME_SECONDS;
+                SmartDashboard.putBoolean("frc3620/ShooterHood/ShouldFinish",
+                        (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
+                return (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS;
             }
 
             public void end(boolean interrupted) {
-                motorController.setVoltage(Volts.zero());
-                //motorController.setDutyCycle(0);
-
-                //createPivot(HOOD_CALIBRATED_POS);
-
+                motorController.setDutyCycle(0);
+                
+                SmartDashboard.putBoolean("SHOOTER HOOD END RAN", true);
+                motorController.setEncoderPosition(HOOD_CALIBRATED_POS);
                 motorController.startClosedLoopController();
 
                 motorController.setPosition(HOOD_CALIBRATED_POS);
-
-                shooterHoodEncoder.setPosition(HOOD_CALIBRATED_POS);
 
                 isCalibrated = true;
                 activeCalibrating = false;
