@@ -68,7 +68,10 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private Angle setpoint = Degrees.of(0);
+  private Angle setpoint = Degrees.of(180);
+
+  private static final Angle absAEncoderOffset = Rotations.of(-0.762451171875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.403564453125);
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -84,9 +87,10 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+          .withClosedLoopController(4, 0, 0, DegreesPerSecond.of(10), DegreesPerSecondPerSecond.of(10))
           // Configure Motor and Mechanism properties
-          .withGearing(new MechanismGearing(GearBox.fromTeeth(14,50,180)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0/14.0,140.0/18.0)))
+          //.withContinuousWrapping(Degrees.of(0), Degrees.of(360))
           .withIdleMode(MotorMode.BRAKE)
           .withMotorInverted(false)
           // Setup Telemetry
@@ -102,23 +106,24 @@ public class TurretSubsystem extends SubsystemBase {
 
       pivot = new Pivot(new PivotConfig(smartMotorController)
           // Starting position of the Pivot
-          .withStartingPosition(Degrees.of(0))
+          .withStartingPosition(Degrees.of(180))
+          //.withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(90), Degrees.of(270))
-          .withSoftLimits(Degrees.of(90), Degrees.of(270))
+          .withHardLimit(Degrees.of(0), Degrees.of(360))
+          .withSoftLimits(Degrees.of(0), Degrees.of(360))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
           .withMOI(Meters.of(0.25), Pounds.of(2)));
 
-      //setDefaultCommand(pivot.setAngle(() -> setpoint));
+      setDefaultCommand(pivot.setAngle(() -> setpoint));
     }
 
     easyCrtConfig = buildEasyCRTConfig();
     logCrtConfigTelemetry();
     SmartDashboard.putBoolean(RERUN_SEED, false);
 
-    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 0);
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
   }
 
   public Command setAngle(Supplier<Angle> angle) {
@@ -147,7 +152,7 @@ public class TurretSubsystem extends SubsystemBase {
       rv = idle();
     } else {
       rv = run(() -> {
-        setpoint = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 0));
+        setpoint = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180));
       });
     }
     return rv.withName(telemetryPrefix + " setAngleDashboard");
@@ -210,7 +215,7 @@ public class TurretSubsystem extends SubsystemBase {
         // .withCommonDriveGear(1, 95, 19, 21)
         .withAbsoluteEncoder1GearingStages(140, 18)
         .withAbsoluteEncoder2GearingStages(140, 18, 24, 23)
-        .withAbsoluteEncoderOffsets(Rotations.of(0.855469 ), Rotations.of(0.324707))
+        .withAbsoluteEncoderOffsets(absAEncoderOffset, absBEncoderOffset)
         .withAbsoluteEncoderInversions(true,true)
         .withMechanismRange(
             Rotations.of(-1), Rotations.of(1)) // 150 degrees total range
