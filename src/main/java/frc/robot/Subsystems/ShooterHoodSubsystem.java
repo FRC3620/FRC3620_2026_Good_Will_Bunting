@@ -61,7 +61,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     boolean activeCalibrating = false;
     Command calibrationCommand;
 
-    private final Voltage CALIBRATION_VOLTAGE = Volts.of(0.5);
+    private final Voltage CALIBRATION_VOLTAGE = Volts.of(-0.5);
     private final double VELOCITY_THRESHOLD = 2.0; // deg/sec
     private final double STALL_TIME_SECONDS = 0.25;
 
@@ -103,7 +103,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     //.withMOI(Feet.of(4), Pound.of(4))*/;
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), hoodConfig);
 
-            createPivot(HOOD_CALIBRATED_POS);
+            createPivot(MAXPOSITION);
 
             setDefaultCommand(pivot.setAngle(() -> setpoint));
         }
@@ -133,9 +133,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     private void createPivot(Angle startingAngle) {
         pivot = new Pivot(new PivotConfig(motorController)
-                //.withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
-                //.withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
-                //.withStartingPosition(startingAngle)
+                .withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
+                .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
+                .withStartingPosition(startingAngle)
                 .withMOI(Inches.of(55.7), Pound.of(1))
                 .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
     }
@@ -198,7 +198,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             public void execute() {
                 DriverStation.reportWarning("executing calibration",false);
-                motorController.setVoltage(Volts.zero().minus(CALIBRATION_VOLTAGE));
+                motorController.setVoltage(CALIBRATION_VOLTAGE);
                 //motorController.setDutyCycle(-0.2);
 
                 double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
