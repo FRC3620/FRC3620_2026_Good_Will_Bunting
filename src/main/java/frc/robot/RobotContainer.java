@@ -511,11 +511,11 @@ public class RobotContainer implements RobotModeChangeListener {
      */
     if (shooterHoodSubsystem != null) {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
-      SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
+      SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
 
     if (shooterSubsystem != null) {
-      SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand());
+      SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -524,15 +524,15 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     if (conveyerSubsystem != null) {
-      SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand());
+      SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand().ignoringDisable(true));
     }
 
     if (preshooterSubsystem != null) {
-      SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
+      SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
     }
 
     if (turretSubsystem != null) {
-      SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
+      SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
   }
 

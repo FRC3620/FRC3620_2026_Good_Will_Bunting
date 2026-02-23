@@ -62,7 +62,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   boolean activeCalibrating = false;
   private Command calibrationCommand;
 
-  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.5);
+  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1);
   private final LinearVelocity VELOCITY_THRESHOLD = MetersPerSecond.of(.03);
   private final Current CURRENT_THRESHOLD = Amps.of(10);
   private final Time STALL_TIME_SECONDS = Seconds.of(.1);
@@ -126,7 +126,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       /*if (!activeCalibrating && !isCalibrated) {
         calibrationCommand = calibrate();
         CommandScheduler.getInstance().schedule(calibrationCommand);
-      }*/
+      } */
 
       elevator.updateTelemetry();
       elevator.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(
@@ -203,7 +203,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         LinearVelocity velocity = motorController.getMeasurementVelocity();
         Current current = motorController.getStatorCurrent();
 
-        if (Math.abs(velocity.in(MetersPerSecond)) < VELOCITY_THRESHOLD.in(MetersPerSecond)) {
+        if (Math.abs(velocity.in(MetersPerSecond)) < VELOCITY_THRESHOLD.in(MetersPerSecond) && current.gte(Amps.of(10))) {
           if (stallStartTime.lt(Seconds.zero())) {
             stallStartTime = Seconds.of(Timer.getFPGATimestamp());
           }
