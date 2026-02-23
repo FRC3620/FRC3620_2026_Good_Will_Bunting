@@ -399,7 +399,8 @@ public class RobotContainer implements RobotModeChangeListener {
       CommandScheduler.getInstance().schedule(
           new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+/*    SWERVE SYSID
+       operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
           .whileTrue(
               swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
       operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
@@ -410,7 +411,21 @@ public class RobotContainer implements RobotModeChangeListener {
               swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
       operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
           .whileTrue(
-              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse)); */
+
+      /*  SHOOTER SYSID 
+      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdDynamicForward());
+      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdDynamicReverse());
+      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdQuasistaticForward());
+      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdQuasistaticReverse()); */
 
       operatorJoystick.button(OdoIdsXBox.ButtonId.X)
           .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
@@ -475,9 +490,9 @@ public class RobotContainer implements RobotModeChangeListener {
             .ignoringDisable(true));
     
     if (intakeRollerSubsystem != null) {
-      operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+      /* operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersOn());
-      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); */
     }
 
   }
