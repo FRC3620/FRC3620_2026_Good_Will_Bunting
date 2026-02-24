@@ -81,7 +81,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(10, 0, 0.1, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
+          .withClosedLoopController(0.2, 0, 0.0, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
           .withSimClosedLoopController(10, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
