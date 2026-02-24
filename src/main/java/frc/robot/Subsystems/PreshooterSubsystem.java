@@ -1,6 +1,8 @@
 package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
@@ -51,11 +53,10 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            2.0, // kP - tune this
+                            8.0, // kP - tune this
                             0.0, // kI
                             0.0, // kD
-                            RotationsPerSecond.of(100),
-                            RotationsPerSecondPerSecond.of(200))
+                            DegreesPerSecond.of(28800000), DegreesPerSecondPerSecond.of(28800))
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
                     .withIdleMode(MotorMode.COAST)
                     .withMotorInverted(true)
@@ -70,9 +71,9 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(4))
+                    .withDiameter(Inch.of(2))
                     .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(2000))
+                    .withUpperSoftLimit(RPM.of(100000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
 
             setDefaultCommand(flyWheel.setSpeed(() -> setpoint));
@@ -131,7 +132,7 @@ public class PreshooterSubsystem extends SubsystemBase {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setVelocity", setpoint.in(RPM));
-            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualVelocity", flyWheel.getSpeed().in(RPM));
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualVelocityRPM", flyWheel.getSpeed().in(RPM));
         }
     }
 
