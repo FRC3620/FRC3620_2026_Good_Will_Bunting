@@ -51,8 +51,8 @@ public class LimelightSubsystem extends SubsystemBase {
   public String lastLoggedError;
 
   public enum Camera {
-    LEFT("limelight-left"),
-    RIGHT("limelight-right");
+    LEFT("limelight");
+    //RIGHT("limelight-right");
 
     public final String limelightName;
 
@@ -167,7 +167,7 @@ public class LimelightSubsystem extends SubsystemBase {
   public LimelightSubsystem() {
 
     allCameraData.put(Camera.LEFT, new CameraData(Camera.LEFT)); // Camera Data front
-    allCameraData.put(Camera.RIGHT, new CameraData(Camera.RIGHT)); // Camera Data Back
+    //allCameraData.put(Camera.RIGHT, new CameraData(Camera.RIGHT)); // Camera Data Back
     allCameraData = Map.copyOf(allCameraData); // make immutable
     allCameraDataAsSet = Set.copyOf(allCameraData.values());
 
