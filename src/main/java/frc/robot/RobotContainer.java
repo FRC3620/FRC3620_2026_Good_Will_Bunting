@@ -399,7 +399,8 @@ public class RobotContainer implements RobotModeChangeListener {
       CommandScheduler.getInstance().schedule(
           new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+/*    SWERVE SYSID
+       operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
           .whileTrue(
               swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
       operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
@@ -410,7 +411,21 @@ public class RobotContainer implements RobotModeChangeListener {
               swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
       operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
           .whileTrue(
-              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
+              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse)); */
+
+      /*  SHOOTER SYSID 
+      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdDynamicForward());
+      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdDynamicReverse());
+      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdQuasistaticForward());
+      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
+          .whileTrue(
+              shooterSubsystem.sysIdQuasistaticReverse()); */
 
       operatorJoystick.button(OdoIdsXBox.ButtonId.X)
           .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
@@ -475,9 +490,9 @@ public class RobotContainer implements RobotModeChangeListener {
             .ignoringDisable(true));
     
     if (intakeRollerSubsystem != null) {
-      operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+      /* operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersOn());
-      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); */
     }
 
   }
@@ -511,11 +526,11 @@ public class RobotContainer implements RobotModeChangeListener {
      */
     if (shooterHoodSubsystem != null) {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
-      SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
+      SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
 
     if (shooterSubsystem != null) {
-      SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand());
+      SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -524,15 +539,15 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     if (conveyerSubsystem != null) {
-      SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand());
+      SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand().ignoringDisable(true));
     }
 
     if (preshooterSubsystem != null) {
-      SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand());
+      SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
     }
 
     if (turretSubsystem != null) {
-      SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand());
+      SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
   }
 
