@@ -160,11 +160,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public Command setAngle(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
-            rv = run(() -> {
-                Angle _angle = angle.get();
-                SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Set Angle Setpt Deg", _angle.in(Degrees));
-                pivot.setAngle(_angle);
-            });
+            rv = pivot.setAngle(angle);
         } else {
             rv = idle();
         }
