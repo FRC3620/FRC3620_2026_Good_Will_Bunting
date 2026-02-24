@@ -222,16 +222,17 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       public void end(boolean interrupted) {
         motorController.setVoltage(Volts.zero());
 
-        motorController.setPosition(CALIBRATED_POS);
+        if (!interrupted) {
+          motorController.setEncoderPosition(CALIBRATED_POS);
 
-        motorController.startClosedLoopController();
-
-        createElevator(CALIBRATED_POS);
-
-        setDefaultCommand(elevator.setHeight(() -> setpoint));
-
-        isCalibrated = true;
-        activeCalibrating = false;
+          motorController.startClosedLoopController();
+          motorController.setPosition(CALIBRATED_POS);
+  
+          createElevator(CALIBRATED_POS);
+    
+          isCalibrated = true;
+          activeCalibrating = false;
+        }
       }
     }
         .withName("Intake Shoulder Calibration");
