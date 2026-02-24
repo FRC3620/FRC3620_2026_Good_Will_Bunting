@@ -113,6 +113,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
 
+        SmartDashboard.putData(this);
+
     }
 
     @Override
@@ -159,7 +161,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         Command rv;
         if (pivot != null) {
             rv = run(() -> {
-                pivot.setAngle(angle.get());
+                Angle _angle = angle.get();
+                SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Set Angle Setpt Deg", _angle.in(Degrees));
+                pivot.setAngle(_angle);
             });
         } else {
             rv = idle();
