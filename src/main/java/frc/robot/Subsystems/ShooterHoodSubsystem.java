@@ -108,10 +108,12 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             createPivot(MAXPOSITION);
 
-            setDefaultCommand(pivot.setAngle(() -> setpoint));
+            setDefaultCommand(idle().withName("Hood default command"));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
+
+        SmartDashboard.putData(this);
 
     }
 
@@ -158,9 +160,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public Command setAngle(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
-            rv = run(() -> {
-                setpoint = angle.get();
-            });
+            rv = pivot.setAngle(angle);
         } else {
             rv = idle();
         }
@@ -178,13 +178,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     public Command setAngleDashboardCommand() {
-        if (pivot != null) {
-            return run(() -> {
-                setpoint = Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30));
-            }).withName("Shooter Hood setAngle Dashboard");
-        }
-        return idle();
-
+        return setAngle(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
     }
 
     public Command calibrate() {
