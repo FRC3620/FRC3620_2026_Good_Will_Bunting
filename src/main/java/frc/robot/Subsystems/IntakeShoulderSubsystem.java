@@ -53,7 +53,6 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class IntakeShoulderSubsystem extends SubsystemBase {
   int motorId = Constants.MOTORID_INTAKE_SHOULDER;
   String telemetryPrefix = "IntakeShoulder";
-  private Distance setpoint = Meters.of(0);
   private TalonFX motor = null;
   private SmartMotorController motorController = null;
   private Elevator elevator = null;
@@ -105,7 +104,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
       createElevator(CALIBRATED_POS);
 
-      setDefaultCommand(elevator.setHeight(() -> setpoint));
+      setDefaultCommand(idle());
 
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
@@ -132,7 +131,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       elevator.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(
           "frc3620/" + telemetryPrefix + "/setPos",
           setpoint.in(Degrees)));
-      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setpoint meters", setpoint.in(Meters));
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualPosMeters", getExtension().in(Meters));
 
       LinearVelocity velocity = motorController.getMeasurementVelocity();
@@ -150,12 +148,10 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     }
   }
 
-  public Command setExtension(Supplier<Distance> distance) {
+  public Command createSetExtensionCommand(Supplier<Distance> distance) {
     Command rv;
     if (elevator != null) {
-      rv = run(() -> {
-        setpoint = distance.get();
-      });
+      rv = elevator.run(distance.get());
     } else {
       rv = idle();
     }
@@ -164,10 +160,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public Command setExtensionDashboardCommand() {
     if (elevator != null) {
-
-      return run(() -> {
-        setpoint = Meters.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0));
-      });
+        return createSetExtensionCommand(() -> Meters.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0)));
     } else {
       return idle();
     }

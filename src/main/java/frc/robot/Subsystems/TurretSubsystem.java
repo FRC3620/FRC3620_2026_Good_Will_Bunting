@@ -68,8 +68,6 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private Angle setpoint = Degrees.of(180);
-
   private static final Angle absAEncoderOffset = Rotations.of(-0.762451171875);
   private static final Angle absBEncoderOffset = Rotations.of(-0.403564453125);
 
@@ -116,7 +114,7 @@ public class TurretSubsystem extends SubsystemBase {
           // MOI Calculation
           .withMOI(Meters.of(0.25), Pounds.of(2)));
 
-      setDefaultCommand(pivot.setAngle(() -> setpoint));
+      setDefaultCommand(idle());
     }
 
     easyCrtConfig = buildEasyCRTConfig();
@@ -126,14 +124,12 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
   }
 
-  public Command setAngle(Supplier<Angle> angle) {
+  public Command createSetAngleCommand(Supplier<Angle> angle) {
     Command rv;
     if (pivot == null) {
       rv = idle();
     } else {
-      rv = run(() -> {
-        setpoint = angle.get();
-      });
+      rv = pivot.setAngle(angle.get());
     }
     return rv.withName(telemetryPrefix + " setAngle");
   }
@@ -151,9 +147,7 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
-      rv = run(() -> {
-        setpoint = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180));
-      });
+      rv = createSetAngleCommand(() -> Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180)));
     }
     return rv.withName(telemetryPrefix + " setAngleDashboard");
   }
@@ -183,7 +177,6 @@ public class TurretSubsystem extends SubsystemBase {
       }
       pivot.updateTelemetry();
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees", getAngle().in(Degrees));
-      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees Setpoint", setpoint.in(Degrees));
       SmartDashboard.putNumber("Turret/CRT/CurrentPositionDeg",
           smartMotorController.getMechanismPosition().in(Degrees));
     }

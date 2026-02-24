@@ -465,10 +465,10 @@ public class RobotContainer implements RobotModeChangeListener {
      */
     if (shooterHoodSubsystem != null) {
       operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-          .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(45)));
+          .whileTrue(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(45)));
 
       operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-          .whileTrue(shooterHoodSubsystem.setAngle(() -> Degrees.of(35)));
+          .whileTrue(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(35)));
     }
 
 // SysID commands

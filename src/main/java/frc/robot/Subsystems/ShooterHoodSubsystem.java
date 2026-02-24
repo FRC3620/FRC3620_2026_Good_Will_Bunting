@@ -154,7 +154,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         }
     }
 
-    public Command setAngle(Supplier<Angle> angle) {
+    public Command createSetAngleCommand(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
             rv = pivot.setAngle(angle);
@@ -175,7 +175,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     public Command setAngleDashboardCommand() {
-        return setAngle(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
+        return createSetAngleCommand(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
     }
 
     public Command calibrate() {

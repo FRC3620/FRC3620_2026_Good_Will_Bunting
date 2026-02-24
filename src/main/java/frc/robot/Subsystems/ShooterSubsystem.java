@@ -60,8 +60,6 @@ public class ShooterSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private FlyWheel flywheel = null;
 
-  private AngularVelocity setpoint = RPM.of(0);
-
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
@@ -130,7 +128,7 @@ public class ShooterSubsystem extends SubsystemBase {
               null,
               this));
 
-      setDefaultCommand(flywheel.setSpeed(() -> setpoint));
+      setDefaultCommand(idle());
     }
     SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
 
@@ -154,22 +152,19 @@ public class ShooterSubsystem extends SubsystemBase {
    * @param speed Speed to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public Command setVelocity(Supplier<AngularVelocity> speed) {
+  public Command createSetVelocityCommand(Supplier<AngularVelocity> speed) {
     if (flywheel == null)
       return idle();
 
-    return run(() -> {
-      setpoint = speed.get();
-    }).withName(telemetryPrefix + " SetVelocity");
+    return flywheel.setSpeed(speed.get()).withName(telemetryPrefix + " SetVelocity");
   }
 
   public Command setVelocityDashboardCommand() {
     if (flywheel == null)
       return idle();
 
-    return run(() -> {
-      setpoint = RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0));
-    });
+      return createSetVelocityCommand(() -> RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0)));
+
   }
 
   /**
@@ -194,7 +189,6 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel != null) {
       flywheel.updateTelemetry();
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Actual", getVelocity().in(RPM));
-      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Setpoint", setpoint.in(RPM));
     }
   }
 
