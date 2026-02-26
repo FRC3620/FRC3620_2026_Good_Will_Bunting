@@ -35,8 +35,6 @@ public class ConveyerSubsystem extends SubsystemBase {
     int motorId = Constants.MOTORID_CONVEYER;
     String telemetryPrefix = "Conveyer";
 
-    private AngularVelocity setpoint = RPM.of(0);
-
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
@@ -74,7 +72,7 @@ public class ConveyerSubsystem extends SubsystemBase {
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
 
-            setDefaultCommand(flyWheel.setSpeed(() -> setpoint));
+            setDefaultCommand(idle());
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
     }
@@ -82,9 +80,7 @@ public class ConveyerSubsystem extends SubsystemBase {
     public Command setSpeed(Supplier<AngularVelocity> speed) {
 
         if (flyWheel != null) {
-            return run(() -> {
-                setpoint = speed.get();
-            }).withName(telemetryPrefix + " Set Speed");
+            return flyWheel.setSpeed(speed.get());
         } else {
             return idle();
         }
@@ -100,15 +96,13 @@ public class ConveyerSubsystem extends SubsystemBase {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualSpeedRPM", flyWheel.getSpeed().in(RPM));
-            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setpointRPM", setpoint.in(RPM));
         }
     }
 
     public Command setSpeedDashboardCommand() {
         if (flyWheel != null) {
-            return run(() -> {
-                setpoint = RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0));
-            }).withName(telemetryPrefix + " Set Speed Dashboard");
+            return setSpeed(() -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)))
+            .withName(telemetryPrefix + " Set Speed Dashboard");
         } else {
             return idle();
         }

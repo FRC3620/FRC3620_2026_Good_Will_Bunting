@@ -70,8 +70,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     private final Angle ZERO_ENCODER_OFFSET = Rotations.of(0.281982); // place holders
 
-    private Angle setpoint = Degrees.of(30);
-
     Double requestedCalibrationPos = null;
 
     public ShooterHoodSubsystem() {
@@ -133,7 +131,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Stator Current",
                     motorController.getStatorCurrent().in(Amps));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
-            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Setpoint", setpoint.in(Degrees));
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrated", isCalibrated);
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrating", activeCalibrating);
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
@@ -157,7 +154,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         }
     }
 
-    public Command setAngle(Supplier<Angle> angle) {
+    public Command createSetAngleCommand(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
             rv = pivot.setAngle(angle);
@@ -178,7 +175,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     public Command setAngleDashboardCommand() {
-        return setAngle(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
+        return createSetAngleCommand(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
     }
 
     public Command calibrate() {
@@ -229,13 +226,16 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 motorController.setDutyCycle(0);
                 
                 SmartDashboard.putBoolean("SHOOTER HOOD END RAN", true);
-                motorController.setEncoderPosition(HOOD_CALIBRATED_POS);
-                motorController.startClosedLoopController();
-
-                motorController.setPosition(HOOD_CALIBRATED_POS);
-
-                isCalibrated = true;
-                activeCalibrating = false;
+                
+                if(!interrupted) {
+                    motorController.setEncoderPosition(HOOD_CALIBRATED_POS);
+                    motorController.startClosedLoopController();
+    
+                    motorController.setPosition(HOOD_CALIBRATED_POS);
+    
+                    isCalibrated = true;
+                    activeCalibrating = false;
+                }
 
             }
         }
