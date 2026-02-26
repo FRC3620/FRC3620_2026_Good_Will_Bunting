@@ -427,7 +427,7 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(
               shooterSubsystem.sysIdQuasistaticReverse()); */
 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+      driverJoystick.button(()-> false, OdoIdsXBox.ButtonId.X)// MAKE SURE TO CHANGE BEFORE PR
           .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
               .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
               .ignoringDisable(true));
