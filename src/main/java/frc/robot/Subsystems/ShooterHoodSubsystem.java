@@ -224,6 +224,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             public void end(boolean interrupted) {
                 motorController.setDutyCycle(0);
+                activeCalibrating = false;
                 
                 SmartDashboard.putBoolean("SHOOTER HOOD END RAN", true);
                 
@@ -234,7 +235,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     motorController.setPosition(HOOD_CALIBRATED_POS);
     
                     isCalibrated = true;
-                    activeCalibrating = false;
+
                 }
 
             }

@@ -214,6 +214,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
       public void end(boolean interrupted) {
         motorController.setVoltage(Volts.zero());
+        activeCalibrating = false;
 
         if (!interrupted) {
           motorController.setEncoderPosition(CALIBRATED_POS);
@@ -224,7 +225,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
           createElevator(CALIBRATED_POS);
     
           isCalibrated = true;
-          activeCalibrating = false;
+
         }
       }
     }
