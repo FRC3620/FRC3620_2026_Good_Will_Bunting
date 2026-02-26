@@ -29,9 +29,11 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController.RadioLEDState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Elastic;
 import frc.robot.RobotContainer;
 
 public class HealthSubsystem extends SubsystemBase {
+
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
 
   private final static String alertGroupName = "Health Alerts";
@@ -101,6 +103,24 @@ public class HealthSubsystem extends SubsystemBase {
     SmartDashboard.putString("Health/Misc", booleanSupplierHealth.toString());
     newHealth = newHealth.worstOf(booleanSupplierHealth);
 
+    if (newHealth != currentHealth) {
+      if (newHealth == Health.GOOD) {
+        Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO,
+            "Info",
+            "The current health of the robot has changed. The new health is " + newHealth);
+        Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+      } else if (newHealth == Health.MEDIOCRE) {
+        Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.WARNING,
+            "Warning",
+            "The current health of the robot has changed. The new health is " + newHealth);
+        Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+      } else {
+        Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.ERROR,
+            "ERRORCODE:404",
+            "The current health of the robot has changed. The new health is " + newHealth);
+        Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+      }
+    }
     currentHealth = newHealth;
     SmartDashboard.putString("Health/Overall", currentHealth.toString());
 

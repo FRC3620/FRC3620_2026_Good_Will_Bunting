@@ -10,12 +10,17 @@ import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Rotation;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -28,6 +33,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
@@ -46,6 +52,8 @@ public class ShooterSubsystem extends SubsystemBase {
   int motorId1 = Constants.MOTORID_SHOOTER1;
   int motorId2 = Constants.MOTORID_SHOOTER2;
   String telemetryPrefix = "Shooter";
+
+  private SysIdRoutine sysIdRoutine;
 
   private TalonFX motor1 = null;
   private TalonFX motor2 = null;
@@ -73,10 +81,10 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(10, 0, 0.1, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
+          .withClosedLoopController(0.2, 0, 0.0, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
           .withSimClosedLoopController(10, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
           // Feedforward Constants
-          .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+          .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           // Telemetry name and verbosity level
           .withTelemetry("motor1", TelemetryVerbosity.HIGH)
@@ -103,6 +111,24 @@ public class ShooterSubsystem extends SubsystemBase {
           // Telemetry name and verbosity for the arm.
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
       flywheel = new FlyWheel(Config);
+
+      sysIdRoutine = new SysIdRoutine(
+          new SysIdRoutine.Config(
+              null,
+              null,
+              null,
+              (state) -> SignalLogger.writeString("Shooter_State", state.toString())),
+          new SysIdRoutine.Mechanism(
+              (voltage) -> {
+                smartMotorController.stopClosedLoopController();
+                smartMotorController.setVoltage(voltage);
+
+                SignalLogger.writeDouble("Shooter Voltage", voltage.in(Volts));
+                SignalLogger.writeDouble("Shooter_Velocity_RPS", getVelocity().in(RotationsPerSecond));
+                SignalLogger.writeDouble("Shooter_Position_Rotations", smartMotorController.getMechanismPosition().in(Rotations));
+              },
+              null,
+              this));
 
       setDefaultCommand(flywheel.setSpeed(() -> setpoint));
     }
@@ -178,4 +204,21 @@ public class ShooterSubsystem extends SubsystemBase {
       flywheel.simIterate();
     }
   }
+
+  public Command sysIdQuasistaticForward() {
+    return sysIdRoutine.quasistatic(SysIdRoutine.Direction.kForward);
+  }
+
+  public Command sysIdQuasistaticReverse() {
+    return sysIdRoutine.quasistatic(SysIdRoutine.Direction.kReverse);
+  }
+
+  public Command sysIdDynamicForward() {
+    return sysIdRoutine.dynamic(SysIdRoutine.Direction.kForward);
+  }
+
+  public Command sysIdDynamicReverse() {
+    return sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse);
+  }
+
 }
