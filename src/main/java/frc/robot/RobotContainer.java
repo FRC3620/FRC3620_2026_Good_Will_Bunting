@@ -102,7 +102,7 @@ public class RobotContainer implements RobotModeChangeListener {
   private FMSTriggers fmsTriggers;
   private ButtonTriggers buttonTriggers;
 
-  private Optional<Alliance> alliance = DriverStation.getAlliance();
+  private Optional<Alliance> alliance;
 
   private double MaxSpeed = ChudbotTunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
                                                                                        // speed
@@ -279,6 +279,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem == null) {
       return;
     }
+    
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers(alliance);
     buttonTriggers = new ButtonTriggers(driverJoystick);
@@ -498,6 +499,7 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
+    alliance=DriverStation.getAlliance();
     if (currentRobotMode == RobotMode.TELEOP) {
       Joystick realDriverJoystick = driverJoystick.getRealJoystick();
       String driveControllerName = realDriverJoystick.getName();
