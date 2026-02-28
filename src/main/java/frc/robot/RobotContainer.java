@@ -2,8 +2,10 @@ package frc.robot;
 
 import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -64,6 +66,7 @@ import frc.robot.Generated.TunerConstants;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.RaptorTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -549,6 +552,43 @@ public class RobotContainer implements RobotModeChangeListener {
     if (turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
+
+    SmartDashboard.putNumber("frc3620/ShotCalulator/TestInputs/RobotPoseXFt", 0);
+    SmartDashboard.putNumber("frc3620/ShotCalulator/TestInputs/RobotPoseYFt", 0);
+    SmartDashboard.putNumber("frc3620/ShotCalulator/TestInputs/RobotPoseRotationDegrees", 0);
+
+    SmartDashboard.putNumber("frc3620/ShotCalulator/TestInputs/RobotVelocityXFtps", 0);
+    SmartDashboard.putNumber("frc3620/ShotCalulator/TestInputs/RobotVelocityYFtps", 0);
+
+    SmartDashboard.putData("frc3620/ShotCalculator/CalculateTestShot", new Command() {
+      @Override
+      public void initialize() {
+        SmartDashboard.putNumber("frc3620/ShotCalulator/CalculatedShot/HoodAngleDegrees", 
+        ShotCalculator.calculateHoodAngle(
+          FieldConstants.Hub.innerCenterPoint,
+          new Pose2d(
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotPoseXFt", 0),
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotPoseYFt", 0),
+            Rotation2d.fromDegrees(SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotPoseRotationDegrees", 0))), 
+          new Translation2d(
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotVelocityXFtps", 0),
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotVelocityYFtps", 0)
+          )).in(Degrees));
+
+        SmartDashboard.putNumber("frc3620/ShotCalulator/CalculatedShot/FlywheelVelocityRPM", 
+        ShotCalculator.calculateShooterSpeed(
+          FieldConstants.Hub.innerCenterPoint,
+          new Pose2d(
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotPoseXFt", 0),
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotPoseYFt", 0),
+            Rotation2d.fromDegrees(SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotPoseRotationDegrees", 0))), 
+          new Translation2d(
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotVelocityXFtps", 0),
+            SmartDashboard.getNumber("frc3620/ShotCalulator/TestInputs/RobotVelocityYFtps", 0)
+          )).in(RPM));
+      }
+    }.withName("Calculate Test Shot").ignoringDisable(true));
+
   }
 
   public void setUpAutonomousCommands() {
