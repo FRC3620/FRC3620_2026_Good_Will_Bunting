@@ -15,7 +15,6 @@ import static edu.wpi.first.units.Units.Seconds;
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.hardware.TalonFXS;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -32,7 +31,6 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.remote.TalonFXSWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class TurretSubsystem extends SubsystemBase {
@@ -71,7 +69,7 @@ public class TurretSubsystem extends SubsystemBase {
       PivotConfig pivot_config = new PivotConfig(smartMotorController)
           .withStartingPosition(Degrees.of(0)) // Starting position of the Pivot
           .withHardLimit(Degrees.of(-135), Degrees.of(135)) // Hard limit bc wiring prevents infinite spinning
-          .withTelemetry("PivotExample", TelemetryVerbosity.HIGH) // Telemetry
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH) // Telemetry
           .withMOI(Meters.of(0.25), Pounds.of(2)); // MOI Calculation
 
       pivot = new Pivot(pivot_config);
@@ -87,9 +85,9 @@ public class TurretSubsystem extends SubsystemBase {
 
   public Command setAngle(Angle angle) {
     if (pivot == null) {
-      return doNothingCommand().withName("Turret setAngle");
+      return doNothingCommand().withName(telemetryPrefix+" setAngle");
     } else {
-      return pivot.setAngle(angle).withName("Turret setAngle");
+      return pivot.setAngle(angle).withName(telemetryPrefix+" setAngle");
     }
   }
 
