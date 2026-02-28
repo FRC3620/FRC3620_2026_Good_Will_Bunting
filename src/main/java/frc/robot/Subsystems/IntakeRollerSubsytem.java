@@ -52,7 +52,6 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.OPEN_LOOP)
                     .withMotorInverted(true);
-                
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 

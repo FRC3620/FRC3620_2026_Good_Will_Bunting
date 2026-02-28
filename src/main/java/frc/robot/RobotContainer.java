@@ -492,10 +492,12 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeRollerSubsystem != null) {
        operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersOn());
-      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); 
-       operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+                  intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); 
+          operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersBackwards());
-      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); 
+        intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); 
+    
+
     }
 
   }
