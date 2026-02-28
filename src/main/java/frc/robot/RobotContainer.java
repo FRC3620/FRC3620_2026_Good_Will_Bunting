@@ -281,7 +281,7 @@ public class RobotContainer implements RobotModeChangeListener {
     }
     
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
-    fmsTriggers = new FMSTriggers(alliance);
+    fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
     passingState.addTransition(new StateTransition(
