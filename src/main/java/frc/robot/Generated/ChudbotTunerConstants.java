@@ -126,9 +126,9 @@ public class ChudbotTunerConstants {
 
 
     // Front Left
-    private static final int kFrontLeftDriveMotorId = 1;
-    private static final int kFrontLeftSteerMotorId = 2;
-    private static final int kFrontLeftEncoderId = 3;
+    private static final int kFrontLeftDriveMotorId = 43;
+    private static final int kFrontLeftSteerMotorId =44;
+    private static final int kFrontLeftEncoderId = 45;
     private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.464599609375);
     private static final boolean kFrontLeftSteerMotorInverted = true;
     private static final boolean kFrontLeftEncoderInverted = false;
@@ -137,9 +137,9 @@ public class ChudbotTunerConstants {
     private static final Distance kFrontLeftYPos = Inches.of(9.875);
 
     // Front Right
-    private static final int kFrontRightDriveMotorId = 4;
-    private static final int kFrontRightSteerMotorId = 5;
-    private static final int kFrontRightEncoderId = 6;
+    private static final int kFrontRightDriveMotorId = 46;
+    private static final int kFrontRightSteerMotorId = 47;
+    private static final int kFrontRightEncoderId = 48;
     private static final Angle kFrontRightEncoderOffset = Rotations.of(0.37109375);
     private static final boolean kFrontRightSteerMotorInverted = true;
     private static final boolean kFrontRightEncoderInverted = false;
@@ -148,9 +148,9 @@ public class ChudbotTunerConstants {
     private static final Distance kFrontRightYPos = Inches.of(-9.875);
 
     // Back Left
-    private static final int kBackLeftDriveMotorId = 7;
-    private static final int kBackLeftSteerMotorId = 8;
-    private static final int kBackLeftEncoderId = 9;
+    private static final int kBackLeftDriveMotorId = 49;
+    private static final int kBackLeftSteerMotorId = 50;
+    private static final int kBackLeftEncoderId = 51;
     private static final Angle kBackLeftEncoderOffset = Rotations.of(0.067626953125);
     private static final boolean kBackLeftSteerMotorInverted = true;
     private static final boolean kBackLeftEncoderInverted = false;
@@ -159,9 +159,9 @@ public class ChudbotTunerConstants {
     private static final Distance kBackLeftYPos = Inches.of(9.875);
 
     // Back Right
-    private static final int kBackRightDriveMotorId = 10;
-    private static final int kBackRightSteerMotorId = 11;
-    private static final int kBackRightEncoderId = 12;
+    private static final int kBackRightDriveMotorId = 52;
+    private static final int kBackRightSteerMotorId = 53;
+    private static final int kBackRightEncoderId = 54;
     private static final Angle kBackRightEncoderOffset = Rotations.of(0.24267578125);
     private static final boolean kBackRightSteerMotorInverted = true;
     private static final boolean kBackRightEncoderInverted = false;

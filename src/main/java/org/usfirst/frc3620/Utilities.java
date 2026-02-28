@@ -7,9 +7,16 @@ package org.usfirst.frc3620;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 
+import java.util.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LoggingMaster;
@@ -226,7 +233,7 @@ public class Utilities {
   }
 
   /*
-   * DW: I should be able to figure out how to do both Distance and Angle with 
+   * DW: I should be able to figure out how to do both Distance and Angle with
    * one method using generics, but I ain't that smart. This works!
    * 
    */
@@ -241,7 +248,8 @@ public class Utilities {
   }
 
   public static Distance changeValuesUnitsTo(Distance v, DistanceUnit u) {
-    if (v.unit() == u) return v;
+    if (v.unit() == u)
+      return v;
     return u.of(v.in(u));
   }
 
@@ -255,7 +263,163 @@ public class Utilities {
   }
 
   private static Angle changeValuesUnitsTo(Angle v, AngleUnit u) {
-    if (v.unit() == u) return v;
+    if (v.unit() == u)
+      return v;
     return u.of(v.in(u));
   }
+
+  // Source - https://stackoverflow.com/a/1248627
+  // Posted by Dave Ray, modified by community. See post 'Timeline' for change
+  // history
+  // Retrieved 2026-02-15, License - CC BY-SA 2.5
+
+  public static String convertGlobToRegEx(String line) {
+    line = line.trim();
+    int strLen = line.length();
+    StringBuilder sb = new StringBuilder(strLen);
+    // Remove beginning and ending * globs because they're useless
+    if (line.startsWith("*")) {
+      line = line.substring(1);
+      strLen--;
+    }
+    if (line.endsWith("*")) {
+      line = line.substring(0, strLen - 1);
+      strLen--;
+    }
+    boolean escaping = false;
+    int inCurlies = 0;
+    for (char currentChar : line.toCharArray()) {
+      switch (currentChar) {
+        case '*':
+          if (escaping)
+            sb.append("\\*");
+          else
+            sb.append(".*");
+          escaping = false;
+          break;
+        case '?':
+          if (escaping)
+            sb.append("\\?");
+          else
+            sb.append('.');
+          escaping = false;
+          break;
+        case '.':
+        case '(':
+        case ')':
+        case '+':
+        case '|':
+        case '^':
+        case '$':
+        case '@':
+        case '%':
+          sb.append('\\');
+          sb.append(currentChar);
+          escaping = false;
+          break;
+        case '\\':
+          if (escaping) {
+            sb.append("\\\\");
+            escaping = false;
+          } else
+            escaping = true;
+          break;
+        case '{':
+          if (escaping) {
+            sb.append("\\{");
+          } else {
+            sb.append('(');
+            inCurlies++;
+          }
+          escaping = false;
+          break;
+        case '}':
+          if (inCurlies > 0 && !escaping) {
+            sb.append(')');
+            inCurlies--;
+          } else if (escaping)
+            sb.append("\\}");
+          else
+            sb.append("}");
+          escaping = false;
+          break;
+        case ',':
+          if (inCurlies > 0 && !escaping) {
+            sb.append('|');
+          } else if (escaping)
+            sb.append("\\,");
+          else
+            sb.append(",");
+          break;
+        default:
+          escaping = false;
+          sb.append(currentChar);
+      }
+    }
+    return sb.toString();
+  }
+
+  public static class GlobMatcher {
+    List<Pattern> patterns = new ArrayList<>();
+
+    public GlobMatcher() {
+
+    }
+
+    public GlobMatcher(Collection<String> globs) {
+      addGlobs(globs);
+    }
+
+    public void addGlobs(Collection<String> globs) {
+      for (var glob : globs) {
+        addGlob(glob);
+      }
+    }
+
+    public void addGlob(String glob) {
+      String regexp = Utilities.convertGlobToRegEx(glob);
+      Pattern pattern = null;
+      try {
+        pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
+        logger.info("glob '{}' -> regexp '{}'", glob, pattern);
+      } catch (PatternSyntaxException ex) {
+        logger.warn("Unable to parse regexp from glob: '{}' -> '{}': {}", glob, regexp,
+            ex);
+      }
+      if (pattern != null) {
+        patterns.add(pattern);
+      }
+    }
+
+    public boolean matches(String string) {
+      for (var pattern : patterns) {
+        Matcher m = pattern.matcher(string);
+        if (m.find())
+          return true;
+      }
+      return false;
+    }
+  }
+
+  public static <T> T extractPrivateField(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
+    try {
+      Field privateField = clazz.getDeclaredField(name);
+      privateField.setAccessible(true);
+      T rv = returnClazz.cast(privateField.get(o));
+      return rv;
+    } catch (SecurityException | IllegalAccessException | ClassCastException | NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T callMethod(Class<T> returnClazz, Class<?> clazz, Object o, String name) {
+    try {
+      Method method = clazz.getMethod(name, new Class[] {});
+      T rv = returnClazz.cast(method.invoke(o, new Object[] {}));
+      return rv;
+    } catch (SecurityException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }
