@@ -202,7 +202,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
             config = RobotConfig.fromGUISettings();
             AutoBuilder.configure(
                 () -> RobotContainer.questNavSubsystem.getNavQuestPose3d().toPose2d(),   // Supplier of current robot pose
-                this::resetPose,         // Consumer for seeding pose against auto
+                pose -> RobotContainer.questNavSubsystem.setQuestNavPose(pose),         // Consumer for seeding pose against auto
                 () -> getState().Speeds, // Supplier of current robot speeds
                 // Consumer of ChassisSpeeds and feedforwards to drive the robot
                 (speeds, feedforwards) -> setControl(
