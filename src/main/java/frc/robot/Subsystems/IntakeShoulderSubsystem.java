@@ -65,7 +65,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   boolean activeCalibrating = false;
   private Command calibrationCommand;
 
-  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-.5);
+  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.0);
   private final double VELOCITY_THRESHOLD = 2.0;
   private final Current CURRENT_THRESHOLD = Amps.of(10);
   private final double STALL_TIME_SECONDS = .25;
@@ -73,7 +73,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private final Angle CALIBRATED_POS = Degrees.of(0.0); // place holders
 
   public enum IntakeShoulderPositions {
-    Out(Degrees.of(120)),
+    Out(Degrees.of(88)),
     IN(Degree.of(0));
 
     private final Angle angle;;
@@ -96,44 +96,52 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withClosedLoopController(4.0, 0, 0, DegreesPerSecond.of(100), DegreesPerSecondPerSecond.of(100))
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(27 / 1, 24 / 15)))
-          .withIdleMode(MotorMode.BRAKE)
+          .withClosedLoopController(100.0, 0, 0, DegreesPerSecond.of(60), DegreesPerSecondPerSecond.of(60))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 24.0 / 15.0)))
+          .withIdleMode(MotorMode.COAST)
           .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
-          .withStatorCurrentLimit(Amps.of(20))
+          .withStatorCurrentLimit(Amps.of(40))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
       motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
       createPivot(CALIBRATED_POS);
 
-      setDefaultCommand(idle());
+      setDefaultCommand(idle().withName("intake shoulder default command"));
 
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
+    SmartDashboard.putData(this);
   }
 
   private void createPivot(Angle startingAngle) {
+
+    Angle softLimit = Degrees.of(-95.0);
+
+    if(isCalibrated){
+      softLimit = Degrees.of(0.0);
+    }
+
+
     pivot = new Pivot(new PivotConfig(motorController)
         // Starting position of the Pivot
         .withStartingPosition(IntakeShoulderPositions.IN.angle)
         // .withWrapping(Degrees.of(0), Degrees.of(360))
         // Hard limit bc wiring prevents infinite spinning
-        .withSoftLimits(IntakeShoulderPositions.IN.angle, IntakeShoulderPositions.Out.angle)
+        .withSoftLimits(softLimit, softLimit.plus(Degrees.of(195)))
         // Telemetry
         .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
-  }
+      }
+  
 
   @Override
   public void periodic() {
     if (pivot != null) {
 
-      /*
-       * if (!activeCalibrating && !isCalibrated) {
-       * calibrationCommand = calibrate();
-       * CommandScheduler.getInstance().schedule(calibrationCommand);
-       * }
-       */
+      if (!activeCalibrating && !isCalibrated) {
+        calibrationCommand = calibrate();
+        CommandScheduler.getInstance().schedule(calibrationCommand);
+      }
 
       pivot.updateTelemetry();
       pivot.getMechanismSetpoint().ifPresent(setpoint -> SmartDashboard.putNumber(
@@ -144,6 +152,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
           motorController.getMechanismVelocity().in(DegreesPerSecond));
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorVoltage", motorController.getVoltage().in(Volts));
       SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/isCalibrated", isCalibrated);
+      SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/activeCalibration", activeCalibrating);
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorCurrent", motorController.getStatorCurrent().in(Amps));
 
     }
   }
@@ -158,7 +168,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command createSetPositionCommand(Supplier<Angle> angle) {
     Command rv;
     if (pivot != null) {
-      rv = pivot.run(angle.get());
+      rv = pivot.setAngle(angle);
     } else {
       rv = idle();
     }
@@ -168,7 +178,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command setPositionDashboardCommand() {
     if (pivot != null) {
       return createSetPositionCommand(
-          () -> Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/setPositionDashboard", 0)));
+          () -> Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0)));
     } else {
       return idle();
     }
@@ -200,13 +210,13 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       }
 
       public void execute() {
-        motorController.setVoltage(CALIBRATION_VOLTAGE);
-        // motorController.setDutyCycle(-0.2);
+       motorController.setVoltage(CALIBRATION_VOLTAGE);
+     //  motorController.setDutyCycle(-0.2);
 
         double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
         double current = motorController.getStatorCurrent().in(Amps);
 
-        if (Math.abs(velocity) < VELOCITY_THRESHOLD && current > 10) {
+        if (Math.abs(velocity) < VELOCITY_THRESHOLD && current > CURRENT_THRESHOLD.in(Amps)) {
           if (stallStartTime < 0) {
             stallStartTime = Timer.getFPGATimestamp();
           }
@@ -215,14 +225,15 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         }
 
         SmartDashboard.putNumber("frc3620/IntakeShoulder/Timer", Timer.getFPGATimestamp() - stallStartTime);
+        SmartDashboard.putNumber("frc3620/IntakeShoulder/StallStart", stallStartTime);
       }
-
+      
       public boolean isFinished() {
+        SmartDashboard.putBoolean("frc3620/IntakeShoulder/ShouldFinish",
+            (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
         if (stallStartTime < 0)
           return false;
 
-        SmartDashboard.putBoolean("frc3620/IntakeShoulder/ShouldFinish",
-            (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
         return (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS;
       }
 
@@ -230,9 +241,11 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         motorController.setDutyCycle(0);
         activeCalibrating = false;
 
+      
         SmartDashboard.putBoolean("INTAKE SHOULDER END RAN", true);
 
         if (!interrupted) {
+          createPivot(CALIBRATED_POS);
           motorController.setEncoderPosition(CALIBRATED_POS);
           motorController.startClosedLoopController();
 
