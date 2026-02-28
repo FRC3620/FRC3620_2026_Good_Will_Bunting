@@ -12,7 +12,7 @@ public class FMSTriggers {
     public final Trigger isInactivePeriod;
     public final Trigger isEndgame;
 
-    public FMSTriggers(Optional<Alliance> alliance) {
+    public FMSTriggers() {
 
         isActivePeriod = new Trigger(() -> HubTracker.isAllianceHubActive());
         isInactivePeriod = isActivePeriod.negate();
