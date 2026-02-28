@@ -2,8 +2,14 @@ package frc.robot;
 
 import edu.wpi.first.hal.SimDevice.Direction;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -36,6 +42,8 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.FeetPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
@@ -64,6 +72,8 @@ import frc.robot.Generated.TunerConstants;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.ShotCalculator;
+import frc.robot.Helpers.VelocityVector;
 import frc.robot.Generated.ChudbotTunerConstants;
 import frc.robot.Generated.RaptorTunerConstants;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -554,6 +564,50 @@ public class RobotContainer implements RobotModeChangeListener {
     if (turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
+
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0);
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0);
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0);
+
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0);
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0);
+
+    SmartDashboard.putData("frc3620/ShotCalculator/CalculateTestShot", new Command() {
+      @Override
+      public void initialize() {
+        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/HoodAngleDegrees", 
+        ShotCalculator.calculateHoodAngle(
+          new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6.0)
+          ),
+          new Pose2d(
+            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0), Feet),
+            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0), Feet),
+            Rotation2d.fromDegrees(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))), 
+          new VelocityVector(
+            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
+            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))
+          )).in(Degrees));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM", 
+        ShotCalculator.calculateShooterSpeed(
+          new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6.0)
+          ),
+          new Pose2d(
+            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0), Feet),
+            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0), Feet),
+            Rotation2d.fromDegrees(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))), 
+          new VelocityVector(
+            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
+            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))
+          )).in(RPM));
+      }
+    }.withName("Calculate Test Shot").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
