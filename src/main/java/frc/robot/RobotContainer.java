@@ -552,7 +552,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeShoulderSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl",
-          intakeShoulderSubsystem.setExtensionDashboardCommand().ignoringDisable(true));
+          intakeShoulderSubsystem.setPositionDashboardCommand().ignoringDisable(true));
     }
 
     if (conveyerSubsystem != null) {
