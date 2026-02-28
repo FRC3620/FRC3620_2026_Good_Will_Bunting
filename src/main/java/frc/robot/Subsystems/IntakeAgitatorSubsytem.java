@@ -51,7 +51,7 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.OPEN_LOOP)
-                    .withMotorInverted(true);
+                    .withMotorInverted(false);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
@@ -68,7 +68,7 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(.5); // need to test this
+            rv = flyWheel.set(.10); // need to test this
         } else {
             rv = idle();
         }
@@ -88,7 +88,7 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
     public Command agitatorBackwards() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(-.2);
+            rv = flyWheel.set(-.10);
         } else {
             rv = idle();
         }
