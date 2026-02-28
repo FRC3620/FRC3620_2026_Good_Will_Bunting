@@ -83,6 +83,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
             shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(100), DegreesPerSecondPerSecond.of(100))
