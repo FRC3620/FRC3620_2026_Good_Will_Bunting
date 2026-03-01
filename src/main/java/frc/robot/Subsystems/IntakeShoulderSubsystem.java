@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import yams.gearing.GearBox;
@@ -65,15 +66,15 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   boolean activeCalibrating = false;
   private Command calibrationCommand;
 
-  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.0);
-  private final double VELOCITY_THRESHOLD = 2.0;
-  private final Current CURRENT_THRESHOLD = Amps.of(10);
+  private final Voltage CALIBRATION_VOLTAGE = Volts.of(-2);
+  private final double VELOCITY_THRESHOLD = 5.0;
+  private final Current CURRENT_THRESHOLD = Amps.of(3);
   private final double STALL_TIME_SECONDS = .25;
 
   private final Angle CALIBRATED_POS = Degrees.of(0.0); // place holders
 
   public enum IntakeShoulderPositions {
-    Out(Degrees.of(88)),
+    OUT(Degrees.of(88)),
     IN(Degree.of(0));
 
     private final Angle angle;;
@@ -96,7 +97,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withClosedLoopController(100.0, 0, 0, DegreesPerSecond.of(60), DegreesPerSecondPerSecond.of(60))
+          .withClosedLoopController(150.0, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
+          .withFeedforward(new ArmFeedforward(0, 0.5, 0))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 24.0 / 15.0)))
           .withIdleMode(MotorMode.COAST)
           .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
@@ -116,23 +118,21 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   private void createPivot(Angle startingAngle) {
 
-    Angle softLimit = Degrees.of(-95.0);
+    Angle softLimit = Degrees.of(-150.0);
 
-    if(isCalibrated){
+    if (isCalibrated) {
       softLimit = Degrees.of(0.0);
     }
-
 
     pivot = new Pivot(new PivotConfig(motorController)
         // Starting position of the Pivot
         .withStartingPosition(IntakeShoulderPositions.IN.angle)
         // .withWrapping(Degrees.of(0), Degrees.of(360))
         // Hard limit bc wiring prevents infinite spinning
-        .withSoftLimits(softLimit, softLimit.plus(Degrees.of(195)))
+        .withSoftLimits(softLimit, softLimit.plus(Degrees.of(369)))
         // Telemetry
         .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
-      }
-  
+  }
 
   @Override
   public void periodic() {
@@ -153,7 +153,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorVoltage", motorController.getVoltage().in(Volts));
       SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/isCalibrated", isCalibrated);
       SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/activeCalibration", activeCalibrating);
-      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorCurrent", motorController.getStatorCurrent().in(Amps));
+      SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorCurrent",
+          motorController.getStatorCurrent().in(Amps));
 
     }
   }
@@ -169,10 +170,40 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     Command rv;
     if (pivot != null) {
       rv = pivot.setAngle(angle);
+      /*
+       * new Command() {
+       * {
+       * addRequirements(IntakeShoulderSubsystem.this);
+       * }
+       * public void initialize() {
+       * pivot.setAngle(angle);
+       * }
+       * 
+       * public void execute(){
+       * pivot.setAngle(angle);
+       * 
+       * }
+       * public boolean isFinished() {
+       * return Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) < 5;
+       * }
+       * 
+       * public void end(boolean interrupted) {
+       * 
+       * }
+       * 
+       * };
+       */
     } else {
       rv = idle();
     }
     return rv.withName(telemetryPrefix + " SetPosition");
+  }
+
+  public Command createSetPositionThenCoast(Supplier<Angle> angle) {
+    if (pivot != null) {
+      return pivot.setAngle(angle).onlyWhile(()-> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 5).andThen(createDoNothingCommand());
+      }
+    return idle();
   }
 
   public Command setPositionDashboardCommand() {
@@ -190,6 +221,13 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     else {
       return pivot.getAngle();
     }
+  }
+
+  public Command createDoNothingCommand() {
+    if(pivot != null){
+    return pivot.set(0);
+    }
+    return idle();
   }
 
   public Command calibrate() {
@@ -210,8 +248,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       }
 
       public void execute() {
-       motorController.setVoltage(CALIBRATION_VOLTAGE);
-     //  motorController.setDutyCycle(-0.2);
+        motorController.setVoltage(CALIBRATION_VOLTAGE);
+        // motorController.setDutyCycle(-0.2);
 
         double velocity = motorController.getMechanismVelocity().in(DegreesPerSecond);
         double current = motorController.getStatorCurrent().in(Amps);
@@ -227,7 +265,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/IntakeShoulder/Timer", Timer.getFPGATimestamp() - stallStartTime);
         SmartDashboard.putNumber("frc3620/IntakeShoulder/StallStart", stallStartTime);
       }
-      
+
       public boolean isFinished() {
         SmartDashboard.putBoolean("frc3620/IntakeShoulder/ShouldFinish",
             (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
@@ -241,7 +279,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         motorController.setDutyCycle(0);
         activeCalibrating = false;
 
-      
         SmartDashboard.putBoolean("INTAKE SHOULDER END RAN", true);
 
         if (!interrupted) {
