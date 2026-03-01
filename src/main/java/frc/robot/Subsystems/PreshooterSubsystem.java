@@ -89,7 +89,7 @@ public class PreshooterSubsystem extends SubsystemBase {
         if (flyWheel == null) {
             rv = idle();
         } else {
-            rv = flyWheel.setSpeed(speed.get());
+            rv = flyWheel.setSpeed(speed);
         }
         return rv.withName(telemetryPrefix + " SetVelocity");
     }

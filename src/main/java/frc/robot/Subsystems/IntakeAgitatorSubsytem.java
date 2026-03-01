@@ -1,19 +1,16 @@
 package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.hal.CANAPITypes.CANDeviceType;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -29,82 +26,88 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
-import org.usfirst.frc3620.CANDeviceFinder;
 
-public class ConveyerSubsystem extends SubsystemBase {
-    int motorId = Constants.MOTORID_CONVEYER;
-    String telemetryPrefix = "Conveyer";
+public class IntakeAgitatorSubsytem extends SubsystemBase {
+    int motorId = Constants.MOTORID_INTAKEAGITATOR;
+    String telemetryPrefix = "IntakeAGITATOR";
 
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
 
-    public ConveyerSubsystem() {
+    public IntakeAgitatorSubsytem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
                 org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
-                motorId, telemetryPrefix + " Rollers") || RobotContainer.shouldMakeAllCANDevices();
+                motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(
-                            0.1, // kP - tune this
-                            0.0, // kI
-                            0.0, // kD
-                            RotationsPerSecond.of(100),
-                            RotationsPerSecondPerSecond.of(200))
-                    .withMotorInverted(false)
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
+                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))// need to verify gearing here
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
-                    .withControlMode(ControlMode.CLOSED_LOOP);
+                    .withControlMode(ControlMode.OPEN_LOOP)
+                    .withMotorInverted(false);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
-            FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(4))
-                    .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(7000))
-                    .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.HIGH);
 
             // Create the FlyWheel
-            flyWheel = new FlyWheel(rollerConfig);
-
-            setDefaultCommand(idle());
+            flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
+                    .withDiameter(Inch.of(1.5))
+                    .withMass(Pound.of(0.5))
+                    .withUpperSoftLimit(RPM.of(2000))
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
         }
-        SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
     }
 
-    public Command setSpeed(Supplier<AngularVelocity> speed) {
-
+    public Command agitatorOn() {
+        // Only use YAMS control, not manual rollers.set()
+        Command rv;
         if (flyWheel != null) {
-            return flyWheel.setSpeed(speed.get());
+            rv = flyWheel.set(.10); // need to test this
         } else {
-            return idle();
+            rv = idle();
         }
+        return rv.withName(telemetryPrefix + " On");
+    }
+
+    public Command agitatorOff() {
+        Command rv;
+        if (flyWheel != null) {
+            rv = flyWheel.set(0);
+        } else {
+            rv = idle();
+        }
+        return rv.withName(telemetryPrefix + " Off");
+    }
+
+    public Command agitatorBackwards() {
+        Command rv;
+        if (flyWheel != null) {
+            rv = flyWheel.set(-.10);
+        } else {
+            rv = idle();
+        }
+        return rv.withName(telemetryPrefix + " Backwards");
     }
 
     @Override
-    public void simulationPeriodic() {
-        // Only simulate, don't manually run the roller
-        flyWheel.simIterate();
-    }
-
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
-            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualSpeedRPM", flyWheel.getSpeed().in(RPM));
+            SmartDashboard.putNumber(telemetryPrefix + "agitator Velocity", flyWheel.getSpeed().in(RPM));
         }
     }
 
-    public Command setSpeedDashboardCommand() {
+
+    @Override
+    public void simulationPeriodic() {
         if (flyWheel != null) {
-            return setSpeed(() -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)))
-            .withName(telemetryPrefix + " Set Speed Dashboard");
-        } else {
-            return idle();
+            flyWheel.simIterate();
         }
     }
 }
