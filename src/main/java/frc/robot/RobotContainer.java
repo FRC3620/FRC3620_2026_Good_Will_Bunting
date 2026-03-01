@@ -199,15 +199,21 @@ public class RobotContainer implements RobotModeChangeListener {
     FollowPathCommand.warmupCommand().schedule();
 
     // default commands
-    //turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() -> Degrees.of(0)));
+    // turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() ->
+    // Degrees.of(0)));
     climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
-    //shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() -> RPM.of(0)));
-    //intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(() -> IntakeShoulderPositions.IN.getDistance()));
+    // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
+    // RPM.of(0)));
+    // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(()
+    // -> IntakeShoulderPositions.IN.getDistance()));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-    //conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
-    //shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() -> Degrees.of(30)));
-    //preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(() ->RPM.of(0)));
+    // conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() ->
+    // RPM.of(0)));
+    // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
+    // Degrees.of(30)));
+    // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(()
+    // ->RPM.of(0)));
 
     Robot.addRobotModeChangeListener(this);
   }
@@ -272,9 +278,9 @@ public class RobotContainer implements RobotModeChangeListener {
       rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
     }
     if (rv == null) {
-      logger.error ("no swerve drive was created!");
+      logger.error("no swerve drive was created!");
     } else {
-      logger.info ("swerve drive = {}", rv);
+      logger.info("swerve drive = {}", rv);
     }
     return rv;
   }
@@ -292,7 +298,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem == null) {
       return;
     }
-    
+
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
@@ -370,82 +376,97 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void configureSwerveButtonBindings() {
-      swerveSubsystem.setDefaultCommand(
-          // Drivetrain will execute this command periodically
-          swerveSubsystem.applyRequest(
-              () -> drive
-                  // Drive forward with negative Y (forward)
-                  .withVelocityX(MathUtil.applyDeadband(
-                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
-                  // Drive with negative X (left)
-                  .withVelocityY(MathUtil.applyDeadband(
-                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
-                  // Drive counterclockwise with negative X (left) left
-                  .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
-                      * MaxAngularRate))
-              .withName("Drive from Joysticks"));
+    swerveSubsystem.setDefaultCommand(
+        // Drivetrain will execute this command periodically
+        swerveSubsystem.applyRequest(
+            () -> drive
+                // Drive forward with negative Y (forward)
+                .withVelocityX(MathUtil.applyDeadband(
+                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
+                // Drive with negative X (left)
+                .withVelocityY(MathUtil.applyDeadband(
+                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
+                // Drive counterclockwise with negative X (left) left
+                .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
+                    * MaxAngularRate))
+            .withName("Drive from Joysticks"));
 
-      // Idle while the robot is disabled. This ensures the configured
-      // neutral mode is applied to the drive motors while disabled.
-      final var idle = new SwerveRequest.Idle();
-      RobotModeTriggers.disabled().whileTrue(
-          swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
+    // Idle while the robot is disabled. This ensures the configured
+    // neutral mode is applied to the drive motors while disabled.
+    final var idle = new SwerveRequest.Idle();
+    RobotModeTriggers.disabled().whileTrue(
+        swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
 
-      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
-          .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
-      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
-          .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
-              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
-              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
-          ))).withName("Point"));
+    driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
+        .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
+    driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
+        .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
+            -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
+            -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
+        ))).withName("Point"));
 
-      swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
+    swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
-      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
-          .whileTrue(swerveSubsystem.applyRequest(() -> drive
-              // Drive forward with negative Y(forward)
-              .withVelocityX(0.2)
-              // Drive left with negative X (left)
-              .withVelocityY(0)
-              .withRotationalRate(0) // Drive coun
-          ).withName("Drive Slow"));
+    driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+        .whileTrue(swerveSubsystem.applyRequest(() -> drive
+            // Drive forward with negative Y(forward)
+            .withVelocityX(0.2)
+            // Drive left with negative X (left)
+            .withVelocityY(0)
+            .withRotationalRate(0) // Drive coun
+        ).withName("Drive Slow"));
 
-      CommandScheduler.getInstance().schedule(
-          new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
+    CommandScheduler.getInstance().schedule(
+        new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
 
-/*    SWERVE SYSID
-       operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
-      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse)); */
+    /*
+     * SWERVE SYSID
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kForward));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kReverse));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kForward));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kReverse));
+     */
 
-      /*  SHOOTER SYSID 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdDynamicForward());
-      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdDynamicReverse());
-      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdQuasistaticForward());
-      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdQuasistaticReverse()); */
+    /*
+     * SHOOTER SYSID
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdDynamicForward());
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdDynamicReverse());
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdQuasistaticForward());
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdQuasistaticReverse());
+     */
 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.X)
-          .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-              .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
-              .ignoringDisable(true));
-
+    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
+            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+            .ignoringDisable(true));
 
   }
 
@@ -485,39 +506,51 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(35)));
     }
 
-// SysID commands
-    /*operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-    operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
-    operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(
-            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-    operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-        .whileTrue(
-            swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
-    */
+    // SysID commands
+    /*
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kForward));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kReverse));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kForward));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kReverse));
+     */
 
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
             .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
             .ignoringDisable(true));
-    
-    if (intakeRollerSubsystem != null) {
-       operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
-          .whileTrue(intakeRollerSubsystem.rollersOn());
-                  intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); 
-          operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
-          .whileTrue(intakeRollerSubsystem.rollersBackwards());
-        intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff()); 
-    
 
+    if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
+      operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
+          .whileTrue(intakeRollerSubsystem.rollersOn()
+              .alongWith(
+                  intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())));
+
+      intakeShoulderSubsystem.setDefaultCommand(
+          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
+
+      operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+          .whileTrue(intakeRollerSubsystem.rollersBackwards());
+      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     }
 
   }
 
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
-    alliance=DriverStation.getAlliance();
+    alliance = DriverStation.getAlliance();
     if (currentRobotMode == RobotMode.TELEOP) {
       Joystick realDriverJoystick = driverJoystick.getRealJoystick();
       String driveControllerName = realDriverJoystick.getName();
@@ -550,7 +583,8 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     if (shooterSubsystem != null) {
-      SmartDashboard.putData("frc3620/Shooter/DashboardControl", shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Shooter/DashboardControl",
+          shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -559,22 +593,24 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     if (conveyerSubsystem != null) {
-      SmartDashboard.putData("frc3620/Conveyer/DashboardControl", conveyerSubsystem.setSpeedDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Conveyer/DashboardControl",
+          conveyerSubsystem.setSpeedDashboardCommand().ignoringDisable(true));
     }
 
     if (preshooterSubsystem != null) {
-      SmartDashboard.putData("frc3620/Preshooter/DashboardControl", preshooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Preshooter/DashboardControl",
+          preshooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
     }
 
     if (turretSubsystem != null) {
-      SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Turret/DashboardControl",
+          turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
 
     if (intakeAgitatorSubsystem != null) {
       SmartDashboard.putData("frc3620/intakeAgitator/AgitatorOn", intakeAgitatorSubsystem.agitatorOn());
       SmartDashboard.putData("frc3620/intakeAgitator/AgitatorOff", intakeAgitatorSubsystem.agitatorOff());
       SmartDashboard.putData("frc3620/intakeAgitator/AgitatorRev", intakeAgitatorSubsystem.agitatorBackwards());
-      
 
     }
     SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0);
@@ -587,37 +623,45 @@ public class RobotContainer implements RobotModeChangeListener {
     SmartDashboard.putData("frc3620/ShotCalculator/CalculateTestShot", new Command() {
       @Override
       public void initialize() {
-        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/HoodAngleDegrees", 
-        ShotCalculator.calculateHoodAngle(
-          new Translation3d(
-            Feet.of(15.17),
-            Feet.of(13.235),
-            Feet.of(6.0)
-          ),
-          new Pose2d(
-            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0), Feet),
-            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0), Feet),
-            Rotation2d.fromDegrees(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))), 
-          new VelocityVector(
-            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
-            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))
-          )).in(Degrees));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/HoodAngleDegrees",
+            ShotCalculator.calculateHoodAngle(
+                new Translation3d(
+                    Feet.of(15.17),
+                    Feet.of(13.235),
+                    Feet.of(6.0)),
+                new Pose2d(
+                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0),
+                        Feet),
+                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0),
+                        Feet),
+                    Rotation2d.fromDegrees(
+                        SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))),
+                new VelocityVector(
+                    FeetPerSecond
+                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
+                    FeetPerSecond
+                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))))
+                .in(Degrees));
 
-        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM", 
-        ShotCalculator.calculateShooterSpeed(
-          new Translation3d(
-            Feet.of(15.17),
-            Feet.of(13.235),
-            Feet.of(6.0)
-          ),
-          new Pose2d(
-            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0), Feet),
-            Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0), Feet),
-            Rotation2d.fromDegrees(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))), 
-          new VelocityVector(
-            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
-            FeetPerSecond.of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))
-          )).in(RPM));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM",
+            ShotCalculator.calculateShooterSpeed(
+                new Translation3d(
+                    Feet.of(15.17),
+                    Feet.of(13.235),
+                    Feet.of(6.0)),
+                new Pose2d(
+                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0),
+                        Feet),
+                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0),
+                        Feet),
+                    Rotation2d.fromDegrees(
+                        SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))),
+                new VelocityVector(
+                    FeetPerSecond
+                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
+                    FeetPerSecond
+                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))))
+                .in(RPM));
       }
     }.withName("Calculate Test Shot").ignoringDisable(true));
   }
