@@ -46,7 +46,7 @@ public class ConveyerSubsystem extends SubsystemBase {
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
-
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
                             0.1, // kP - tune this
