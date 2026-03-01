@@ -58,6 +58,7 @@ import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import frc.robot.Subsystems.ConveyerSubsystem;
 import frc.robot.Subsystems.HealthSubsystem;
+import frc.robot.Subsystems.IntakeAgitatorSubsytem;
 import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.states.ClimbingState;
@@ -154,6 +155,7 @@ public class RobotContainer implements RobotModeChangeListener {
   public static IntakeShoulderSubsystem intakeShoulderSubsystem;
   public IntakeRollerSubsytem intakeRollerSubsystem;
   public ConveyerSubsystem conveyerSubsystem;
+  public IntakeAgitatorSubsytem intakeAgitatorSubsystem;
 
   public ShooterHoodSubsystem shooterHoodSubsystem;
   public PreshooterSubsystem preshooterSubsystem;
@@ -235,6 +237,7 @@ public class RobotContainer implements RobotModeChangeListener {
     shooterSubsystem = new ShooterSubsystem();
     intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
+    intakeAgitatorSubsystem = new IntakeAgitatorSubsytem();
 
     shooterHoodSubsystem = new ShooterHoodSubsystem();
     preshooterSubsystem = new PreshooterSubsystem();
@@ -567,6 +570,13 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Turret/DashboardControl", turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
     }
 
+    if (intakeAgitatorSubsystem != null) {
+      SmartDashboard.putData("frc3620/intakeAgitator/AgitatorOn", intakeAgitatorSubsystem.agitatorOn());
+      SmartDashboard.putData("frc3620/intakeAgitator/AgitatorOff", intakeAgitatorSubsystem.agitatorOff());
+      SmartDashboard.putData("frc3620/intakeAgitator/AgitatorRev", intakeAgitatorSubsystem.agitatorBackwards());
+      
+
+    }
     SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0);
     SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0);
     SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0);
