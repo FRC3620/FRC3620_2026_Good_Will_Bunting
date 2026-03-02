@@ -40,6 +40,7 @@ import org.usfirst.frc3620.Utilities;
 
 import java.util.EnumSet;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
@@ -443,31 +444,10 @@ public class RobotContainer implements RobotModeChangeListener {
      * SysIdRoutine.Direction.kReverse));
      */
 
-    /*
-     * SHOOTER SYSID
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(
-     * shooterSubsystem.sysIdDynamicForward());
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(
-     * shooterSubsystem.sysIdDynamicReverse());
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(
-     * shooterSubsystem.sysIdQuasistaticForward());
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(
-     * shooterSubsystem.sysIdQuasistaticReverse());
-     */
-
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
             .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
             .ignoringDisable(true));
-
   }
 
   private void configureButtonBindings() {
@@ -485,9 +465,6 @@ public class RobotContainer implements RobotModeChangeListener {
       configureSwerveButtonBindings();
     }
 
-    // fix questnav correction command
-    CommandScheduler.getInstance().schedule(new SetQuestNavPoseFromMegaTag1Command());
-
     /*
      **********************************************************************************
      **********************************************************************************
@@ -498,40 +475,28 @@ public class RobotContainer implements RobotModeChangeListener {
      **********************************************************************************
      **********************************************************************************
      */
-    if (shooterHoodSubsystem != null) {
-      operatorJoystick.button(OdoIdsXBox.ButtonId.A)
-          .whileTrue(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(45)));
 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.B)
-          .whileTrue(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(35)));
+    if (shooterSubsystem != null) {
+      /*
+       * SHOOTER SYSID
+       * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
+       * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+       * .whileTrue(
+       * shooterSubsystem.sysIdDynamicForward());
+       * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
+       * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+       * .whileTrue(
+       * shooterSubsystem.sysIdDynamicReverse());
+       * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
+       * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+       * .whileTrue(
+       * shooterSubsystem.sysIdQuasistaticForward());
+       * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
+       * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+       * .whileTrue(
+       * shooterSubsystem.sysIdQuasistaticReverse());
+       */
     }
-
-    // SysID commands
-    /*
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
-     * SysIdRoutine.Direction.kForward));
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
-     * SysIdRoutine.Direction.kReverse));
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(
-     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
-     * SysIdRoutine.Direction.kForward));
-     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
-     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
-     * .whileTrue(
-     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
-     * SysIdRoutine.Direction.kReverse));
-     */
-
-    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
-        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
-            .ignoringDisable(true));
 
     if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
       operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
@@ -580,11 +545,43 @@ public class RobotContainer implements RobotModeChangeListener {
     if (shooterHoodSubsystem != null) {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
+
+      if (swerveSubsystem != null) {
+        SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(
+          new Translation3d(
+            Feet.of(15.17), 
+            Feet.of(13.235),
+            Feet.of(6)
+          ), 
+          () -> swerveSubsystem.getState().Pose, 
+          () -> ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(), 
+            swerveSubsystem.getState(), 
+            swerveSubsystem.getPigeon2().getRotation2d()
+          )
+        ));
+      }
     }
 
     if (shooterSubsystem != null) {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
+
+      if(swerveSubsystem != null) {
+        SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
+          new Translation3d(
+            Feet.of(15.17), 
+            Feet.of(13.235),
+            Feet.of(6)
+          ), 
+          () -> swerveSubsystem.getState().Pose, 
+          () -> ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(), 
+            swerveSubsystem.getState(), 
+            swerveSubsystem.getPigeon2().getRotation2d()
+          )
+        ));
+      }
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -605,6 +602,20 @@ public class RobotContainer implements RobotModeChangeListener {
     if (turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Turret/DashboardControl",
           turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
+      if (swerveSubsystem != null) {
+        SmartDashboard.putData("frc3620/Turret/AutoAim", turretSubsystem.createSetAngleToTargetCommand(
+          new Translation2d(
+            Feet.of(15.17), 
+            Feet.of(13.235)
+          ), 
+          () -> swerveSubsystem.getState().Pose, 
+          () -> ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(), 
+            swerveSubsystem.getState(), 
+            swerveSubsystem.getPigeon2().getRotation2d()
+          )
+        ));
+      }
     }
 
     if (intakeAgitatorSubsystem != null) {
@@ -629,14 +640,14 @@ public class RobotContainer implements RobotModeChangeListener {
                     Feet.of(15.17),
                     Feet.of(13.235),
                     Feet.of(6.0)),
-                new Pose2d(
+                () -> new Pose2d(
                     Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0),
                         Feet),
                     Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0),
                         Feet),
                     Rotation2d.fromDegrees(
                         SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))),
-                new VelocityVector(
+                () -> new VelocityVector(
                     FeetPerSecond
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
                     FeetPerSecond
@@ -649,14 +660,14 @@ public class RobotContainer implements RobotModeChangeListener {
                     Feet.of(15.17),
                     Feet.of(13.235),
                     Feet.of(6.0)),
-                new Pose2d(
+                () -> new Pose2d(
                     Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0),
                         Feet),
                     Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0),
                         Feet),
                     Rotation2d.fromDegrees(
                         SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))),
-                new VelocityVector(
+                () -> new VelocityVector(
                     FeetPerSecond
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
                     FeetPerSecond
