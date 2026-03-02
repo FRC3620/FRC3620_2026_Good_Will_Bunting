@@ -376,82 +376,92 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void configureSwerveButtonBindings() {
-      swerveSubsystem.setDefaultCommand(
-          // Drivetrain will execute this command periodically
-          swerveSubsystem.applyRequest(
-              () -> drive
-                  // Drive forward with negative Y (forward)
-                  .withVelocityX(MathUtil.applyDeadband(
-                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
-                  // Drive with negative X (left)
-                  .withVelocityY(MathUtil.applyDeadband(
-                      -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
-                  // Drive counterclockwise with negative X (left) left
-                  .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
-                      * MaxAngularRate))
-              .withName("Drive from Joysticks"));
+    swerveSubsystem.setDefaultCommand(
+        // Drivetrain will execute this command periodically
+        swerveSubsystem.applyRequest(
+            () -> drive
+                // Drive forward with negative Y (forward)
+                .withVelocityX(MathUtil.applyDeadband(
+                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
+                // Drive with negative X (left)
+                .withVelocityY(MathUtil.applyDeadband(
+                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
+                // Drive counterclockwise with negative X (left) left
+                .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
+                    * MaxAngularRate))
+            .withName("Drive from Joysticks"));
 
-      // Idle while the robot is disabled. This ensures the configured
-      // neutral mode is applied to the drive motors while disabled.
-      final var idle = new SwerveRequest.Idle();
-      RobotModeTriggers.disabled().whileTrue(
-          swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
+    // Idle while the robot is disabled. This ensures the configured
+    // neutral mode is applied to the drive motors while disabled.
+    final var idle = new SwerveRequest.Idle();
+    RobotModeTriggers.disabled().whileTrue(
+        swerveSubsystem.applyRequest(() -> idle).ignoringDisable(true).withName("Idle"));
 
-      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
-          .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
-      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
-          .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
-              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
-              -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
-          ))).withName("Point"));
+    driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.A)
+        .whileTrue(swerveSubsystem.applyRequest(() -> brake).withName("Breaks"));
+    driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.B)
+        .whileTrue(swerveSubsystem.applyRequest(() -> point.withModuleDirection(new Rotation2d( //
+            -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), //
+            -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y) //
+        ))).withName("Point"));
 
-      swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
+    swerveSubsystem.registerTelemetry(swerveLogger::telemeterize);
 
-      driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
-          .whileTrue(swerveSubsystem.applyRequest(() -> drive
-              // Drive forward with negative Y(forward)
-              .withVelocityX(0.2)
-              // Drive left with negative X (left)
-              .withVelocityY(0)
-              .withRotationalRate(0) // Drive coun
-          ).withName("Drive Slow"));
+    driverJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER)
+        .whileTrue(swerveSubsystem.applyRequest(() -> drive
+            // Drive forward with negative Y(forward)
+            .withVelocityX(0.2)
+            // Drive left with negative X (left)
+            .withVelocityY(0)
+            .withRotationalRate(0) // Drive coun
+        ).withName("Drive Slow"));
 
-      CommandScheduler.getInstance().schedule(
-          new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
+    CommandScheduler.getInstance().schedule(
+        new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
 
-/*    SWERVE SYSID
-       operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse));
-      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kForward));
-      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction.kReverse)); */
+    /*
+     * SWERVE SYSID
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kForward));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdDynamic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kReverse));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kForward));
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * swerveSubsystem.sysIdQuasistatic(edu.wpi.first.wpilibj2.command.sysid.
+     * SysIdRoutine.Direction.kReverse));
+     */
 
-      /*  SHOOTER SYSID 
-      operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdDynamicForward());
-      operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdDynamicReverse());
-      operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdQuasistaticForward());
-      operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER))
-          .whileTrue(
-              shooterSubsystem.sysIdQuasistaticReverse()); */
-
-      driverJoystick.button(()-> false, OdoIdsXBox.ButtonId.X)// MAKE SURE TO CHANGE BEFORE PR
-          .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-              .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
-              .ignoringDisable(true));
-
+    /*
+     * SHOOTER SYSID
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.X).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdDynamicForward());
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.Y).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdDynamicReverse());
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.A).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdQuasistaticForward());
+     * operatorJoystick.button(OdoIdsXBox.ButtonId.B).and(operatorJoystick.button(
+     * OdoIdsXBox.ButtonId.LEFT_BUMPER))
+     * .whileTrue(
+     * shooterSubsystem.sysIdQuasistaticReverse());
+     */
     operatorJoystick.button(OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
             .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
