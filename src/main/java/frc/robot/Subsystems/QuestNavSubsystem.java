@@ -27,9 +27,9 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_CHUD = 180;
 
   private final double QUEST_NAV_HEIGHT_RAPTOR = 15.5;
-  private final double QUEST_NAV_FORWARD_CENTER_OFFSET_RAPTOR = -11.25 + 2.375;
+  private final double QUEST_NAV_FORWARD_CENTER_OFFSET_RAPTOR = -11.25 + 2.4;
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR = 180;
-  private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.5 -.25;
+  private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
   // private Transform2d QUEST_TO_ROBOT2D = new
   // Transform2d(Units.inchesToMeters(15.0), Units.inchesToMeters(0), new
