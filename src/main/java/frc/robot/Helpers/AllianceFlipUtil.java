@@ -1,6 +1,11 @@
 package frc.robot.Helpers;
 
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.FeetPerSecond;
+import static edu.wpi.first.units.Units.Meters;
+
 import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 import frc.robot.FieldConstants;
@@ -10,12 +15,24 @@ public class AllianceFlipUtil {
         return shouldFlip() ? FieldConstants.fieldLength - x : x;
     }
 
+    public static Distance applyXDistance(Distance x) {
+        return shouldFlip() ? Meters.of(FieldConstants.fieldLength).minus(x) : x;
+    }
+
     public static double applyY(double y) {
         return shouldFlip() ? FieldConstants.fieldWidth - y : y;
     }
 
+    public static Distance applyYDistance(Distance y) {
+        return shouldFlip() ? Meters.of(FieldConstants.fieldWidth).minus(y) : y;
+    }
+
     public static Translation2d apply(Translation2d translation) {
         return new Translation2d(applyX(translation.getX()), applyY(translation.getY()));
+    }
+
+    public static VelocityVector apply(VelocityVector velocity) {
+        return shouldFlip() ? new VelocityVector(velocity.getX().unaryMinus(), velocity.getY().unaryMinus()) : velocity;
     }
 
     public static Rotation2d apply(Rotation2d rotation) {

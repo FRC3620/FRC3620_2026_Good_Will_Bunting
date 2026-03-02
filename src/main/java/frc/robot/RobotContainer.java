@@ -71,6 +71,7 @@ import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.Generated.TunerConstants;
+import frc.robot.Helpers.AllianceFlipUtil;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
@@ -553,12 +554,12 @@ public class RobotContainer implements RobotModeChangeListener {
             Feet.of(13.235),
             Feet.of(6)
           ), 
-          () -> swerveSubsystem.getState().Pose, 
-          () -> ShotCalculator.calculateRobotVelocity(
+          () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose), 
+          () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(), 
             swerveSubsystem.getState(), 
             swerveSubsystem.getPigeon2().getRotation2d()
-          )
+          ))
         ));
       }
     }
@@ -574,12 +575,12 @@ public class RobotContainer implements RobotModeChangeListener {
             Feet.of(13.235),
             Feet.of(6)
           ), 
-          () -> swerveSubsystem.getState().Pose, 
-          () -> ShotCalculator.calculateRobotVelocity(
+          () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose), 
+          () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(), 
             swerveSubsystem.getState(), 
             swerveSubsystem.getPigeon2().getRotation2d()
-          )
+          ))
         ));
       }
     }
@@ -608,12 +609,12 @@ public class RobotContainer implements RobotModeChangeListener {
             Feet.of(15.17), 
             Feet.of(13.235)
           ), 
-          () -> swerveSubsystem.getState().Pose, 
-          () -> ShotCalculator.calculateRobotVelocity(
+          () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose), 
+          () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(), 
             swerveSubsystem.getState(), 
             swerveSubsystem.getPigeon2().getRotation2d()
-          )
+          ))
         ));
       }
     }
