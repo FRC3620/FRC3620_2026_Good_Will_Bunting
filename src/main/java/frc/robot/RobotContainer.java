@@ -502,7 +502,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       new JoystickAnalogButton(driverJoystick.getRealJoystick(), OdoIdsXBox.AxisId.LEFT_TRIGGER.getAxisNumber())
           .whileTrue(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
-              .alongWith(conveyerSubsystem.setSpeed(() -> RPM.of(600)))
+              .alongWith(conveyerSubsystem.setDutyCycle(0.8))
               .alongWith(intakeAgitatorSubsystem.agitatorOn()));
     }
 

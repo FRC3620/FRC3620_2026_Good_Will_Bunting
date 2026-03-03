@@ -107,4 +107,11 @@ public class ConveyerSubsystem extends SubsystemBase {
             return idle();
         }
     }
+
+    public Command setDutyCycle(double dutyCycle) {
+        if (flyWheel != null) {
+            return flyWheel.set(dutyCycle);
+        } 
+        return idle();
+    }
 }
