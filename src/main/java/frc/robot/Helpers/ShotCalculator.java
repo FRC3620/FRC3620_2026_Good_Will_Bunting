@@ -142,7 +142,7 @@ public class ShotCalculator {
 
         VelocityVector netHorizontalVelocity = calculateNetHorizontalVelocity(targetPosition, robotPose, robotVelocity);
         Angle rotation = Radians.of(Math.atan2(netHorizontalVelocity.getY().in(FeetPerSecond), netHorizontalVelocity.getX().in(FeetPerSecond)));
-        
+
         SmartDashboard.putNumber("frc3620/ShotCalculator/NetFieldAngleDeg", rotation.in(Degrees));
         return rotation;
     }
@@ -177,8 +177,8 @@ public class ShotCalculator {
         LinearVelocity hXRobotVelocity = robotVelocity.get().getX();
         LinearVelocity hYRobotVelocity = robotVelocity.get().getY();
 
-        LinearVelocity netHXV = hXExitVelocity.plus(hXRobotVelocity);
-        LinearVelocity netHYV = hYExitVelocity.plus(hYRobotVelocity);
+        LinearVelocity netHXV = hXExitVelocity.minus(hXRobotVelocity);
+        LinearVelocity netHYV = hYExitVelocity.minus(hYRobotVelocity);
 
         VelocityVector net = new VelocityVector(netHXV, netHYV);
 

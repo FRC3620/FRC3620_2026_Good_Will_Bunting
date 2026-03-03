@@ -20,6 +20,7 @@ import org.usfirst.frc3620.CANDeviceType;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -73,8 +74,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.762451171875);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.403564453125);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.600341796875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.574462890625);
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -95,7 +96,7 @@ public class TurretSubsystem extends SubsystemBase {
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0/14.0,140.0/18.0)))
           //.withContinuousWrapping(Degrees.of(0), Degrees.of(360))
           .withIdleMode(MotorMode.BRAKE)
-          .withMotorInverted(false)
+          .withMotorInverted(true)
           // Setup Telemetry
           .withTelemetry("motor", TelemetryVerbosity.HIGH)
           // Power Optimization
@@ -112,8 +113,8 @@ public class TurretSubsystem extends SubsystemBase {
           .withStartingPosition(Degrees.of(0))
           //.withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-315), Degrees.of(45))
-          .withSoftLimits(Degrees.of(-315), Degrees.of(45))
+          .withHardLimit(Degrees.of(-232), Degrees.of(128))
+          .withSoftLimits(Degrees.of(-232), Degrees.of(128))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
@@ -131,10 +132,13 @@ public class TurretSubsystem extends SubsystemBase {
 
   public Command createSetAngleCommand(Supplier<Angle> angle) {
     Command rv;
+    Supplier<Angle> setpt = angle;
     if (pivot == null) {
       rv = idle();
     } else {
-      rv = pivot.setAngle(angle.get());
+      setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232, 128));
+
+      rv = pivot.setAngle(setpt);
     }
     return rv.withName(telemetryPrefix + " setAngle");
   }

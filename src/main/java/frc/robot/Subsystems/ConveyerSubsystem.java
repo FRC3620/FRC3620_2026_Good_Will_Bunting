@@ -80,7 +80,7 @@ public class ConveyerSubsystem extends SubsystemBase {
     public Command setSpeed(Supplier<AngularVelocity> speed) {
 
         if (flyWheel != null) {
-            return flyWheel.setSpeed(speed.get());
+            return flyWheel.setSpeed(speed);
         } else {
             return idle();
         }
@@ -106,5 +106,12 @@ public class ConveyerSubsystem extends SubsystemBase {
         } else {
             return idle();
         }
+    }
+
+    public Command setDutyCycle(double dutyCycle) {
+        if (flyWheel != null) {
+            return flyWheel.set(dutyCycle);
+        } 
+        return idle();
     }
 }
