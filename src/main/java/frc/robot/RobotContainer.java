@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -29,6 +30,8 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
+
+import dev.doglog.DogLog;
 
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
@@ -161,6 +164,9 @@ public class RobotContainer implements RobotModeChangeListener {
   public PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
+  // hardware here
+  public static PowerDistribution powerDistribution;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -175,6 +181,12 @@ public class RobotContainer implements RobotModeChangeListener {
     boolean iAmACompetitionRobot = amIACompBot();
     if (!iAmACompetitionRobot) {
       logger.warn("this is a test chassis, will try to deal with missing hardware!");
+    }
+
+    if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
+        || RobotContainer.shouldMakeAllCANDevices()) {
+      powerDistribution = new PowerDistribution(1, ModuleType.kRev);
+      DogLog.setPdh(powerDistribution);
     }
 
     makeJoysticks();

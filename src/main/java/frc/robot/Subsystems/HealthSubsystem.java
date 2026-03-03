@@ -63,8 +63,7 @@ public class HealthSubsystem extends SubsystemBase {
     genericChecker = new YesNoHealthChecker();
     genericChecker.addIgnoreGlobs(RobotContainer.robotParameters.getIgnoreHealth());
 
-    if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
-        || RobotContainer.shouldMakeAllCANDevices()) {
+    if (RobotContainer.powerDistribution != null) {
       circuitBreakerChecker = new CircuitBreakerChecker();
     }
   }
@@ -340,7 +339,7 @@ public class HealthSubsystem extends SubsystemBase {
 
     CircuitBreakerChecker() {
       super();
-      powerDistribution = new PowerDistribution(1, ModuleType.kRev);
+      powerDistribution = RobotContainer.powerDistribution;
       add(() -> isOk(), "PDH", new HealthOptions());
     }
 
