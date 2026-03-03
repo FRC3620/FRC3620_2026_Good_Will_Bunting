@@ -32,6 +32,9 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -130,6 +133,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         // .withWrapping(Degrees.of(0), Degrees.of(360))
         // Hard limit bc wiring prevents infinite spinning
         .withSoftLimits(softLimit, softLimit.plus(Degrees.of(369)))
+        .withHardLimit(softLimit, softLimit.plus(Degrees.of(369)))
+        .withMOI(Inches.of(25), Pound.of(1))
         // Telemetry
         .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
   }
@@ -138,7 +143,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     if (pivot != null) {
 
-      if (!activeCalibrating && !isCalibrated) {
+      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
         calibrationCommand = calibrate();
         CommandScheduler.getInstance().schedule(calibrationCommand);
       }
