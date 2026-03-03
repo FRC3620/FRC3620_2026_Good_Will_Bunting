@@ -32,7 +32,7 @@ import com.pathplanner.lib.commands.FollowPathCommand;
 
 import org.usfirst.frc3620.CANDeviceFinder;
 import org.usfirst.frc3620.CANDeviceType;
-
+import org.usfirst.frc3620.JoystickAnalogButton;
 import org.usfirst.frc3620.RobotMode;
 import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
@@ -55,6 +55,7 @@ import org.tinylog.TaggedLogger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import frc.robot.Subsystems.ConveyerSubsystem;
@@ -210,12 +211,11 @@ public class RobotContainer implements RobotModeChangeListener {
     // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(()
     // -> IntakeShoulderPositions.IN.getDistance()));
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
-    // conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() ->
-    // RPM.of(0)));
+    conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
     // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
     // Degrees.of(30)));
-    // preshooterSubsystem.setDefaultCommand(preshooterSubsystem.setVelocityCommand(()
-    // ->RPM.of(0)));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
+    intakeAgitatorSubsystem.setDefaultCommand(intakeAgitatorSubsystem.agitatorOff());
 
     Robot.addRobotModeChangeListener(this);
   }
@@ -499,11 +499,29 @@ public class RobotContainer implements RobotModeChangeListener {
        */
     }
 
+    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
+      new JoystickAnalogButton(driverJoystick.getRealJoystick(), OdoIdsXBox.AxisId.LEFT_TRIGGER.getAxisNumber())
+          .whileTrue(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
+              .alongWith(conveyerSubsystem.setSpeed(() -> RPM.of(600)))
+              .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+    }
+
     if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
       operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
-          .whileTrue(intakeRollerSubsystem.rollersOn()
-              .alongWith(
-                  intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())));
+          .toggleOnTrue(
+              Commands.startEnd(
+                  () -> {
+                    intakeRollerSubsystem.rollersOn().schedule();
+                    intakeShoulderSubsystem
+                        .createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
+                        .schedule();
+                  },
+                  () -> {
+                    intakeRollerSubsystem.rollersOff().schedule();
+                    intakeShoulderSubsystem
+                        .createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
+                        .schedule();
+                  }));
 
       intakeShoulderSubsystem.setDefaultCommand(
           intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
@@ -549,18 +567,15 @@ public class RobotContainer implements RobotModeChangeListener {
 
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(
-          new Translation3d(
-            Feet.of(15.17), 
-            Feet.of(13.235),
-            Feet.of(6)
-          ), 
-          () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose), 
-          () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-            swerveSubsystem.getKinematics(), 
-            swerveSubsystem.getState(), 
-            swerveSubsystem.getPigeon2().getRotation2d()
-          ))
-        ));
+            new Translation3d(
+                Feet.of(15.17),
+                Feet.of(13.235),
+                Feet.of(6)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                swerveSubsystem.getKinematics(),
+                swerveSubsystem.getState(),
+                swerveSubsystem.getPigeon2().getRotation2d()))));
       }
     }
 
@@ -568,20 +583,17 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
 
-      if(swerveSubsystem != null) {
+      if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
-          new Translation3d(
-            Feet.of(15.17), 
-            Feet.of(13.235),
-            Feet.of(6)
-          ), 
-          () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose), 
-          () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-            swerveSubsystem.getKinematics(), 
-            swerveSubsystem.getState(), 
-            swerveSubsystem.getPigeon2().getRotation2d()
-          ))
-        ));
+            new Translation3d(
+                Feet.of(15.17),
+                Feet.of(13.235),
+                Feet.of(6)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                swerveSubsystem.getKinematics(),
+                swerveSubsystem.getState(),
+                swerveSubsystem.getPigeon2().getRotation2d()))));
       }
     }
 
@@ -605,17 +617,14 @@ public class RobotContainer implements RobotModeChangeListener {
           turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/Turret/AutoAim", turretSubsystem.createSetAngleToTargetCommand(
-          new Translation2d(
-            Feet.of(15.17), 
-            Feet.of(13.235)
-          ), 
-          () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose), 
-          () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-            swerveSubsystem.getKinematics(), 
-            swerveSubsystem.getState(), 
-            swerveSubsystem.getPigeon2().getRotation2d()
-          ))
-        ));
+            new Translation2d(
+                Feet.of(15.17),
+                Feet.of(13.235)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                swerveSubsystem.getKinematics(),
+                swerveSubsystem.getState(),
+                swerveSubsystem.getPigeon2().getRotation2d()))));
       }
     }
 
