@@ -155,16 +155,16 @@ public class RobotContainer implements RobotModeChangeListener {
   public static OdoJoystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
-  public TurretSubsystem turretSubsystem;
-  public ClimberSubsystem climberSubsystem;
-  public ShooterSubsystem shooterSubsystem;
+  public static TurretSubsystem turretSubsystem;
+  public static ClimberSubsystem climberSubsystem;
+  public static ShooterSubsystem shooterSubsystem;
   public static IntakeShoulderSubsystem intakeShoulderSubsystem;
-  public IntakeRollerSubsytem intakeRollerSubsystem;
-  public ConveyerSubsystem conveyerSubsystem;
-  public IntakeAgitatorSubsytem intakeAgitatorSubsystem;
+  public static IntakeRollerSubsytem intakeRollerSubsystem;
+  public static ConveyerSubsystem conveyerSubsystem;
+  public static IntakeAgitatorSubsytem intakeAgitatorSubsystem;
 
-  public ShooterHoodSubsystem shooterHoodSubsystem;
-  public PreshooterSubsystem preshooterSubsystem;
+  public static ShooterHoodSubsystem shooterHoodSubsystem;
+  public static PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
   // hardware here
@@ -720,6 +720,56 @@ public class RobotContainer implements RobotModeChangeListener {
 
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
+
+    NamedCommands.registerCommand("Intake Down",
+        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.OUT.getAngle()));
+    NamedCommands.registerCommand("Intake Up",
+        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
+
+    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.rollersOn());
+    NamedCommands.registerCommand("Rollers Off", intakeRollerSubsystem.rollersOff());
+
+    NamedCommands.registerCommand("Agitate On", intakeAgitatorSubsystem.agitatorOn());
+    NamedCommands.registerCommand("Agitate Off", intakeAgitatorSubsystem.agitatorOff());
+
+    NamedCommands.registerCommand("Conveyer On", conveyerSubsystem.setDutyCycle(0.8));
+    NamedCommands.registerCommand("Conveyer Off", conveyerSubsystem.setDutyCycle(0));
+
+    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.setDutyCycleCommand(0.8));
+    NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.setDutyCycleCommand(0));
+
+    // These would be zoned events
+    NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
+        new Translation2d(
+            Feet.of(15.17),
+            Feet.of(13.235)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+
+    NamedCommands.registerCommand("Shoot", shooterSubsystem.createSetSpeedToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+
+    NamedCommands.registerCommand("Set Hood Angle", shooterHoodSubsystem.createAutoAngleToTargetCommand(
+        new Translation3d(  
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
   }
 
   void sendSwerveSubsystemToHealthSubsystem() {
