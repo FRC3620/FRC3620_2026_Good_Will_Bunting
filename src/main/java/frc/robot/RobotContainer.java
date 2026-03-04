@@ -577,6 +577,8 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
 
+    
+
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(
             new Translation3d(
@@ -589,6 +591,11 @@ public class RobotContainer implements RobotModeChangeListener {
                 swerveSubsystem.getState(),
                 swerveSubsystem.getPigeon2().getRotation2d()))));
       }
+    }
+
+    if (intakeRollerSubsystem != null) {
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersOff", intakeRollerSubsystem.rollersOff());
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersOn", intakeRollerSubsystem.rollersOn());
     }
 
     if (shooterSubsystem != null) {
