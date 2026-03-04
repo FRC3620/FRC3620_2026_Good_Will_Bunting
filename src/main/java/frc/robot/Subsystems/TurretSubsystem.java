@@ -74,8 +74,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.600341796875);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.574462890625);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.18603515625);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.8408203125);
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -113,8 +113,8 @@ public class TurretSubsystem extends SubsystemBase {
           .withStartingPosition(Degrees.of(0))
           //.withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-232), Degrees.of(128))
-          .withSoftLimits(Degrees.of(-232), Degrees.of(128))
+          .withHardLimit(Degrees.of(-223), Degrees.of(110))
+          .withSoftLimits(Degrees.of(-223), Degrees.of(110))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
@@ -136,8 +136,8 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
-      setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232, 128));
-
+      //setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232, 128));
+      setpt = () -> Degrees.of(closestAngle(getAngle().in(Degrees), angle.get().in(Degrees)));
       rv = pivot.setAngle(setpt);
     }
     return rv.withName(telemetryPrefix + " setAngle");
@@ -169,6 +169,13 @@ public class TurretSubsystem extends SubsystemBase {
       rv = createSetAngleCommand(() -> ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity));
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
+  }
+  
+  public static double closestAngle(double current, double target){
+    double delta = target - current;
+    delta = Math.IEEEremainder(delta, 360);
+    
+    return current + delta;
   }
 
   @Override
