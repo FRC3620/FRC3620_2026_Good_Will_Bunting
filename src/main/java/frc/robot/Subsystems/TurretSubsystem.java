@@ -113,8 +113,8 @@ public class TurretSubsystem extends SubsystemBase {
           .withStartingPosition(Degrees.of(0))
           //.withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-223), Degrees.of(110))
-          .withSoftLimits(Degrees.of(-223), Degrees.of(110))
+          .withHardLimit(Degrees.of(-225), Degrees.of(180))
+          .withSoftLimits(Degrees.of(-215), Degrees.of(170))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
@@ -237,7 +237,7 @@ public class TurretSubsystem extends SubsystemBase {
         .withAbsoluteEncoderOffsets(absAEncoderOffset, absBEncoderOffset)
         .withAbsoluteEncoderInversions(true,true)
         .withMechanismRange(
-            Rotations.of(-1), Rotations.of(1)) // 150 degrees total range
+            Rotations.of(-225/360), Rotations.of(180/360)) // 150 degrees total range
         .withMatchTolerance(Rotations.of(0.03))
         .withCrtGearRecommendationInputs(24, 140 / 18.0)
         .withCrtGearRecommendationConstraints(1.1, 11, 60, 40);
