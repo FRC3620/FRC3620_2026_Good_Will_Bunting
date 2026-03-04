@@ -74,8 +74,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.18603515625);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.8408203125);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.13916015625);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.7958984375);
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -91,10 +91,10 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(75, 0, 0, DegreesPerSecond.of(2500), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(90, 0, 0, DegreesPerSecond.of(2500), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0/14.0,140.0/18.0)))
-          //.withContinuousWrapping(Degrees.of(0), Degrees.of(360))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
+          // .withContinuousWrapping(Degrees.of(0), Degrees.of(360))
           .withIdleMode(MotorMode.BRAKE)
           .withMotorInverted(true)
           // Setup Telemetry
@@ -111,10 +111,10 @@ public class TurretSubsystem extends SubsystemBase {
       pivot = new Pivot(new PivotConfig(smartMotorController)
           // Starting position of the Pivot
           .withStartingPosition(Degrees.of(0))
-          //.withWrapping(Degrees.of(0), Degrees.of(360))
+          // .withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-225), Degrees.of(180))
-          .withSoftLimits(Degrees.of(-215), Degrees.of(170))
+          .withHardLimit(Degrees.of(-280), Degrees.of(118))
+          .withSoftLimits(Degrees.of(-280), Degrees.of(118))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           // MOI Calculation
@@ -136,8 +136,9 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
-      //setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232, 128));
-      setpt = () -> Degrees.of(closestAngle(getAngle().in(Degrees), angle.get().in(Degrees)));
+      // setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232,
+      // 128));
+      setpt = () -> closestAngle(angle);
       rv = pivot.setAngle(setpt);
     }
     return rv.withName(telemetryPrefix + " setAngle");
@@ -156,26 +157,32 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
-      rv = createSetAngleCommand(() -> Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180)));
+      rv = createSetAngleCommand(
+          () -> Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180)));
     }
     return rv.withName(telemetryPrefix + " setAngleDashboard");
   }
 
-  public Command createSetAngleToTargetCommand(Translation2d targetPosition, Supplier<Pose2d> robotPose, Supplier<VelocityVector> robotVelocity) {
+  public Command createSetAngleToTargetCommand(Translation2d targetPosition, Supplier<Pose2d> robotPose,
+      Supplier<VelocityVector> robotVelocity) {
     Command rv;
     if (pivot == null) {
       rv = idle();
     } else {
-      rv = createSetAngleCommand(() -> ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity));
+      rv = createSetAngleCommand(
+          () -> ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity));
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }
-  
-  public static double closestAngle(double current, double target){
-    double delta = target - current;
-    delta = Math.IEEEremainder(delta, 360);
-    
-    return current + delta;
+
+  public static Angle closestAngle(Supplier<Angle> target) {
+
+    if (target.get().gte(Degrees.of(118))) {
+      return target.get().minus(Degrees.of(360));
+    } else if (target.get().lte(Degrees.of(-280))) {
+      return target.get().plus(Degrees.of(360));
+    }
+    return target.get();
   }
 
   @Override
@@ -235,9 +242,10 @@ public class TurretSubsystem extends SubsystemBase {
         .withAbsoluteEncoder1GearingStages(140, 18)
         .withAbsoluteEncoder2GearingStages(140, 18, 24, 23)
         .withAbsoluteEncoderOffsets(absAEncoderOffset, absBEncoderOffset)
-        .withAbsoluteEncoderInversions(true,true)
+        .withAbsoluteEncoderInversions(false, false)
         .withMechanismRange(
-            Rotations.of(-225/360), Rotations.of(180/360)) // 150 degrees total range
+            // Rotations.of(-225/360), Rotations.of(180/360))
+            Rotations.of(-1), Rotations.of(1))
         .withMatchTolerance(Rotations.of(0.03))
         .withCrtGearRecommendationInputs(24, 140 / 18.0)
         .withCrtGearRecommendationConstraints(1.1, 11, 60, 40);
