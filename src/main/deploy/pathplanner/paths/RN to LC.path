@@ -85,13 +85,13 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Reset QuestNav",
-      "waypointRelativePos": 0.7130317353139797,
+      "name": "Intake Up",
+      "waypointRelativePos": 0.08724832214765148,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Reset QuestNav"
+          "name": "Intake Up"
         }
       }
     }

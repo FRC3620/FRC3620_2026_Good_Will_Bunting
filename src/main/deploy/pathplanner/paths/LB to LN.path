@@ -50,7 +50,25 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Rollers On",
+      "waypointRelativePos": 0.4496644295302018,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Intake Down",
+      "waypointRelativePos": 0.7919463087248321,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Intake Down"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 2.5,
     "maxAcceleration": 2.5,

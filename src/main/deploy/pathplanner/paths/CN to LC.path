@@ -65,13 +65,35 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Reset QuestNav",
-      "waypointRelativePos": 0.6860229574611764,
+      "name": "Intake Up",
+      "waypointRelativePos": 0.0956375838926174,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Reset QuestNav"
+          "name": "Intake Up"
+        }
+      }
+    },
+    {
+      "name": "Initialize Shot",
+      "waypointRelativePos": 0.6593959731543622,
+      "endWaypointRelativePos": 1.0,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Initialize Shot"
+        }
+      }
+    },
+    {
+      "name": "Shoot",
+      "waypointRelativePos": 0.8120805369127507,
+      "endWaypointRelativePos": 1.0,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Shoot"
         }
       }
     }

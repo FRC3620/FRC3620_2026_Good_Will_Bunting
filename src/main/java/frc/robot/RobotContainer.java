@@ -739,6 +739,26 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.setDutyCycleCommand(0.8));
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.setDutyCycleCommand(0));
 
+    NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
+        new Translation2d(
+            Feet.of(15.17),
+            Feet.of(13.235)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d())))
+        .alongWith(shooterHoodSubsystem.createAutoAngleToTargetCommand(
+            new Translation3d(
+                Feet.of(15.17),
+                Feet.of(13.235),
+                Feet.of(6)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                swerveSubsystem.getKinematics(),
+                swerveSubsystem.getState(),
+                swerveSubsystem.getPigeon2().getRotation2d())))));
+
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
         new Translation2d(
@@ -762,7 +782,7 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getPigeon2().getRotation2d()))));
 
     NamedCommands.registerCommand("Set Hood Angle", shooterHoodSubsystem.createAutoAngleToTargetCommand(
-        new Translation3d(  
+        new Translation3d(
             Feet.of(15.17),
             Feet.of(13.235),
             Feet.of(6)),
