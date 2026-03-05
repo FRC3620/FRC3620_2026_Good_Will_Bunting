@@ -18,6 +18,8 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Power;
@@ -25,6 +27,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -33,6 +36,8 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.ShotCalculator;
+import frc.robot.Helpers.VelocityVector;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.PivotConfig;
@@ -83,6 +88,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
             shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(100), DegreesPerSecondPerSecond.of(100))
@@ -119,7 +125,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public void periodic() {
         if (pivot != null) {
 
-            if (!isCalibrated && !activeCalibrating) {
+            if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation()) {
                 calibrationCommand = calibrate();
                 CommandScheduler.getInstance().schedule(calibrationCommand);
             }
@@ -176,6 +182,13 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public Command setAngleDashboardCommand() {
         return createSetAngleCommand(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
+    }
+
+    public Command createAutoAngleToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition, Supplier<VelocityVector> robotVelocity) {
+        if (pivot == null)
+            return idle();
+            
+        return createSetAngleCommand(() -> ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity)).withName("Shooter Hood Auto Angle To Target");
     }
 
     public Command calibrate() {
