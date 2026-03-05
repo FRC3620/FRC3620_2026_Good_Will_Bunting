@@ -89,7 +89,9 @@ public class ConveyerSubsystem extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         // Only simulate, don't manually run the roller
-        flyWheel.simIterate();
+        if (flyWheel != null) {
+            flyWheel.simIterate();
+        }
     }
 
     public void periodic() {
@@ -114,4 +116,4 @@ public class ConveyerSubsystem extends SubsystemBase {
         } 
         return idle();
     }
-}
+} 
