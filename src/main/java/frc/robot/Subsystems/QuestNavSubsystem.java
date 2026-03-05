@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.RollingAveragePose3d;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
@@ -31,14 +32,25 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR = 180;
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
+  private final RollingAveragePose3d rollingAvg = new RollingAveragePose3d(5);
+
+  private Pose3d lastPose = null;
+  private double lastTimestamp = -1;
+
+  private double vx = 0;
+  private double vy = 0;
+  private double omega = 0;
+
   // private Transform2d QUEST_TO_ROBOT2D = new
   // Transform2d(Units.inchesToMeters(15.0), Units.inchesToMeters(0), new
   // Rotation2d(0));
-  private Transform3d QUEST_TO_ROBOT_CHUD = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_CHUD), 0,
+  private Transform3d QUEST_TO_ROBOT_CHUD = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_CHUD),
+      0,
       Units.inchesToMeters(QUEST_NAV_HEIGHT_CHUD),
       new Rotation3d(Units.degreesToRadians(0), 0, Units.degreesToRadians(QUEST_NAV_DEGREE_YAW_OFFSET_CHUD)));
 
-  private Transform3d QUEST_TO_ROBOT_RAPTOR = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_RAPTOR), Units.inchesToMeters(QUEST_NAV_LEFT_OFFSET_RAPTOR),
+  private Transform3d QUEST_TO_ROBOT_RAPTOR = new Transform3d(
+      Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_RAPTOR), Units.inchesToMeters(QUEST_NAV_LEFT_OFFSET_RAPTOR),
       Units.inchesToMeters(QUEST_NAV_HEIGHT_RAPTOR),
       new Rotation3d(Units.degreesToRadians(0), 0, Units.degreesToRadians(QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR)));
 
@@ -58,7 +70,8 @@ public class QuestNavSubsystem extends SubsystemBase {
         new HealthOptions().withShowAlertWhenBad(true));
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "Questnav is not tracking",
         new HealthOptions().withShowAlertWhenBad(true));
-    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(), "Questnav is not sufficiently charged",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(),
+        "Questnav is not sufficiently charged",
         new HealthOptions().withShowAlertWhenBad(true));
 
     this.swerveSubsystem = swerveSubsystem;
@@ -74,6 +87,14 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     questNav.setPose(initialQuestNavPose);
 
+  }
+
+  public void updateAverageRobotPose(Pose3d questPose) {
+    rollingAvg.addPose(questPose);
+  }
+
+  public Pose3d getAverageRobotPose() {
+    return rollingAvg.getAveragePose();
   }
 
   public void updateVisionMeasurement() {
@@ -100,14 +121,47 @@ public class QuestNavSubsystem extends SubsystemBase {
         // Transform by the mount pose to get the robot pose
         Pose3d robotPose = questPose.transformBy(QUEST_TO_ROBOT_RAPTOR.inverse());
 
-        // Add the mesaurement to the pose Estimator
-        if (swerveSubsystem != null) {
+        // adds to a queue array of 5 and averages the 5 values
+        updateAverageRobotPose(robotPose);
+
+        if (rollingAvg.isFilled()) {
+          // Add the mesaurement to the pose Estimator
+          if (swerveSubsystem != null) {
+            swerveSubsystem.addVisionMeasurement(rollingAvg.getAveragePose().toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+            roboPose = rollingAvg.getAveragePose();
+          }
+        } else {
           swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+          roboPose = robotPose;
         }
-        roboPose = robotPose;
 
       }
     }
+  }
+
+  private void updateVelocity(Pose3d pose, double timestamp) {
+
+    if (lastPose == null) {
+      lastPose = pose;
+      lastTimestamp = timestamp;
+      return;
+    }
+
+    double dt = timestamp - lastTimestamp;
+
+    if (dt <= 0)
+      return;
+
+    vx = (pose.getX() - lastPose.getX()) / dt;
+    vy = (pose.getY() - lastPose.getY()) / dt;
+
+    double yawNow = pose.getRotation().getZ();
+    double yawPrev = lastPose.getRotation().getZ();
+
+    omega = (yawNow - yawPrev) / dt;
+
+    lastPose = pose;
+    lastTimestamp = timestamp;
   }
 
   public boolean isQuestnavSufficientlyCharged() {
@@ -116,6 +170,10 @@ public class QuestNavSubsystem extends SubsystemBase {
     else {
       return true;
     }
+  }
+
+  public void resetQuestNavPoseAvg() {
+    rollingAvg.reset();
   }
 
   public void setQuestNavPose(Pose3d pose) {
