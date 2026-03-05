@@ -59,6 +59,7 @@ import org.tinylog.TaggedLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import frc.robot.Subsystems.ConveyerSubsystem;
@@ -74,6 +75,7 @@ import frc.robot.fsm.states.ScoringState;
 import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Generated.TunerConstants;
 import frc.robot.Helpers.AllianceFlipUtil;
 import frc.robot.Helpers.ButtonTriggers;
@@ -464,6 +466,9 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void configureButtonBindings() {
+    Trigger driverLeftTrigger = new Trigger(() -> driverJoystick.getAxis(()-> 0, OdoIdsXBox.AxisId.LEFT_TRIGGER) > 0.2);
+    Trigger driverRightTrigger = new Trigger(() -> driverJoystick.getAxis(() -> 0, OdoIdsXBox.AxisId.RIGHT_TRIGGER) > 0.2);
+
     if (swerveSubsystem != null) {
       /*
        **********************************************************************************
@@ -511,32 +516,23 @@ public class RobotContainer implements RobotModeChangeListener {
        */
     }
 
-    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
-      new JoystickAnalogButton(driverJoystick.getRealJoystick(), OdoIdsXBox.AxisId.LEFT_TRIGGER.getAxisNumber())
+    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null && intakeShoulderSubsystem != null) {
+      driverRightTrigger
           .whileTrue(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
               .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-              .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+              .alongWith(intakeAgitatorSubsystem.agitatorOn())
+              .alongWith(intakeShoulderSubsystem.createAgitateCommand()
+
+                )
+              );
     }
 
     if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
-      operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
-          .toggleOnTrue(
-              Commands.startEnd(
-                  () -> {
-                    intakeRollerSubsystem.rollersOn().schedule();
-                    intakeShoulderSubsystem
-                        .createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
-                        .schedule();
-                  },
-                  () -> {
-                    intakeRollerSubsystem.rollersOff().schedule();
-                    intakeShoulderSubsystem
-                        .createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
-                        .schedule();
-                  }));
+      //driverLeftTrigger.onTrue(
+      //  
+      //);
 
-      intakeShoulderSubsystem.setDefaultCommand(
-          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.createDoNothingCommand());
 
       operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersBackwards());
