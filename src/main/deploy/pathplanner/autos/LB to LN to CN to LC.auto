@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Reset QuestNav"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.25
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LB to LN"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LN to CN"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CN to LC"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": false,
+  "folder": "Left Bump Start",
+  "choreoAuto": false
+}

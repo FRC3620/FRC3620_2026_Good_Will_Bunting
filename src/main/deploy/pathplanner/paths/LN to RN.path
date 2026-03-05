@@ -1,0 +1,66 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 6.989072753209699,
+        "y": 6.331611982881598
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.078908606921029,
+        "y": 5.447409050576753
+      },
+      "isLocked": false,
+      "linkedName": "Left Neutral Collect"
+    },
+    {
+      "anchor": {
+        "x": 7.299600570613409,
+        "y": 1.6607560627674753
+      },
+      "prevControl": {
+        "x": 7.247914818101154,
+        "y": 2.9445075421472926
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Right Neutral Collect"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Reset QuestNav",
+      "waypointRelativePos": 0.536912751677853,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Reset QuestNav"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.25,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -146.31
+  },
+  "reversed": false,
+  "folder": "Left Bump Start",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 143.3658861240327
+  },
+  "useDefaultConstraints": true
+}
