@@ -21,7 +21,7 @@ public class CrossBumpCommand extends Command {
 
   SwerveRequest.FieldCentric executeRequest;
   SwerveRequest.FieldCentric endRequest;
-  Timer timer = new Timer();
+  private final Timer timer = new Timer();
 
   /** Creates a new DriveToAdvancedCommand. */
   public CrossBumpCommand(SwerveSubsystem swerve, double vx, double vy, double vRot) {
@@ -38,6 +38,9 @@ public class CrossBumpCommand extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+
+    timer.start();
+
     // creates a new drive request for execute
     executeRequest = new SwerveRequest.FieldCentric()
         .withVelocityX(vx)
@@ -56,7 +59,6 @@ public class CrossBumpCommand extends Command {
   @Override
   public void execute() {
 
-    timer.start();
     swerve.applyRequest(() -> executeRequest);
 
   }
