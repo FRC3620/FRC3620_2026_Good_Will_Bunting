@@ -129,8 +129,10 @@ public class QuestNavSubsystem extends SubsystemBase {
           if (swerveSubsystem != null) {
             swerveSubsystem.addVisionMeasurement(rollingAvg.getAveragePose().toPose2d(), timestamp, QUESTNAV_STD_DEVS);
             roboPose = rollingAvg.getAveragePose();
+            updateVelocity(roboPose, timestamp);
           }
         } else {
+          updateVelocity(robotPose, timestamp);
           swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
           roboPose = robotPose;
         }
@@ -164,6 +166,18 @@ public class QuestNavSubsystem extends SubsystemBase {
     lastTimestamp = timestamp;
   }
 
+  public double getQuestNavVX() {
+    return vx;
+  }
+
+  public double getQuestNavVY() {
+    return vy;
+  }
+
+  public double getQuestNavOmega() {
+    return omega;
+  }
+
   public boolean isQuestnavSufficientlyCharged() {
     if (getQuestNavPower() < 15)
       return false;
@@ -172,7 +186,7 @@ public class QuestNavSubsystem extends SubsystemBase {
     }
   }
 
-  public void resetQuestNavPoseAvg() {
+  public void resetQuestNavPoseRollingAvg() {
     rollingAvg.reset();
   }
 
@@ -199,15 +213,6 @@ public class QuestNavSubsystem extends SubsystemBase {
 
   public int getQuestNavPower() {
     return questNav.getBatteryPercent().getAsInt();
-  }
-
-  public void zeroQuestNavPose() {
-    setQuestNavPose(new Pose3d(Units.inchesToMeters(343), Units.inchesToMeters(14.5), 0,
-        new Rotation3d(Units.degreesToRadians(0), 0, 0)));
-  }
-
-  public Command zeroQuestNavPoseCommand() {
-    return runOnce(() -> zeroQuestNavPose());
   }
 
   @Override
