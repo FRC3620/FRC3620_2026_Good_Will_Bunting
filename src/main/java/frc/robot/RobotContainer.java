@@ -578,6 +578,8 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
 
+      SmartDashboard.putData("frc3620/CrossBumpCommand", new CrossBumpCommand(swerveSubsystem,.5,0,0));
+
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(
             new Translation3d(
@@ -722,7 +724,8 @@ public class RobotContainer implements RobotModeChangeListener {
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
 
-    NamedCommands.registerCommand("Cross Bump", new CrossBumpCommand(swerveSubsystem, 1, 0, 0).withTimeout(3));
+    NamedCommands.registerCommand("Cross Bump", new SetQuestNavPoseFromMegaTag1Command()//new CrossBumpCommand(swerveSubsystem, 1, 0, 0).withTimeout(3)
+    );
 
     NamedCommands.registerCommand("Intake Down",
         intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.OUT.getAngle()));

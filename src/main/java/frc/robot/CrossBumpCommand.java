@@ -4,8 +4,12 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.FieldCentric;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.SwerveSubsystem;
@@ -19,11 +23,13 @@ public class CrossBumpCommand extends Command {
   private final double vy;
   private final double vRot;
 
-  SwerveRequest.FieldCentric executeRequest;
-  SwerveRequest.FieldCentric endRequest;
+  SwerveRequest.FieldCentric executeRequest = new SwerveRequest.FieldCentric();
+  SwerveRequest.FieldCentric endRequest = new SwerveRequest.FieldCentric();
+
+  FieldCentric request = new FieldCentric();
   private final Timer timer = new Timer();
 
-  /** Creates a new DriveToAdvancedCommand. */
+  /** Creates a new CrossBumpCommand. */
   public CrossBumpCommand(SwerveSubsystem swerve, double vx, double vy, double vRot) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.swerve = swerve;
@@ -41,25 +47,19 @@ public class CrossBumpCommand extends Command {
 
     timer.start();
 
-    // creates a new drive request for execute
-    executeRequest = new SwerveRequest.FieldCentric()
-        .withVelocityX(vx)
-        .withVelocityY(vy)
-        .withRotationalRate(vRot);
-
-    // creates new drive request for end
-    endRequest = new SwerveRequest.FieldCentric()
-        .withVelocityX(0)
-        .withVelocityY(0)
-        .withRotationalRate(0);
-
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
 
-    swerve.applyRequest(() -> executeRequest);
+    swerve.applyRequest(() -> executeRequest
+        .withVelocityX(vx)
+        .withVelocityY(vy)
+        //.withRotationalRate(vRot)
+        .withDriveRequestType(DriveRequestType.OpenLoopVoltage));
+
+    swerve.applyRequest(() -> request.withChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(vx,vy, vRot, Rotation2d.fromDegrees(swerve.getPigeon2().getYaw().getValueAsDouble()))));
 
   }
 
@@ -67,7 +67,11 @@ public class CrossBumpCommand extends Command {
   @Override
   public void end(boolean interrupted) {
 
-    swerve.applyRequest(() -> endRequest);
+    swerve.applyRequest(() -> endRequest
+        .withVelocityX(0)
+        .withVelocityY(0)
+        .withRotationalRate(0)
+        .withDriveRequestType(DriveRequestType.OpenLoopVoltage));
 
   }
 
@@ -75,6 +79,6 @@ public class CrossBumpCommand extends Command {
   @Override
   public boolean isFinished() {
 
-    return (timer.hasElapsed(.5) && Math.abs(swerve.getPigeon2().getPitch().getValueAsDouble()) < 5);
+    return (timer.hasElapsed(100000000) && Math.abs(swerve.getPigeon2().getPitch().getValueAsDouble()) < 5);
   }
 }
