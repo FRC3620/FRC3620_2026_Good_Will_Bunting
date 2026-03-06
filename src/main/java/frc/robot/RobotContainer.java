@@ -222,8 +222,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
     // RPM.of(0)));
-    // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(()
-    // -> IntakeShoulderPositions.IN.getDistance()));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.idle());
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
     // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
@@ -466,8 +465,10 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void configureButtonBindings() {
-    Trigger driverLeftTrigger = new Trigger(() -> driverJoystick.getAxis(()-> 0, OdoIdsXBox.AxisId.LEFT_TRIGGER) > 0.2);
-    Trigger driverRightTrigger = new Trigger(() -> driverJoystick.getAxis(() -> 0, OdoIdsXBox.AxisId.RIGHT_TRIGGER) > 0.2);
+    Trigger driverLeftTrigger = new Trigger(
+        () -> driverJoystick.getAxis(() -> 0, OdoIdsXBox.AxisId.LEFT_TRIGGER) > 0.2);
+    Trigger driverRightTrigger = new Trigger(
+        () -> driverJoystick.getAxis(() -> 0, OdoIdsXBox.AxisId.RIGHT_TRIGGER) > 0.2);
 
     if (swerveSubsystem != null) {
       /*
@@ -516,23 +517,28 @@ public class RobotContainer implements RobotModeChangeListener {
        */
     }
 
-    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null && intakeShoulderSubsystem != null) {
+    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null
+        && intakeShoulderSubsystem != null) {
       driverRightTrigger
-          .whileTrue(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
-              .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-              .alongWith(intakeAgitatorSubsystem.agitatorOn())
-              .alongWith(intakeShoulderSubsystem.createAgitateCommand()
+          .whileTrue(
+              preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
+                  .alongWith(conveyerSubsystem.setDutyCycle(0.8))
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
+                  .alongWith(intakeShoulderSubsystem.createAgitateCommand()
+                    .onlyWhile(() -> intakeShoulderSubsystem.getPosition().isNear(IntakeShoulderPositions.OUT.getAngle(), Degrees.of(30)))
+                    )
+                  );
 
-                )
-              );
+      driverRightTrigger
+          .onFalse(intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
     }
 
     if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
-      //driverLeftTrigger.onTrue(
-      //  
-      //);
 
-    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.createDoNothingCommand());
+      driverLeftTrigger
+        .whileTrue(intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
+      driverLeftTrigger
+        .whileFalse(intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
 
       operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersBackwards());
@@ -572,8 +578,6 @@ public class RobotContainer implements RobotModeChangeListener {
     if (shooterHoodSubsystem != null) {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
-
-    
 
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(

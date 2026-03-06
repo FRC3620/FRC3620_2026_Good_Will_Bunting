@@ -79,15 +79,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   private final Angle CALIBRATED_POS = Degrees.of(0.0); // place holders
 
-  private boolean intakeDown = false;
-
-  public enum GoalState {
-    IN,
-    OUT
-  }
-  private GoalState goalState = GoalState.IN;
-  private boolean agitating = false;
-
   public enum IntakeShoulderPositions {
     OUT(Degrees.of(88)),
     IN(Degree.of(0));
@@ -114,7 +105,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withClosedLoopController(150.0, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
           .withFeedforward(new ArmFeedforward(0, 0.5, 0))
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 24.0 / 15.0)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 34.0 / 22.0)))
           .withIdleMode(MotorMode.COAST)
           .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
           .withStatorCurrentLimit(Amps.of(40))
@@ -128,14 +119,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
     SmartDashboard.putData(this);
 
-    setDefaultCommand(
-        Commands.run(() -> {
-          if (intakeDown) {
-            pivot.setAngle(IntakeShoulderPositions.OUT.getAngle());
-          } else {
-            pivot.setAngle(IntakeShoulderPositions.IN.getAngle());
-          }
-        }, this));
   }
 
   private void createPivot(Angle startingAngle) {
@@ -195,29 +178,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     Command rv;
     if (pivot != null) {
       rv = pivot.setAngle(angle);
-      /*
-       * new Command() {
-       * {
-       * addRequirements(IntakeShoulderSubsystem.this);
-       * }
-       * public void initialize() {
-       * pivot.setAngle(angle);
-       * }
-       * 
-       * public void execute(){
-       * pivot.setAngle(angle);
-       * 
-       * }
-       * public boolean isFinished() {
-       * return Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) < 5;
-       * }
-       * 
-       * public void end(boolean interrupted) {
-       * 
-       * }
-       * 
-       * };
-       */
     } else {
       rv = idle();
     }
@@ -235,11 +195,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command createAgitateCommand() {
     if (pivot != null) {
       return new Command() {
-
-        {
-          addRequirements(IntakeShoulderSubsystem.this);
-        }
-
         private double startTime;
 
         public void initialize() {
@@ -247,19 +202,15 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         }
 
         public void execute() {
-          if (((Timer.getFPGATimestamp() - startTime) % 0.15) <= 0.2) {
-            pivot.set(-0.5);
+          if (((Timer.getFPGATimestamp() - startTime) % 1.0) <= 0.1) {
+            CommandScheduler.getInstance().schedule(pivot.set(-0.35));
           } else {
-            pivot.set(0);
+            CommandScheduler.getInstance().schedule(pivot.set(0));
           }
         }
 
         public boolean isFinished() {
           return false;
-        }
-
-        public void end(boolean interrupted) {
-          pivot.set(0);
         }
       }.withName("shoulder agitate");
     }
