@@ -196,3 +196,5 @@ log.txt
 /gradle.properties
 src/main/deploy/git.properties
 src/main/deploy/gversion.properties
+dashboard/node_modules/
+dashboard/dist/
