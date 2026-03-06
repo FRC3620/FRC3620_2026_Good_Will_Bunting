@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.985349500713266,
-        "y": 1.7254493580599135
+        "x": 8.028562555456965,
+        "y": 1.4636912156166808
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.0631669044222536,
-        "y": 2.695848787446506
+        "x": 1.0590683229813658,
+        "y": 2.638686779059449
       },
       "prevControl": {
-        "x": 1.4901426533523536,
-        "y": 2.6052781740370903
+        "x": 1.413176574977817,
+        "y": 2.759405501330966
       },
       "nextControl": null,
       "isLocked": false,
@@ -54,7 +54,19 @@
     }
   ],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Cross Bump",
+      "waypointRelativePos": 0.4496644295302019,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Cross Bump"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 1.25,
     "maxAcceleration": 1.25,
