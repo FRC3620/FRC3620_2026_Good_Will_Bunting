@@ -9,6 +9,18 @@
           "data": {
             "pathName": "QuestNav Test"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Cross Bump Backward"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Cross Bump After"
+          }
         }
       ]
     }

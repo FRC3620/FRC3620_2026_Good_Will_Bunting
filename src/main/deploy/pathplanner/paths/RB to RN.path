@@ -21,7 +21,7 @@
       },
       "prevControl": {
         "x": 6.199814550641939,
-        "y": 2.333566333808845
+        "y": 2.3335663338088453
       },
       "nextControl": null,
       "isLocked": false,
@@ -67,7 +67,7 @@
   "folder": "Right Bump Start",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 135.0
+    "rotation": -135.0
   },
   "useDefaultConstraints": false
 }
