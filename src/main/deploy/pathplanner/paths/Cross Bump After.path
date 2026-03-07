@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 0.8820256776034237,
-        "y": 2.5535235378031382
+        "x": 1.0590683229813658,
+        "y": 2.638686779059449
       },
       "prevControl": {
-        "x": 1.8578547316202227,
-        "y": 2.5391332143511787
+        "x": 1.9947503566333804,
+        "y": 2.4370756062767476
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Right Climb"
     }
   ],
   "rotationTargets": [],
@@ -47,8 +47,8 @@
   "reversed": false,
   "folder": "Test Paths",
   "idealStartingState": {
-    "velocity": 2.0,
-    "rotation": 45.0
+    "velocity": 2.5,
+    "rotation": 19.025606037568785
   },
   "useDefaultConstraints": false
 }

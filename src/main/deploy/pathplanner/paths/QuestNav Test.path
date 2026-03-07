@@ -8,68 +8,33 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.028562555456965,
-        "y": 1.4636912156166808
+        "x": 7.674821683309556,
+        "y": 2.035977175463623
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.0590683229813658,
-        "y": 2.638686779059449
+        "x": 5.669329529243937,
+        "y": 2.514707560627676
       },
       "prevControl": {
-        "x": 1.413176574977817,
-        "y": 2.759405501330966
+        "x": 6.023437781240387,
+        "y": 2.6354262828991932
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Climb"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.3603411513859208,
-      "rotationDegrees": 45.0
-    },
-    {
-      "waypointRelativePos": 0.6183368869936081,
-      "rotationDegrees": 45.0
-    }
-  ],
-  "constraintZones": [
-    {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.637407157326131,
-      "maxWaypointRelativePos": 1.0,
-      "constraints": {
-        "maxVelocity": 1.0,
-        "maxAcceleration": 1.0,
-        "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 720.0,
-        "nominalVoltage": 12.0,
-        "unlimited": false
-      }
-    }
-  ],
+  "rotationTargets": [],
+  "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Cross Bump",
-      "waypointRelativePos": 0.4496644295302019,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Cross Bump"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.25,
-    "maxAcceleration": 1.25,
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -77,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 43.0
   },
   "reversed": false,
   "folder": "Test Paths",

@@ -1,6 +1,6 @@
 {
-  "robotWidth": 0.87,
-  "robotLength": 0.89,
+  "robotWidth": 0.89535,
+  "robotLength": 0.8382,
   "holonomicMode": true,
   "pathFolders": [
     "Left Bump Start",
@@ -18,7 +18,7 @@
   "defaultMaxAngAccel": 720.0,
   "defaultNominalVoltage": 12.0,
   "robotMass": 65.771,
-  "robotMOI": 8.48018936592,
+  "robotMOI": 8.48,
   "robotTrackwidth": 0.546,
   "driveWheelRadius": 0.0508,
   "driveGearing": 5.357142857142857,
