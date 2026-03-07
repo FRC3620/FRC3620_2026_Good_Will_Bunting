@@ -52,7 +52,7 @@ public class LimelightSubsystem extends SubsystemBase {
 
   public enum Camera {
     LEFT("limelight");
-    //RIGHT("limelight-right");
+    // RIGHT("limelight-right");
 
     public final String limelightName;
 
@@ -167,7 +167,8 @@ public class LimelightSubsystem extends SubsystemBase {
   public LimelightSubsystem() {
 
     allCameraData.put(Camera.LEFT, new CameraData(Camera.LEFT)); // Camera Data front
-    //allCameraData.put(Camera.RIGHT, new CameraData(Camera.RIGHT)); // Camera Data Back
+    // allCameraData.put(Camera.RIGHT, new CameraData(Camera.RIGHT)); // Camera Data
+    // Back
     allCameraData = Map.copyOf(allCameraData); // make immutable
     allCameraDataAsSet = Set.copyOf(allCameraData.values());
 
@@ -320,9 +321,12 @@ public class LimelightSubsystem extends SubsystemBase {
               cameraData.megaTag2.poseEstimate.timestampSeconds);
         }
 
-        NTStructs.publish(sdPrefix + "megaTag2PoseEstimate", cameraData.megaTag2.poseEstimate.pose);
-        NTStructs.publish(sdPrefix + "megaTag1PoseEstimate", cameraData.megaTag1.poseEstimate.pose);
-
+        
+          NTStructs.publish(sdPrefix + "megaTag2PoseEstimate", cameraData.megaTag2.poseEstimate.pose);
+          //megatag2 will skip publish until megatag1 has has data
+        if (cameraData.megaTag1.poseEstimate != null) {
+          NTStructs.publish(sdPrefix + "megaTag1PoseEstimate", cameraData.megaTag1.poseEstimate.pose);
+        }
         int updateCount = cameraData.bumpCountOfSwerveUpdatesFromThisCamera();
         SmartDashboard.putNumber(sdPrefix + "swervePoseUpdates", updateCount);
 
@@ -372,10 +376,11 @@ public class LimelightSubsystem extends SubsystemBase {
     List<Pose2d> pes = new ArrayList<>();
     Distance error = Meters.of(0);
     for (CameraData cdata : allCameraData.values()) {
-      Pose2d pe = cdata.megaTag2.getPoseEstimate().pose;
-      if (pe != null) {
-        pes.add(pe);
+      PoseEstimate estimate = cdata.megaTag2.getPoseEstimate();
+      if (estimate == null || estimate.pose == null) {
+        continue;
       }
+      pes.add(estimate.pose);
     }
 
     for (int i = 0; i < pes.size() - 1; i++) {
