@@ -122,6 +122,7 @@ public class HealthSubsystem extends SubsystemBase {
     }
     currentHealth = newHealth;
     SmartDashboard.putString("Health/Overall", currentHealth.toString());
+    SmartDashboard.putBoolean("Health/Ok", currentHealth == Health.GOOD);
 
     RadioLEDState newRadioLEDState = null;
     switch (newHealth) {
