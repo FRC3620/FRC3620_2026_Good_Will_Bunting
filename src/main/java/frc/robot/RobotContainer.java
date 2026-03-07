@@ -524,21 +524,10 @@ public class RobotContainer implements RobotModeChangeListener {
               preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
                   .alongWith(conveyerSubsystem.setDutyCycle(0.8))
                   .alongWith(intakeAgitatorSubsystem.agitatorOn())
-                  .alongWith(intakeShoulderSubsystem.createAgitateCommand()
-                    .onlyWhile(() -> intakeShoulderSubsystem.getPosition().isNear(IntakeShoulderPositions.OUT.getAngle(), Degrees.of(30)))
-                    )
                   );
-
-      driverRightTrigger
-          .onFalse(intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
-    }
+}
 
     if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
-
-      driverLeftTrigger
-        .whileTrue(intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
-      driverLeftTrigger
-        .whileFalse(intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
 
       operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
           .whileTrue(intakeRollerSubsystem.rollersBackwards());
@@ -619,6 +608,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeShoulderSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl",
           intakeShoulderSubsystem.setPositionDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/IntakeShoulder/JostleCommand", intakeShoulderSubsystem.createJostleCommand());
     }
 
     if (conveyerSubsystem != null) {

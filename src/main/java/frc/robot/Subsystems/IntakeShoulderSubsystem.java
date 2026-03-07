@@ -41,6 +41,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import frc.robot.Constants;
@@ -81,7 +82,9 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public enum IntakeShoulderPositions {
     OUT(Degrees.of(88)),
-    IN(Degree.of(0));
+    IN(Degrees.of(0)),
+    JOSTLE_TOP(Degrees.of(45)),
+    JOSTLE_BOTTOM(Degrees.of(57));
 
     private final Angle angle;;
 
@@ -186,35 +189,23 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public Command createSetPositionThenCoast(Supplier<Angle> angle) {
     if (pivot != null) {
-      return pivot.setAngle(angle).onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 5)
-          .andThen(createDoNothingCommand());
+      return pivot.setAngle(angle).onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 5);
     }
     return idle();
   }
 
-  public Command createAgitateCommand() {
-    if (pivot != null) {
-      return new Command() {
-        private double startTime;
+  public Command createJostleCommand() {
 
-        public void initialize() {
-          startTime = Timer.getFPGATimestamp();
-        }
-
-        public void execute() {
-          if (((Timer.getFPGATimestamp() - startTime) % 1.0) <= 0.1) {
-            CommandScheduler.getInstance().schedule(pivot.set(-0.35));
-          } else {
-            CommandScheduler.getInstance().schedule(pivot.set(0));
-          }
-        }
-
-        public boolean isFinished() {
-          return false;
-        }
-      }.withName("shoulder agitate");
+    if(pivot == null) {
+      return idle();
     }
-    return idle();
+    Time UP_HOLD_TIME = Seconds.of(0.5);
+    Time DOWN_HOLD_TIME = Seconds.of(0.5);
+
+    return Commands.sequence(
+      createSetPositionCommand(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle()).withTimeout(DOWN_HOLD_TIME),
+      createSetPositionCommand(() -> IntakeShoulderPositions.JOSTLE_TOP.getAngle()).withTimeout(UP_HOLD_TIME)
+    ).repeatedly().withName("Jostle Command");
   }
 
   public Command setPositionDashboardCommand() {
