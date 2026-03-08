@@ -31,6 +31,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -70,13 +71,23 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private AngularVelocity filteredRPM = RPM.of(0);
 
-  private TreeMap<Double, Distance> rpmCorrectionMap = new TreeMap<>();
+  private TreeMap<Double, Double> rpmCorrectionMap = new TreeMap<>();
 
   private double learningRate = 0.2;
-  private Distance bucketSize = Meters.of(0.5); // m range for each bucket in the correction map
+  private double bucketSize = 0.5; // m range for each bucket in the correction map
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
+
+    rpmCorrectionMap.put(0.0, 0.0);
+    rpmCorrectionMap.put(0.5, 0.0);
+    rpmCorrectionMap.put(1.0, 0.0);
+    rpmCorrectionMap.put(1.5, 0.0);
+    rpmCorrectionMap.put(2.0, 0.0);
+    rpmCorrectionMap.put(2.5, 30.0);
+    rpmCorrectionMap.put(3.0, 30.0);
+    rpmCorrectionMap.put(3.5, 60.0);
+    rpmCorrectionMap.put(4.0, 200.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -138,7 +149,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
                 SignalLogger.writeDouble("Shooter Voltage", voltage.in(Volts));
                 SignalLogger.writeDouble("Shooter_Velocity_RPS", getVelocity().in(RotationsPerSecond));
-                SignalLogger.writeDouble("Shooter_Position_Rotations", smartMotorController.getMechanismPosition().in(Rotations));
+                SignalLogger.writeDouble("Shooter_Position_Rotations",
+                    smartMotorController.getMechanismPosition().in(Rotations));
               },
               null,
               this));
@@ -179,23 +191,34 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-      return createSetVelocityCommand(() -> RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0)));
+    return createSetVelocityCommand(
+        () -> RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0)));
 
   }
 
-  public Command createSetSpeedToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition, Supplier<VelocityVector> robotVelocity) {
+  public Command createSetSpeedToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
+      Supplier<VelocityVector> robotVelocity) {
     if (flywheel == null)
       return idle();
 
     filteredRPM = getVelocity(); // Initialize filtered RPM to current RPM
     return flywheel.setSpeed(
-      () -> {
-        AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
-        double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 0.2);
-        alpha = MathUtil.clamp(alpha, 0.0, 1.0);
-        filteredRPM = filteredRPM.times(1.0 - alpha).plus(raw.times(alpha));
-        return filteredRPM;
-      });
+        () -> {
+          AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
+
+          double distanceMeters = getDistanceToTarget(targetPosition.toTranslation2d(), robotPosition).in(Meters);
+
+          double correctionRPM = getRPMCorrection(distanceMeters);
+
+          AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
+          double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 0.2);
+          alpha = MathUtil.clamp(alpha, 0.0, 1.0);
+          filteredRPM = filteredRPM.times(1.0 - alpha).plus(corrected.times(alpha));
+
+          SmartDashboard.putNumber("frc3620/Shooter/DistanceMeters", distanceMeters);
+          SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
+          return filteredRPM;
+        });
   }
 
   /**
@@ -220,6 +243,9 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel != null) {
       flywheel.updateTelemetry();
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Actual", getVelocity().in(RPM));
+      SmartDashboard.putNumber(
+          "frc3620/Shooter/LearnedPoints",
+          rpmCorrectionMap.size());
     }
   }
 
@@ -246,4 +272,44 @@ public class ShooterSubsystem extends SubsystemBase {
     return sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse);
   }
 
+  private Distance getDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPosition) {
+    return ShotCalculator.calculateBaseHDistanceToTarget(targetPosition, robotPosition);
+  }
+
+  private double getRPMCorrection(double distance) {
+
+    if (rpmCorrectionMap.isEmpty()) {
+      return 0;
+    }
+
+    Double lowerKey = rpmCorrectionMap.floorKey(distance);
+    Double upperKey = rpmCorrectionMap.ceilingKey(distance);
+
+    if (lowerKey == null)
+      return rpmCorrectionMap.get(upperKey);
+    if (upperKey == null)
+      return rpmCorrectionMap.get(lowerKey);
+
+    if (lowerKey.equals(upperKey)) {
+      return rpmCorrectionMap.get(lowerKey);
+    }
+
+    double lowerVal = rpmCorrectionMap.get(lowerKey);
+    double upperVal = rpmCorrectionMap.get(upperKey);
+
+    double t = (distance - lowerKey) / (upperKey - lowerKey);
+
+    return lowerVal * (1 - t) + upperVal * t;
+  }
+
+  public void learnShot(double distance, double rpmAdjustment) {
+
+    double bucket = Math.round(distance / bucketSize) * bucketSize;
+
+    double current = rpmCorrectionMap.getOrDefault(bucket, 0.0);
+
+    double updated = current + learningRate * rpmAdjustment;
+
+    rpmCorrectionMap.put(bucket, updated);
+  }
 }
