@@ -196,3 +196,18 @@ log.txt
 /gradle.properties
 src/main/deploy/git.properties
 src/main/deploy/gversion.properties
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files
+.env

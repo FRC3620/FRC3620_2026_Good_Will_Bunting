@@ -7,6 +7,7 @@ import org.tinylog.TaggedLogger;
 
 import org.usfirst.frc3620.*;
 import org.usfirst.frc3620.logger.LoggingMaster;
+import org.usfirst.frc3620.odo.OdoIdsFlySky;
 
 import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
@@ -90,6 +91,7 @@ public class Robot extends TimedRobot {
     Runtime rt = Runtime.getRuntime();
     SmartDashboard.putNumber("frc3620/heap/free", rt.freeMemory());
     SmartDashboard.putNumber("frc3620/heap/total", rt.totalMemory());
+    SmartDashboard.putNumber("frc3620/FlySky", RobotContainer.driverJoystick.getAxis(OdoIdsFlySky.AxisId.SWG));
 
     m_robotContainer.getStateMachine().update();
   }

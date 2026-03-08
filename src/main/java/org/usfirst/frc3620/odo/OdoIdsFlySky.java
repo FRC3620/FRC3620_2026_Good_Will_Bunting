@@ -8,14 +8,15 @@ public class OdoIdsFlySky {
   // it's not as concise, so I went the other way. 67.
 
   public static enum AxisId implements IOdoAxisId {
-    LEFT_X(0),
+    LEFT_X(0), // Y Axis in driver station
     LEFT_Y(1),
     RIGHT_Y(2), // Z Axis in driver station
     RIGHT_X(3), // X Rotate in driver station
-    SWF(4),
-    SWG(5),
-    VRB(6),
-    VRA(7),
+    SWB(4),
+    SWF(5),
+    SWG(6),
+    VRA(7)
+    // VRA(8),
     ;
 
     int axisNumber;
@@ -32,14 +33,15 @@ public class OdoIdsFlySky {
   }
 
   public static enum ButtonId implements IOdoButtonId {
-    SWA(5),
-    SWB(6),
+    SWA(1),
+    SWB_UP(8),
+    SWB_DOWN(7),
     SWC(2),
-    SWD(1),
-    SWE(3),
+    SWD(3),
+    SWE(4),
     // SWF is an axis
     // SWG is an axis
-    SWH(4),
+    SWH(5),
     ;
 
     int buttonNumber;
