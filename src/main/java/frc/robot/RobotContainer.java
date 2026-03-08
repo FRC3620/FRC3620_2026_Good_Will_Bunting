@@ -60,6 +60,7 @@ import org.tinylog.TaggedLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
 import frc.robot.Subsystems.ClimberSubsystem;
 import frc.robot.Subsystems.ConveyerSubsystem;
@@ -222,8 +223,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
     // RPM.of(0)));
-    // intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.setExtension(()
-    // -> IntakeShoulderPositions.IN.getDistance()));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.idle());
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
     conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
     // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
@@ -241,7 +241,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem != null) {
       /* Setting up bindings for necessary control of the swerve drive platform */
       drive = new SwerveRequest.FieldCentric()
-          .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
       brake = new SwerveRequest.SwerveDriveBrake();
       point = new SwerveRequest.PointWheelsAt();
@@ -399,10 +399,10 @@ public class RobotContainer implements RobotModeChangeListener {
             () -> drive
                 // Drive forward with negative Y (forward)
                 .withVelocityX(MathUtil.applyDeadband(
-                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.1) * MaxSpeed)
+                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.05) * MaxSpeed)
                 // Drive with negative X (left)
                 .withVelocityY(MathUtil.applyDeadband(
-                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.1) * MaxSpeed) // Drive
+                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.05) * MaxSpeed) // Drive
                 // Drive counterclockwise with negative X (left) left
                 .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
                     * MaxAngularRate))
@@ -460,13 +460,29 @@ public class RobotContainer implements RobotModeChangeListener {
      * SysIdRoutine.Direction.kReverse));
      */
 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+    driverJoystick.button(OdoIdsFlySky.ButtonId.SWC, OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
             .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
             .ignoringDisable(true));
   }
 
   private void configureButtonBindings() {
+
+    Trigger driverLeftTriggerFlySky = new Trigger(
+      driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
+    Trigger driverRightTriggerFlySky = new Trigger(
+      driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
+
+    Trigger driverIntakeSwitch = 
+      driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
+
+    Trigger rollersOnTrigger = new Trigger(
+        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == -1.0);
+    Trigger rollersOffTrigger = new Trigger(
+        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 0.0);
+    Trigger rollersBackwardsTrigger = new Trigger(
+        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 1.0);
+
     if (swerveSubsystem != null) {
       /*
        **********************************************************************************
@@ -515,35 +531,45 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
-      new JoystickAnalogButton(driverJoystick.getRealJoystick(), OdoIdsXBox.AxisId.LEFT_TRIGGER.getAxisNumber())
-          .whileTrue(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
-              .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-              .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+      driverRightTriggerFlySky
+          .whileTrue(
+              preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
+                  .alongWith(conveyerSubsystem.setDutyCycle(0.8))
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
+                  );
+}
+
+    if (intakeShoulderSubsystem != null) {
+      driverLeftTriggerFlySky
+        .whileTrue(
+          intakeShoulderSubsystem.createJostleCommand()
+          .alongWith(intakeRollerSubsystem.rollersOn())
+        ).onFalse(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
+        );
+
+      driverIntakeSwitch
+        .onTrue(
+          intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()).withTimeout(3)
+        )
+        .onFalse(
+          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
+        );
     }
 
-    if (intakeRollerSubsystem != null && intakeShoulderSubsystem != null) {
-      operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER)
-          .toggleOnTrue(
-              Commands.startEnd(
-                  () -> {
-                    intakeRollerSubsystem.rollersOn().schedule();
-                    intakeShoulderSubsystem
-                        .createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
-                        .schedule();
-                  },
-                  () -> {
-                    intakeRollerSubsystem.rollersOff().schedule();
-                    intakeShoulderSubsystem
-                        .createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
-                        .schedule();
-                  }));
-
-      intakeShoulderSubsystem.setDefaultCommand(
-          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
-
-      operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER)
-          .whileTrue(intakeRollerSubsystem.rollersBackwards());
-      intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    if (intakeRollerSubsystem != null) {
+      rollersOnTrigger.onTrue(
+        intakeRollerSubsystem.rollersOn()
+      );
+      rollersOffTrigger.onTrue(
+        intakeRollerSubsystem.rollersOff()
+      );
+      rollersBackwardsTrigger.onTrue(
+        intakeRollerSubsystem.rollersBackwards()
+        .alongWith(
+          intakeAgitatorSubsystem.agitatorBackwards()
+        ).withName("Spit Balls Back")
+      );
     }
 
   }
@@ -557,7 +583,7 @@ public class RobotContainer implements RobotModeChangeListener {
       int n_buttons = realDriverJoystick.getButtonCount();
       logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName,
           realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
-      if (driveControllerName.startsWith("Flysky")) {
+      if (driveControllerName.startsWith("FlySky")) {
         driverJoystick.setJoystickType(JoystickType.A);
       } else {
         driverJoystick.setJoystickType(JoystickType.B);
@@ -594,6 +620,11 @@ public class RobotContainer implements RobotModeChangeListener {
       }
     }
 
+    if (intakeRollerSubsystem != null) {
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersOff", intakeRollerSubsystem.rollersOff());
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersOn", intakeRollerSubsystem.rollersOn());
+    }
+
     if (shooterSubsystem != null) {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
@@ -615,6 +646,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeShoulderSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeShoulder/DashboardControl",
           intakeShoulderSubsystem.setPositionDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/IntakeShoulder/JostleCommand", intakeShoulderSubsystem.createJostleCommand());
     }
 
     if (conveyerSubsystem != null) {
