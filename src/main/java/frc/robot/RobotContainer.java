@@ -324,57 +324,74 @@ public class RobotContainer implements RobotModeChangeListener {
         (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
         scoringState));
 
-    passingState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
-        hoardingState));
-    passingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
-        hoardingState));
-    passingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
-        hoardingState));
-
     scoringState.addTransition(new StateTransition(
         (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
         passingState));
     scoringState.addTransition(new StateTransition(
         (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
         passingState));
-
-    scoringState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
-        hoardingState));
     scoringState.addTransition(new StateTransition(
         (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
-        hoardingState));
+        passingState));
     scoringState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        passingState));
+
+    passingState.addTransition(new StateTransition(
         (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
         hoardingState));
-    scoringState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+            fieldTriggers.enterDeadZone),
         hoardingState));
+    /*
+     * passingState.addTransition(new StateTransition(
+     * (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+     * fieldTriggers.enterOurAllianceZone),
+     * hoardingState));
+      */
+
+    /*
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterNeutralDepot),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterNeutralOutpost),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterDeadZone),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+     * fieldTriggers.enterOurAllianceZone),
+     * hoardingState));
+     */
 
     /*
      * scoringState.addTransition(new StateTransition(
      * fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.
      * climb),
      * climbingState));
+     * 
+     * hoardingState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterOurAllianceZone),
+     * scoringState));
      */
     hoardingState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
-        scoringState));
-
-    hoardingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOpponentDepot),
+        (fieldTriggers.enterOpponentDepot),
         passingState));
     hoardingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOpponentOutpost),
+        (fieldTriggers.enterOpponentOutpost),
         passingState));
     hoardingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        (fieldTriggers.enterNeutralDepot),
         passingState));
     hoardingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
+        fieldTriggers.enterNeutralOutpost,
         passingState));
   }
 
@@ -469,12 +486,11 @@ public class RobotContainer implements RobotModeChangeListener {
   private void configureButtonBindings() {
 
     Trigger driverLeftTriggerFlySky = new Trigger(
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
 
-    Trigger driverIntakeSwitch = 
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
+    Trigger driverIntakeSwitch = driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
 
     Trigger rollersOnTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == -1.0);
@@ -535,41 +551,35 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(
               preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
                   .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
-                  );
-}
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+    }
 
     if (intakeShoulderSubsystem != null) {
       driverLeftTriggerFlySky
-        .whileTrue(
-          intakeShoulderSubsystem.createJostleCommand()
-          .alongWith(intakeRollerSubsystem.rollersOn())
-        ).onFalse(
-              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
-        );
+          .whileTrue(
+              intakeShoulderSubsystem.createJostleCommand()
+                  .alongWith(intakeRollerSubsystem.rollersOn()))
+          .onFalse(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
       driverIntakeSwitch
-        .onTrue(
-          intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()).withTimeout(3)
-        )
-        .onFalse(
-          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
-        );
+          .onTrue(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
+                  .withTimeout(3))
+          .onFalse(
+              intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
     }
 
     if (intakeRollerSubsystem != null) {
       rollersOnTrigger.onTrue(
-        intakeRollerSubsystem.rollersOn()
-      );
+          intakeRollerSubsystem.rollersOn());
       rollersOffTrigger.onTrue(
-        intakeRollerSubsystem.rollersOff()
-      );
+          intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-        intakeRollerSubsystem.rollersBackwards()
-        .alongWith(
-          intakeAgitatorSubsystem.agitatorBackwards()
-        ).withName("Spit Balls Back")
-      );
+          intakeRollerSubsystem.rollersBackwards()
+              .alongWith(
+                  intakeAgitatorSubsystem.agitatorBackwards())
+              .withName("Spit Balls Back"));
     }
 
   }
