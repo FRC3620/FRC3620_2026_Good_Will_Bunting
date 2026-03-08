@@ -220,7 +220,7 @@ public class RobotContainer implements RobotModeChangeListener {
     // default commands
     // turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() ->
     // Degrees.of(0)));
-    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    //climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
     // RPM.of(0)));
@@ -256,7 +256,7 @@ public class RobotContainer implements RobotModeChangeListener {
     limelightSubsystem = new LimelightSubsystem();
 
     turretSubsystem = new TurretSubsystem();
-    climberSubsystem = new ClimberSubsystem();
+    //climberSubsystem = new ClimberSubsystem();
     shooterSubsystem = new ShooterSubsystem();
     intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
@@ -780,12 +780,13 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Conveyer On", conveyerSubsystem.setDutyCycle(0.8));
     NamedCommands.registerCommand("Conveyer Off", conveyerSubsystem.setDutyCycle(0));
 
-    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.setDutyCycleCommand(0.8));
-    NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.setDutyCycleCommand(0));
+    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.createSetVelocityCommand(()->RPM.of(2000)));
+    NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(()->RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
-        .andThen(conveyerSubsystem.setDutyCycle(0.8))
-        .andThen(preshooterSubsystem.setDutyCycleCommand(0.8)));
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(()->RPM.of(2000)))
+        .alongWith(intakeRollerSubsystem.rollersOn()));
 
     NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
         new Translation2d(
@@ -805,7 +806,18 @@ public class RobotContainer implements RobotModeChangeListener {
             () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                 swerveSubsystem.getKinematics(),
                 swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d())))));
+                swerveSubsystem.getPigeon2().getRotation2d()))))
+        .alongWith(shooterSubsystem.createSetSpeedToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d())))));
+
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(

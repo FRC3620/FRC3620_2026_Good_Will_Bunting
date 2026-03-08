@@ -16,11 +16,11 @@
     },
     {
       "anchor": {
-        "x": 0.4938659058487873,
+        "x": 0.694,
         "y": 0.6256633380884444
       },
       "prevControl": {
-        "x": 1.0631669044222536,
+        "x": 1.2633009985734662,
         "y": 0.6127246790299581
       },
       "nextControl": null,
@@ -32,13 +32,13 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.756245779878457,
+      "minWaypointRelativePos": 0.6640198511166333,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 1.5,
-        "maxAcceleration": 1.5,
-        "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 720.0,
+        "maxVelocity": 0.75,
+        "maxAcceleration": 0.75,
+        "maxAngularVelocity": 180.0,
+        "maxAngularAcceleration": 360.0,
         "nominalVoltage": 12.0,
         "unlimited": false
       }
@@ -47,44 +47,22 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Initialize Shot",
-      "waypointRelativePos": 0,
+      "name": "Intake Down",
+      "waypointRelativePos": 0.42943956785955384,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Initialize Shot"
-        }
-      }
-    },
-    {
-      "name": "Shoot",
-      "waypointRelativePos": 0.38622552329507687,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Shoot"
-        }
-      }
-    },
-    {
-      "name": "Feed Shot",
-      "waypointRelativePos": 0.6158001350438789,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Feed Shot"
+          "name": "Intake Down"
         }
       }
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.0,
-    "maxAcceleration": 2.0,
-    "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxVelocity": 1.25,
+    "maxAcceleration": 1.25,
+    "maxAngularVelocity": 180.0,
+    "maxAngularAcceleration": 360.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
@@ -96,7 +74,7 @@
   "folder": "Right Bump Start",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -135.0
+    "rotation": -47.0
   },
   "useDefaultConstraints": false
 }

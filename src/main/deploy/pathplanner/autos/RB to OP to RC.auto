@@ -5,21 +5,78 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "RB to OP"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RB to OP"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Shot"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "wait",
+          "type": "deadline",
           "data": {
-            "waitTime": 2.0
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Feed Shot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Shot"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "OP to RC"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "OP to RC"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Shot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Feed Shot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Rollers Off"
           }
         }
       ]
