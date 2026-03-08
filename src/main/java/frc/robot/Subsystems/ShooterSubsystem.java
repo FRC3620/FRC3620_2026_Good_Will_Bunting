@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotation;
@@ -16,6 +17,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -25,12 +27,14 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -63,6 +67,13 @@ public class ShooterSubsystem extends SubsystemBase {
   private TalonFX motor2 = null;
   private SmartMotorController smartMotorController = null;
   private FlyWheel flywheel = null;
+
+  private AngularVelocity filteredRPM = RPM.of(0);
+
+  private TreeMap<Double, Distance> rpmCorrectionMap = new TreeMap<>();
+
+  private double learningRate = 0.2;
+  private Distance bucketSize = Meters.of(0.5); // m range for each bucket in the correction map
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
@@ -135,6 +146,7 @@ public class ShooterSubsystem extends SubsystemBase {
       setDefaultCommand(idle());
     }
     SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
+    SmartDashboard.putNumber("frc3620/Shooter/Filtering Alpha", 0.2);
 
   }
 
@@ -175,7 +187,15 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(() -> ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity)).withName(telemetryPrefix + " SetSpeedToTarget");
+    filteredRPM = getVelocity(); // Initialize filtered RPM to current RPM
+    return flywheel.setSpeed(
+      () -> {
+        AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
+        double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 0.2);
+        alpha = MathUtil.clamp(alpha, 0.0, 1.0);
+        filteredRPM = filteredRPM.times(1.0 - alpha).plus(raw.times(alpha));
+        return filteredRPM;
+      });
   }
 
   /**
