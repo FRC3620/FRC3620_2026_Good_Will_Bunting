@@ -458,17 +458,14 @@ public class RobotContainer implements RobotModeChangeListener {
      * SysIdRoutine.Direction.kReverse));
      */
 
-    operatorJoystick.button(OdoIdsXBox.ButtonId.X)
+    driverJoystick.button(OdoIdsFlySky.ButtonId.SWC, OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
             .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
             .ignoringDisable(true));
   }
 
   private void configureButtonBindings() {
-    Trigger driverLeftTriggerXbox = new Trigger(
-        () -> driverJoystick.getAxis(() -> 0, OdoIdsXBox.AxisId.LEFT_TRIGGER) > 0.2);
-    Trigger driverRightTriggerXbox = new Trigger(
-        () -> driverJoystick.getAxis(() -> 0, OdoIdsXBox.AxisId.RIGHT_TRIGGER) > 0.2);
+
     Trigger driverLeftTriggerFlySky = new Trigger(
       driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
