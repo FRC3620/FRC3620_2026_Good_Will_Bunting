@@ -68,7 +68,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(.8); // need to test this
+            rv = flyWheel.set(0.6); // need to test this
         } else {
             rv = idle();
         }
@@ -88,7 +88,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersBackwards() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(-.2);
+            rv = flyWheel.set(-0.5);
         } else {
             rv = idle();
         }
@@ -99,7 +99,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
-            SmartDashboard.putNumber(telemetryPrefix + "Intake Velocity", flyWheel.getSpeed().in(RPM));
+            SmartDashboard.putNumber("frc3620/ "+ telemetryPrefix + "/Intake Velocity", flyWheel.getSpeed().in(RPM));
+            SmartDashboard.putNumber("frc3620/ "+ telemetryPrefix + "/Intake DutyCycle", motorController.getDutyCycle());
         }
     }
 

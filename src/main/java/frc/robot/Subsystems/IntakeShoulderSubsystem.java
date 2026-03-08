@@ -189,7 +189,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public Command createSetPositionThenCoast(Supplier<Angle> angle) {
     if (pivot != null) {
-      return pivot.setAngle(angle).onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 5);
+      return pivot.setAngle(angle).onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 20);
     }
     return idle();
   }

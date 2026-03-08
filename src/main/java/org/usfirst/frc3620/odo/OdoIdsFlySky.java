@@ -12,11 +12,11 @@ public class OdoIdsFlySky {
     LEFT_Y(1),
     RIGHT_Y(2), // Z Axis in driver station
     RIGHT_X(3), // X Rotate in driver station
+    SWB(4),
     SWF(5),
     SWG(6),
-    VRB(7),
+    VRA(7)
     // VRA(8),
-    SWB(4)
     ;
 
     int axisNumber;
