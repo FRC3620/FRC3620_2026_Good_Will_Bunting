@@ -80,7 +80,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   private SlewRateLimiter turretLimiter = new SlewRateLimiter(180.0);
   private Angle filteredTargetAngle = Degrees.of(0);
-  private double turretFilterAlpha = 0.2; // smoothing factor
+  private double turretFilterAlpha = 1; // smoothing factor
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -133,7 +133,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean(RERUN_SEED, false);
 
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
-    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", 0.2);
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
   }
 
   public Command createSetAngleCommand(Supplier<Angle> angle) {
