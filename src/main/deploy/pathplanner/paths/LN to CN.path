@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.977,
-        "y": 4.098
+        "x": 6.989072753209699,
+        "y": 6.331611982881598
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.643819277108434,
-        "y": 4.110650602409639
+        "x": 7.131398002853067,
+        "y": 5.516476462196862
       },
       "isLocked": false,
-      "linkedName": "Red Square Center"
+      "linkedName": "Left Neutral Collect"
     },
     {
       "anchor": {
-        "x": 5.904,
-        "y": 4.209843373493976
+        "x": 7.299600570613409,
+        "y": 3.8862054208273893
       },
       "prevControl": {
-        "x": 6.761975903614462,
-        "y": 4.1897108433734935
+        "x": 7.170213980028531,
+        "y": 4.921298145506419
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Center Neutral Collect"
     }
   ],
   "rotationTargets": [],
@@ -33,8 +33,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -146.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Left Bump Start",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 143.3658861240327
   },
   "useDefaultConstraints": false
 }
