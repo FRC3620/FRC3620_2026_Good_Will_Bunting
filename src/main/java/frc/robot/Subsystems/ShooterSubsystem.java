@@ -244,8 +244,13 @@ public class ShooterSubsystem extends SubsystemBase {
       flywheel.updateTelemetry();
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Actual", getVelocity().in(RPM));
       SmartDashboard.putNumber(
-          "frc3620/Shooter/LearnedPoints",
+          "frc3620/Shooter/CorrectionMap/LearnedPoints",
           rpmCorrectionMap.size());
+      for (var entry : rpmCorrectionMap.entrySet()) {
+        SmartDashboard.putNumber("frc3620/Shooter/CorrectionMap/" + entry.getKey(),
+        entry.getValue()
+        );
+      }
     }
   }
 
