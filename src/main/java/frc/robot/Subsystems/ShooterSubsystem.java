@@ -7,6 +7,7 @@ package frc.robot.Subsystems;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
@@ -73,21 +74,23 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private TreeMap<Double, Double> rpmCorrectionMap = new TreeMap<>();
 
-  private double learningRate = 0.2;
-  private double bucketSize = 0.5; // m range for each bucket in the correction map
+  private double learningRate = 0.1;
+  private double bucketSize = 1.5; // ft range for each bucket in the correction map
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
     rpmCorrectionMap.put(0.0, 0.0);
-    rpmCorrectionMap.put(0.5, 0.0);
-    rpmCorrectionMap.put(1.0, 0.0);
     rpmCorrectionMap.put(1.5, 0.0);
-    rpmCorrectionMap.put(2.0, 0.0);
-    rpmCorrectionMap.put(2.5, 30.0);
-    rpmCorrectionMap.put(3.0, 30.0);
-    rpmCorrectionMap.put(3.5, 60.0);
-    rpmCorrectionMap.put(4.0, 200.0);
+    rpmCorrectionMap.put(3.0, 0.0);
+    rpmCorrectionMap.put(4.5, 0.0);
+    rpmCorrectionMap.put(6.0, 0.0);
+    rpmCorrectionMap.put(7.5, 0.0);
+    rpmCorrectionMap.put(9.0, 0.0);
+    rpmCorrectionMap.put(10.5, 0.0);
+    rpmCorrectionMap.put(13.0, 75.00);
+    rpmCorrectionMap.put(14.5, 100.0);
+    rpmCorrectionMap.put(16.0, 200.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -206,16 +209,16 @@ public class ShooterSubsystem extends SubsystemBase {
         () -> {
           AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
 
-          double distanceMeters = getDistanceToTarget(targetPosition.toTranslation2d(), robotPosition).in(Meters);
+          double distanceFeet = getDistanceToTarget(targetPosition.toTranslation2d(), robotPosition).in(Feet);
 
-          double correctionRPM = getRPMCorrection(distanceMeters);
+          double correctionRPM = getRPMCorrection(distanceFeet);
 
           AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
           double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 0.2);
           alpha = MathUtil.clamp(alpha, 0.0, 1.0);
           filteredRPM = filteredRPM.times(1.0 - alpha).plus(corrected.times(alpha));
 
-          SmartDashboard.putNumber("frc3620/Shooter/DistanceMeters", distanceMeters);
+          SmartDashboard.putNumber("frc3620/Shooter/DistanceFeet", distanceFeet);
           SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
           return filteredRPM;
         });
@@ -251,6 +254,12 @@ public class ShooterSubsystem extends SubsystemBase {
         entry.getValue()
         );
       }
+      SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
+        new Translation2d(
+          Feet.of(15.17),
+          Feet.of(13.235)
+        ), 
+        () -> RobotContainer.swerveSubsystem.getState().Pose).in(Feet)));
     }
   }
 

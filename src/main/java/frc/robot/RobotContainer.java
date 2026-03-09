@@ -482,8 +482,8 @@ public class RobotContainer implements RobotModeChangeListener {
     Trigger rollersBackwardsTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 1.0);
 
-    Trigger teachShooterTriggerUnder = operatorJoystick.button(() -> false, OdoIdsXBox.ButtonId.LEFT_BUMPER);
-    Trigger teachShooterTriggerOver = operatorJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER);
+    Trigger teachShooterTriggerUnder = operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER);
+    Trigger teachShooterTriggerOver = operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER);
 
     if (swerveSubsystem != null) {
       /*
@@ -532,15 +532,15 @@ public class RobotContainer implements RobotModeChangeListener {
        */
       teachShooterTriggerUnder.onTrue(new InstantCommand(() -> 
       {
-        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(), () -> swerveSubsystem.getState().Pose).in(Meters);
-        shooterSubsystem.learnShot(distanceM, 60 + distanceM * 40);
+        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(15.17, 13.235), () -> swerveSubsystem.getState().Pose).in(Meters);
+        shooterSubsystem.learnShot(distanceM, 50 + distanceM * 5);
       }) 
       );
 
       teachShooterTriggerOver.onTrue(new InstantCommand(() -> 
       {
-        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(), () -> swerveSubsystem.getState().Pose).in(Meters);
-        shooterSubsystem.learnShot(distanceM, -(60 + distanceM * 40));
+        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(15.17, 13.235), () -> swerveSubsystem.getState().Pose).in(Meters);
+        shooterSubsystem.learnShot(distanceM, -(50 + distanceM * 5));
       }) 
       );
            
