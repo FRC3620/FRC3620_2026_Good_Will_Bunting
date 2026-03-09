@@ -21,6 +21,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -77,6 +78,10 @@ public class TurretSubsystem extends SubsystemBase {
   private static final Angle absAEncoderOffset = Rotations.of(-0.13916015625);
   private static final Angle absBEncoderOffset = Rotations.of(-0.7958984375);
 
+  private SlewRateLimiter turretLimiter = new SlewRateLimiter(180.0);
+  private Angle filteredTargetAngle = Degrees.of(0);
+  private double turretFilterAlpha = 0.2; // smoothing factor
+
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
@@ -128,6 +133,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean(RERUN_SEED, false);
 
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", 0.2);
   }
 
   public Command createSetAngleCommand(Supplier<Angle> angle) {
@@ -169,8 +175,15 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
+      filteredTargetAngle = getAngle(); // Initialize filtered angle to current angle
       rv = createSetAngleCommand(
-          () -> ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity));
+          () -> {
+            Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
+            double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
+            turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
+            filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
+            return filteredTargetAngle;
+          });
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }

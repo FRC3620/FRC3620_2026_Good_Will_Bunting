@@ -469,12 +469,11 @@ public class RobotContainer implements RobotModeChangeListener {
   private void configureButtonBindings() {
 
     Trigger driverLeftTriggerFlySky = new Trigger(
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
 
-    Trigger driverIntakeSwitch = 
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
+    Trigger driverIntakeSwitch = driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
 
     Trigger rollersOnTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == -1.0);
@@ -482,6 +481,9 @@ public class RobotContainer implements RobotModeChangeListener {
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 0.0);
     Trigger rollersBackwardsTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 1.0);
+
+    Trigger teachShooterTriggerUnder = operatorJoystick.button(() -> false, OdoIdsXBox.ButtonId.LEFT_BUMPER);
+    Trigger teachShooterTriggerOver = operatorJoystick.button(() -> false, OdoIdsXBox.ButtonId.RIGHT_BUMPER);
 
     if (swerveSubsystem != null) {
       /*
@@ -528,6 +530,21 @@ public class RobotContainer implements RobotModeChangeListener {
        * .whileTrue(
        * shooterSubsystem.sysIdQuasistaticReverse());
        */
+      teachShooterTriggerUnder.onTrue(new InstantCommand(() -> 
+      {
+        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(), () -> swerveSubsystem.getState().Pose).in(Meters);
+        shooterSubsystem.learnShot(distanceM, 60 + distanceM * 40);
+      }) 
+      );
+
+      teachShooterTriggerOver.onTrue(new InstantCommand(() -> 
+      {
+        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(), () -> swerveSubsystem.getState().Pose).in(Meters);
+        shooterSubsystem.learnShot(distanceM, -(60 + distanceM * 40));
+      }) 
+      );
+           
+    
     }
 
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
@@ -535,35 +552,30 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(
               preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
                   .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
-                  );
-}
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+    }
 
     if (intakeShoulderSubsystem != null) {
       driverLeftTriggerFlySky
-        .whileTrue(
-          intakeShoulderSubsystem.createJostleCommand()
-          .alongWith(intakeRollerSubsystem.rollersOn())
-        ).onFalse(
-              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
-        );
+          .whileTrue(
+              intakeShoulderSubsystem.createJostleCommand()
+                  .alongWith(intakeRollerSubsystem.rollersOn()))
+          .onFalse(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
       driverIntakeSwitch
-        .onTrue(
-          intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()).withTimeout(3)
-        )
-        .onFalse(
-          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
-        );
+          .onTrue(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
+                  .withTimeout(3))
+          .onFalse(
+              intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
     }
 
     if (intakeRollerSubsystem != null) {
       rollersOnTrigger.onTrue(
-        intakeRollerSubsystem.rollersOn()
-      );
+          intakeRollerSubsystem.rollersOn());
       rollersOffTrigger.onTrue(
-        intakeRollerSubsystem.rollersOff()
-      );
+          intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
         intakeRollerSubsystem.rollersBackwards()
         .alongWith(
