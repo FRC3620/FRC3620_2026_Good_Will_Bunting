@@ -797,7 +797,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(()->RPM.of(2000)))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000)))
         .alongWith(intakeRollerSubsystem.rollersOn()));
 
     NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
