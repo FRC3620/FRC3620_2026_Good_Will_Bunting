@@ -220,7 +220,7 @@ public class RobotContainer implements RobotModeChangeListener {
     // default commands
     // turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() ->
     // Degrees.of(0)));
-    //climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
     // RPM.of(0)));
@@ -256,7 +256,7 @@ public class RobotContainer implements RobotModeChangeListener {
     limelightSubsystem = new LimelightSubsystem();
 
     turretSubsystem = new TurretSubsystem();
-    //climberSubsystem = new ClimberSubsystem();
+    // climberSubsystem = new ClimberSubsystem();
     shooterSubsystem = new ShooterSubsystem();
     intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
@@ -530,28 +530,26 @@ public class RobotContainer implements RobotModeChangeListener {
        * .whileTrue(
        * shooterSubsystem.sysIdQuasistaticReverse());
        */
-      teachShooterTriggerUnder.onTrue(new InstantCommand(() -> 
-      {
-        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(15.17, 13.235), () -> swerveSubsystem.getState().Pose).in(Meters);
-        shooterSubsystem.learnShot(distanceM, 50 + distanceM * 5);
-      }) 
-      );
+      teachShooterTriggerUnder.onTrue(new InstantCommand(() -> {
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
+            new Translation2d(Feet.of(15.17), Feet.of(13.235)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, 50 + distanceFt.in(Feet) * 5);
+      }));
 
-      teachShooterTriggerOver.onTrue(new InstantCommand(() -> 
-      {
-        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(15.17, 13.235), () -> swerveSubsystem.getState().Pose).in(Meters);
-        shooterSubsystem.learnShot(distanceM, -(50 + distanceM * 5));
-      }) 
-      );
-           
-    
+      teachShooterTriggerOver.onTrue(new InstantCommand(() -> {
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
+            new Translation2d(Feet.of(15.17), Feet.of(13.235)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, -(50 + distanceFt.in(Feet) * 5));
+      }));
+
     }
 
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-              preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
-                  .alongWith(conveyerSubsystem.setDutyCycle(0.8))
+                  conveyerSubsystem.setDutyCycle(0.8)
                   .alongWith(intakeAgitatorSubsystem.agitatorOn()));
     }
 
@@ -577,11 +575,10 @@ public class RobotContainer implements RobotModeChangeListener {
       rollersOffTrigger.onTrue(
           intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-        intakeRollerSubsystem.rollersBackwards()
-        .alongWith(
-          intakeAgitatorSubsystem.agitatorBackwards()
-        ).withName("Spit Balls Back")
-      );
+          intakeRollerSubsystem.rollersBackwards()
+              .alongWith(
+                  intakeAgitatorSubsystem.agitatorBackwards())
+              .withName("Spit Balls Back"));
     }
 
   }
@@ -646,6 +643,16 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
 
+          SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
+              shooterSubsystem.sysIdDynamicForward());
+          SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
+              shooterSubsystem.sysIdDynamicReverse());
+
+          SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
+              shooterSubsystem.sysIdQuasistaticForward());
+          SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
+              shooterSubsystem.sysIdQuasistaticReverse());
+
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
             new Translation3d(
@@ -656,7 +663,8 @@ public class RobotContainer implements RobotModeChangeListener {
             () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                 swerveSubsystem.getKinematics(),
                 swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d()))));
+                swerveSubsystem.getPigeon2().getRotation2d())))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600))));
       }
     }
 
@@ -674,6 +682,8 @@ public class RobotContainer implements RobotModeChangeListener {
     if (preshooterSubsystem != null) {
       SmartDashboard.putData("frc3620/Preshooter/DashboardControl",
           preshooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Preshooter/SetDutyCycle 0.9", preshooterSubsystem.setDutyCycleCommand(0.9));
+      SmartDashboard.putData("frc3620/Preshooter/SetDutyCycle 0.0", preshooterSubsystem.setDutyCycleCommand(0.0));
     }
 
     if (turretSubsystem != null) {
@@ -792,11 +802,12 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Conveyer On", conveyerSubsystem.setDutyCycle(0.8));
     NamedCommands.registerCommand("Conveyer Off", conveyerSubsystem.setDutyCycle(0));
 
-    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.createSetVelocityCommand(()->RPM.of(2000)));
-    NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(()->RPM.of(0)));
+    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600)));
+    NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycle(0.8))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600)))
         .alongWith(intakeRollerSubsystem.rollersOn()));
 
     NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
