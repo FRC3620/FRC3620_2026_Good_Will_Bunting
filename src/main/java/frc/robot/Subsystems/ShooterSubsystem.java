@@ -82,9 +82,9 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
 
     rpmCorrectionMap.put(0, 0.0);
-    rpmCorrectionMap.put(9, -20.0);
-    rpmCorrectionMap.put(14, 35.0);
-    rpmCorrectionMap.put(17, 202.0);
+    rpmCorrectionMap.put(9, 0.0);
+    rpmCorrectionMap.put(14, 0.0);
+    rpmCorrectionMap.put(17, 0.0);
     rpmCorrectionMap.put(18, 0.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
@@ -182,7 +182,7 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(speed.get()).withName(telemetryPrefix + " SetVelocity");
+    return flywheel.setSpeed(speed).withName(telemetryPrefix + " SetVelocity");
   }
 
   public Command setVelocityDashboardCommand() {

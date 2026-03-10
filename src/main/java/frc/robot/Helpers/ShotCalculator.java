@@ -31,7 +31,7 @@ public class ShotCalculator {
 
     private static final double ratioOverMinVelocity = 1.03; // placeholder value
     private static final Translation3d turretOffset = new Translation3d(
-        Meters.of(0.0), Meters.of(0), Meters.of(0.54864));
+        Meters.of(-0.1651), Meters.of(-0.15875), Meters.of(0.54864));
 
     public static Distance calculateBaseHDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPose) {
         Translation2d turretPosition = robotPose.get().getTranslation().plus(turretOffset.toTranslation2d().rotateBy(robotPose.get().getRotation()));

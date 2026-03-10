@@ -51,7 +51,7 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            8.0, // kP - tune this
+                            10.0, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             DegreesPerSecond.of(28800000), DegreesPerSecondPerSecond.of(28800))
