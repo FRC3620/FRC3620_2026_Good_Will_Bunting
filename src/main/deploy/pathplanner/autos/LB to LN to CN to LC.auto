@@ -5,21 +5,21 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Reset QuestNav"
+            "pathName": "Left Bump Before"
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 0.25
+            "name": "Cross Bump Forwards"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "LB to LN"
+            "pathName": "Left Bump After to LN"
           }
         },
         {
@@ -31,7 +31,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CN to LC"
+            "pathName": "CN to Left Bump After"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Cross Bump Backward"
           }
         }
       ]

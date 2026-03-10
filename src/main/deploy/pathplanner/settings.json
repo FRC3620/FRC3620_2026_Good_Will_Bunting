@@ -3,8 +3,10 @@
   "robotLength": 0.8382,
   "holonomicMode": true,
   "pathFolders": [
-    "Left Bump Start",
-    "Right Bump Start",
+    "Before and After Right Bump",
+    "Left Bump Start General",
+    "Before and After Left Bump",
+    "Right Bump Start General",
     "Test Paths"
   ],
   "autoFolders": [
@@ -12,8 +14,8 @@
     "Tests",
     "Right Bump Start"
   ],
-  "defaultMaxVel": 3.0,
-  "defaultMaxAccel": 3.25,
+  "defaultMaxVel": 2.5,
+  "defaultMaxAccel": 2.5,
   "defaultMaxAngVel": 540.0,
   "defaultMaxAngAccel": 720.0,
   "defaultNominalVoltage": 12.0,

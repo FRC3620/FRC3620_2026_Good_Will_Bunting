@@ -4,28 +4,28 @@
     {
       "anchor": {
         "x": 7.795173025732032,
-        "y": 6.759219165927241
+        "y": 4.473611357586512
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.885008879443362,
-        "y": 5.875016233622396
+        "x": 7.078908606921029,
+        "y": 4.529946761313221
       },
       "isLocked": false,
-      "linkedName": "Left Neutral Collect"
+      "linkedName": "Left Center Neutral Collect"
     },
     {
       "anchor": {
-        "x": 7.811268855368235,
-        "y": 1.1417746228926342
+        "x": 5.75,
+        "y": 5.529
       },
       "prevControl": {
-        "x": 7.75958310285598,
-        "y": 2.4255261022724515
+        "x": 6.5477462289263535,
+        "y": 5.495696539485359
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Neutral Collect"
+      "linkedName": "Left Bump After"
     }
   ],
   "rotationTargets": [],
@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 90.0
+    "rotation": -135.0
   },
   "reversed": false,
-  "folder": "Left Bump Start General",
+  "folder": "Before and After Left Bump",
   "idealStartingState": {
     "velocity": 0,
     "rotation": -90.0

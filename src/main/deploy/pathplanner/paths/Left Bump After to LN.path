@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 6.759219165927241
+        "x": 5.75,
+        "y": 5.529
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.885008879443362,
-        "y": 5.875016233622396
+        "x": 6.515554569653949,
+        "y": 5.552031943212066
       },
       "isLocked": false,
-      "linkedName": "Left Neutral Collect"
+      "linkedName": "Left Bump After"
     },
     {
       "anchor": {
-        "x": 7.811268855368235,
-        "y": 1.1417746228926342
+        "x": 7.795173025732032,
+        "y": 6.759219165927241
       },
       "prevControl": {
-        "x": 7.75958310285598,
-        "y": 2.4255261022724515
+        "x": 7.1996273291925466,
+        "y": 7.773256433007985
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Neutral Collect"
+      "linkedName": "Left Neutral Collect"
     }
   ],
   "rotationTargets": [],
@@ -41,14 +41,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 90.0
+    "velocity": 1.5,
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": "Left Bump Start General",
+  "folder": "Before and After Left Bump",
   "idealStartingState": {
-    "velocity": 0,
-    "rotation": -90.0
+    "velocity": 2.5,
+    "rotation": -135.0
   },
   "useDefaultConstraints": true
 }

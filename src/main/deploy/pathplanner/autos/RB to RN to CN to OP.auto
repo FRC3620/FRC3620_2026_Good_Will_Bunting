@@ -5,27 +5,21 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "Reset QuestNav"
+            "pathName": "Right Bump Before"
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 0.25
+            "name": "Cross Bump Forwards"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RB to RN"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.25
+            "pathName": "Right Bump After to RN"
           }
         },
         {
@@ -35,21 +29,59 @@
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 0.25
+            "pathName": "CN to Right Bump After"
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "CN to OP"
+            "name": "Cross Bump Backward"
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "OP to RC"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Right Bump Before to OP"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Shot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Feed Shot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Shot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 5.0
+                }
+              }
+            ]
           }
         }
       ]

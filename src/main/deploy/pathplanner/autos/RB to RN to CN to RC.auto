@@ -5,15 +5,21 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "Right Bump Before"
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "Reset QuestNav"
+            "name": "Cross Bump Forwards"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RB to RN"
+            "pathName": "Right Bump After to RN"
           }
         },
         {
@@ -25,7 +31,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CN to RC"
+            "pathName": "CN to Right Bump After"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Cross Bump Backward"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Right Bump Before to Climb"
           }
         }
       ]

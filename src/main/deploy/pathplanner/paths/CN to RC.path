@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.299600570613409,
-        "y": 3.8862054208273893
+        "x": 7.819316770186335,
+        "y": 3.62053238686779
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.247845934379456,
-        "y": 2.2429957203994295
+        "x": 7.767562133952382,
+        "y": 1.9773226864398303
       },
       "isLocked": false,
       "linkedName": "Center Neutral Collect"
@@ -93,10 +93,10 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Right Bump Start",
+  "folder": "Right Bump Start General",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -146.0
+    "rotation": 90.0
   },
   "useDefaultConstraints": false
 }
