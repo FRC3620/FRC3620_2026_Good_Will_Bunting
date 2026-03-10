@@ -75,12 +75,13 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.13916015625);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.7958984375);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.17626953125);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.836669921875);
 
   private SlewRateLimiter turretLimiter = new SlewRateLimiter(180.0);
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretFilterAlpha = 1; // smoothing factor
+  private double turretTargetingOffset = 0;
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -134,6 +135,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset);
   }
 
   public Command createSetAngleCommand(Supplier<Angle> angle) {
@@ -182,7 +184,8 @@ public class TurretSubsystem extends SubsystemBase {
             double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
             turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
             filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
-            return filteredTargetAngle;
+            Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
+            return filteredTargetAngle.plus(targetingOffsetAngle);
           });
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");

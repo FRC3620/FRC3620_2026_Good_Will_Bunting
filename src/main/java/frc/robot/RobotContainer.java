@@ -532,15 +532,15 @@ public class RobotContainer implements RobotModeChangeListener {
        */
       teachShooterTriggerUnder.onTrue(new InstantCommand(() -> 
       {
-        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(15.17, 13.235), () -> swerveSubsystem.getState().Pose).in(Meters);
-        shooterSubsystem.learnShot(distanceM, 50 + distanceM * 5);
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(Feet.of(15.17), Feet.of(13.235)), () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, 50 + distanceFt.in(Feet) * 5);
       }) 
       );
 
       teachShooterTriggerOver.onTrue(new InstantCommand(() -> 
       {
-        double distanceM = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(15.17, 13.235), () -> swerveSubsystem.getState().Pose).in(Meters);
-        shooterSubsystem.learnShot(distanceM, -(50 + distanceM * 5));
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(new Translation2d(Feet.of(15.17), Feet.of(13.235)), () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, -(50 + distanceFt.in(Feet) * 5));
       }) 
       );
            
