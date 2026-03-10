@@ -797,7 +797,6 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000)))
         .alongWith(intakeRollerSubsystem.rollersOn()));
 
     NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
@@ -828,7 +827,9 @@ public class RobotContainer implements RobotModeChangeListener {
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
-            swerveSubsystem.getPigeon2().getRotation2d())))));
+            swerveSubsystem.getPigeon2().getRotation2d()))))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
+));
 
 
     // These would be zoned events
