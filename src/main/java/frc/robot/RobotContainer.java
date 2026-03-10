@@ -664,7 +664,7 @@ public class RobotContainer implements RobotModeChangeListener {
                 swerveSubsystem.getKinematics(),
                 swerveSubsystem.getState(),
                 swerveSubsystem.getPigeon2().getRotation2d())))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600))));
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))));
       }
     }
 
@@ -802,12 +802,11 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Conveyer On", conveyerSubsystem.setDutyCycle(0.8));
     NamedCommands.registerCommand("Conveyer Off", conveyerSubsystem.setDutyCycle(0));
 
-    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600)));
+    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000)));
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600)))
         .alongWith(intakeRollerSubsystem.rollersOn()));
 
     NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
