@@ -118,7 +118,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             setDefaultCommand(idle().withName("Hood default command"));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
-        SmartDashboard.putNumber("frc3620/ShooterHood/Filtering Alpha", 0.2);
+        SmartDashboard.putNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
 
         SmartDashboard.putData(this);
@@ -196,7 +196,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         return createSetAngleCommand(
             () -> {
                 Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity);
-                double alpha = SmartDashboard.getNumber("frc3620/ShooterHood/Filtering Alpha", 0.2);
+                double alpha = SmartDashboard.getNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
                 alpha = MathUtil.clamp(alpha, 0.0, 1.0);
                 filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
                 return filteredTargetAngle;
