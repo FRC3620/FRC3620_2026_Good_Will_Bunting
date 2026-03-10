@@ -17,6 +17,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -66,7 +67,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     boolean activeCalibrating = false;
     Command calibrationCommand;
 
-    private final Voltage CALIBRATION_VOLTAGE = Volts.of(-0.5);
+    private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1);
     private final double VELOCITY_THRESHOLD = 2.0; // deg/sec
     private final double STALL_TIME_SECONDS = 0.25;
 
@@ -74,6 +75,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     private final Angle MAXPOSITION = Degrees.of(60); // place holders
 
     private final Angle ZERO_ENCODER_OFFSET = Rotations.of(0.281982); // place holders
+
+    private Angle filteredTargetAngle = Degrees.of(0);
 
     Double requestedCalibrationPos = null;
 
@@ -91,7 +94,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(100), DegreesPerSecondPerSecond.of(100))
+                    .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
                     .withMotorInverted(true)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)
@@ -115,6 +118,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             setDefaultCommand(idle().withName("Hood default command"));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
+        SmartDashboard.putNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
 
         SmartDashboard.putData(this);
@@ -188,7 +192,15 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         if (pivot == null)
             return idle();
             
-        return createSetAngleCommand(() -> ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity)).withName("Shooter Hood Auto Angle To Target");
+        filteredTargetAngle = getAngle(); // Initialize filtered angle to current angle
+        return createSetAngleCommand(
+            () -> {
+                Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity);
+                double alpha = SmartDashboard.getNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
+                alpha = MathUtil.clamp(alpha, 0.0, 1.0);
+                filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
+                return filteredTargetAngle;
+            }).withName("Shooter Hood Auto Angle To Target");
     }
 
     public Command calibrate() {

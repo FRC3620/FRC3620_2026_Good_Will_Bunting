@@ -1,0 +1,66 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.46,
+        "y": 2.5
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.9523868677905942,
+        "y": 2.526015971606033
+      },
+      "isLocked": false,
+      "linkedName": "Right Bump Start"
+    },
+    {
+      "anchor": {
+        "x": 1.0590683229813658,
+        "y": 2.638686779059449
+      },
+      "prevControl": {
+        "x": 2.097249334516415,
+        "y": 2.4696805678793248
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Right Climb"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Intake Up",
+      "waypointRelativePos": 0.9949664429530206,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Intake Up"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Before and After Right Bump",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -47.0
+  },
+  "useDefaultConstraints": true
+}

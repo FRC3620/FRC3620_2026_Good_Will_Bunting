@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Velocity;
@@ -26,6 +27,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.core.CoreTalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest.ApplyRobotSpeeds;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -129,7 +131,7 @@ public class RobotContainer implements RobotModeChangeListener {
                                                                                     // maxangular velocity
 
   /* Setting up bindings for necessary control of the swerve drive platform */
-  private SwerveRequest.FieldCentric drive;
+  private static SwerveRequest.FieldCentric drive;
   private SwerveRequest.SwerveDriveBrake brake;
   private SwerveRequest.PointWheelsAt point;
   private SwerveTelemetry swerveLogger;
@@ -157,16 +159,16 @@ public class RobotContainer implements RobotModeChangeListener {
   public static OdoJoystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
-  public TurretSubsystem turretSubsystem;
-  public ClimberSubsystem climberSubsystem;
-  public ShooterSubsystem shooterSubsystem;
+  public static TurretSubsystem turretSubsystem;
+  public static ClimberSubsystem climberSubsystem;
+  public static ShooterSubsystem shooterSubsystem;
   public static IntakeShoulderSubsystem intakeShoulderSubsystem;
-  public IntakeRollerSubsytem intakeRollerSubsystem;
-  public ConveyerSubsystem conveyerSubsystem;
-  public IntakeAgitatorSubsytem intakeAgitatorSubsystem;
+  public static IntakeRollerSubsytem intakeRollerSubsystem;
+  public static ConveyerSubsystem conveyerSubsystem;
+  public static IntakeAgitatorSubsytem intakeAgitatorSubsystem;
 
-  public ShooterHoodSubsystem shooterHoodSubsystem;
-  public PreshooterSubsystem preshooterSubsystem;
+  public static ShooterHoodSubsystem shooterHoodSubsystem;
+  public static PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
   // hardware here
@@ -218,7 +220,7 @@ public class RobotContainer implements RobotModeChangeListener {
     // default commands
     // turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() ->
     // Degrees.of(0)));
-    climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
 
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
     // RPM.of(0)));
@@ -254,7 +256,7 @@ public class RobotContainer implements RobotModeChangeListener {
     limelightSubsystem = new LimelightSubsystem();
 
     turretSubsystem = new TurretSubsystem();
-    climberSubsystem = new ClimberSubsystem();
+    // climberSubsystem = new ClimberSubsystem();
     shooterSubsystem = new ShooterSubsystem();
     intakeShoulderSubsystem = new IntakeShoulderSubsystem();
     intakeRollerSubsystem = new IntakeRollerSubsytem();
@@ -467,12 +469,11 @@ public class RobotContainer implements RobotModeChangeListener {
   private void configureButtonBindings() {
 
     Trigger driverLeftTriggerFlySky = new Trigger(
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
 
-    Trigger driverIntakeSwitch = 
-      driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
+    Trigger driverIntakeSwitch = driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
 
     Trigger rollersOnTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == -1.0);
@@ -480,6 +481,9 @@ public class RobotContainer implements RobotModeChangeListener {
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 0.0);
     Trigger rollersBackwardsTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 1.0);
+
+    Trigger teachShooterTriggerUnder = operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER);
+    Trigger teachShooterTriggerOver = operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER);
 
     if (swerveSubsystem != null) {
       /*
@@ -526,48 +530,55 @@ public class RobotContainer implements RobotModeChangeListener {
        * .whileTrue(
        * shooterSubsystem.sysIdQuasistaticReverse());
        */
+      teachShooterTriggerUnder.onTrue(new InstantCommand(() -> {
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
+            new Translation2d(Feet.of(15.17), Feet.of(13.235)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, 50 + distanceFt.in(Feet) * 5);
+      }));
+
+      teachShooterTriggerOver.onTrue(new InstantCommand(() -> {
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
+            new Translation2d(Feet.of(15.17), Feet.of(13.235)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, -(50 + distanceFt.in(Feet) * 5));
+      }));
+
     }
 
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-              preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
-                  .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
-                  );
-}
+                  conveyerSubsystem.setDutyCycle(0.8)
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+    }
 
     if (intakeShoulderSubsystem != null) {
       driverLeftTriggerFlySky
-        .whileTrue(
-          intakeShoulderSubsystem.createJostleCommand()
-          .alongWith(intakeRollerSubsystem.rollersOn())
-        ).onFalse(
-              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
-        );
+          .whileTrue(
+              intakeShoulderSubsystem.createJostleCommand()
+                  .alongWith(intakeRollerSubsystem.rollersOn()))
+          .onFalse(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
       driverIntakeSwitch
-        .onTrue(
-          intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()).withTimeout(3)
-        )
-        .onFalse(
-          intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
-        );
+          .onTrue(
+              intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
+                  .withTimeout(3))
+          .onFalse(
+              intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
     }
 
     if (intakeRollerSubsystem != null) {
       rollersOnTrigger.onTrue(
-        intakeRollerSubsystem.rollersOn()
-      );
+          intakeRollerSubsystem.rollersOn());
       rollersOffTrigger.onTrue(
-        intakeRollerSubsystem.rollersOff()
-      );
+          intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-        intakeRollerSubsystem.rollersBackwards()
-        .alongWith(
-          intakeAgitatorSubsystem.agitatorBackwards()
-        ).withName("Spit Balls Back")
-      );
+          intakeRollerSubsystem.rollersBackwards()
+              .alongWith(
+                  intakeAgitatorSubsystem.agitatorBackwards())
+              .withName("Spit Balls Back"));
     }
 
   }
@@ -604,6 +615,11 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
 
+      SmartDashboard.putData("frc3620/CrossBumpBackwardCommand",
+          new CrossBumpCommand(swerveSubsystem, drive, 0.5, 0.0, 0.0));
+      SmartDashboard.putData("frc3620/CrossBumpForwardCommand",
+          new CrossBumpCommand(swerveSubsystem, drive, -0.5, 0.0, 0.0));
+
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(
             new Translation3d(
@@ -627,6 +643,16 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
 
+          SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
+              shooterSubsystem.sysIdDynamicForward());
+          SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
+              shooterSubsystem.sysIdDynamicReverse());
+
+          SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
+              shooterSubsystem.sysIdQuasistaticForward());
+          SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
+              shooterSubsystem.sysIdQuasistaticReverse());
+
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
             new Translation3d(
@@ -637,7 +663,8 @@ public class RobotContainer implements RobotModeChangeListener {
             () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                 swerveSubsystem.getKinematics(),
                 swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d()))));
+                swerveSubsystem.getPigeon2().getRotation2d())))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600))));
       }
     }
 
@@ -655,6 +682,8 @@ public class RobotContainer implements RobotModeChangeListener {
     if (preshooterSubsystem != null) {
       SmartDashboard.putData("frc3620/Preshooter/DashboardControl",
           preshooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Preshooter/SetDutyCycle 0.9", preshooterSubsystem.setDutyCycleCommand(0.9));
+      SmartDashboard.putData("frc3620/Preshooter/SetDutyCycle 0.0", preshooterSubsystem.setDutyCycleCommand(0.0));
     }
 
     if (turretSubsystem != null) {
@@ -753,6 +782,99 @@ public class RobotContainer implements RobotModeChangeListener {
 
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
+
+    NamedCommands.registerCommand("Cross Bump Backward",
+        new CrossBumpCommand(swerveSubsystem, drive, 2.5, 0.0, 0.0).withTimeout(3));
+    NamedCommands.registerCommand("Cross Bump Forward",
+        new CrossBumpCommand(swerveSubsystem, drive, -2.5, 0.0, 0.0).withTimeout(3));
+
+    NamedCommands.registerCommand("Intake Down",
+        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.OUT.getAngle()));
+    NamedCommands.registerCommand("Intake Up",
+        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
+
+    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.rollersOn());
+    NamedCommands.registerCommand("Rollers Off", intakeRollerSubsystem.rollersOff());
+
+    NamedCommands.registerCommand("Agitate On", intakeAgitatorSubsystem.agitatorOn());
+    NamedCommands.registerCommand("Agitate Off", intakeAgitatorSubsystem.agitatorOff());
+
+    NamedCommands.registerCommand("Conveyer On", conveyerSubsystem.setDutyCycle(0.8));
+    NamedCommands.registerCommand("Conveyer Off", conveyerSubsystem.setDutyCycle(0));
+
+    NamedCommands.registerCommand("Preshooter On", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600)));
+    NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
+
+    NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2600)))
+        .alongWith(intakeRollerSubsystem.rollersOn()));
+
+    NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
+        new Translation2d(
+            Feet.of(15.17),
+            Feet.of(13.235)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d())))
+        .alongWith(shooterHoodSubsystem.createAutoAngleToTargetCommand(
+            new Translation3d(
+                Feet.of(15.17),
+                Feet.of(13.235),
+                Feet.of(6)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                swerveSubsystem.getKinematics(),
+                swerveSubsystem.getState(),
+                swerveSubsystem.getPigeon2().getRotation2d()))))
+        .alongWith(shooterSubsystem.createSetSpeedToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
+));
+
+
+    // These would be zoned events
+    NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
+        new Translation2d(
+            Feet.of(15.17),
+            Feet.of(13.235)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+
+    NamedCommands.registerCommand("Shoot", shooterSubsystem.createSetSpeedToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+
+    NamedCommands.registerCommand("Set Hood Angle", shooterHoodSubsystem.createAutoAngleToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
   }
 
   void sendSwerveSubsystemToHealthSubsystem() {
