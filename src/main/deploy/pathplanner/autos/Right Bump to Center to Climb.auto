@@ -35,19 +35,13 @@
           }
         },
         {
-          "type": "named",
-          "data": {
-            "name": "Cross Bump Backward"
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [
               {
-                "type": "path",
+                "type": "named",
                 "data": {
-                  "pathName": "Right Bump Before to OP"
+                  "name": "Cross Bump Backward"
                 }
               },
               {
@@ -60,15 +54,9 @@
           }
         },
         {
-          "type": "deadline",
+          "type": "parallel",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Feed Shot"
-                }
-              },
               {
                 "type": "named",
                 "data": {
@@ -76,9 +64,15 @@
                 }
               },
               {
-                "type": "wait",
+                "type": "path",
                 "data": {
-                  "waitTime": 5.0
+                  "pathName": "Right Bump Before to Climb"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Feed Shot"
                 }
               }
             ]

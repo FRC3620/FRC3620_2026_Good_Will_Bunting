@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.46,
-        "y": 2.5
+        "x": 7.811268855368235,
+        "y": 1.1417746228926342
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.9523868677905942,
-        "y": 2.526015971606033
+        "x": 7.465208518189885,
+        "y": 0.2404081632653049
       },
       "isLocked": false,
-      "linkedName": "Right Bump Start"
+      "linkedName": "Right Neutral Collect"
     },
     {
       "anchor": {
-        "x": 1.0590683229813658,
-        "y": 2.638686779059449
+        "x": 5.742954747116238,
+        "y": 2.5
       },
       "prevControl": {
-        "x": 2.097249334516415,
-        "y": 2.4696805678793248
+        "x": 6.579937888198758,
+        "y": 2.5501597160603366
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Climb"
+      "linkedName": "Right Bump After"
     }
   ],
   "rotationTargets": [],
@@ -33,13 +33,13 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Intake Up",
-      "waypointRelativePos": 0.9949664429530206,
+      "name": "Rollers Off",
+      "waypointRelativePos": 0.11073825503355708,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Intake Up"
+          "name": "Rollers Off"
         }
       }
     }
@@ -53,14 +53,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 180.0
+    "velocity": 2.5,
+    "rotation": -45.0
   },
   "reversed": false,
   "folder": "Before and After Right Bump",
   "idealStartingState": {
-    "velocity": 0,
-    "rotation": -47.0
+    "velocity": 2.0,
+    "rotation": 90.0
   },
   "useDefaultConstraints": true
 }

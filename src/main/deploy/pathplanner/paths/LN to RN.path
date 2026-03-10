@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.885008879443362,
-        "y": 5.875016233622396
+        "x": 7.7696035986167855,
+        "y": 6.420579751568826
       },
       "isLocked": false,
       "linkedName": "Left Neutral Collect"
@@ -20,8 +20,8 @@
         "y": 1.1417746228926342
       },
       "prevControl": {
-        "x": 7.75958310285598,
-        "y": 2.4255261022724515
+        "x": 7.806251174348374,
+        "y": 1.9813060847742765
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,9 +31,21 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Rollers On",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Rollers On"
+        }
+      }
+    }
+  ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
+    "maxVelocity": 2.0,
     "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -41,14 +53,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 2.0,
     "rotation": 90.0
   },
   "reversed": false,
   "folder": "Left Bump Start General",
   "idealStartingState": {
-    "velocity": 0,
+    "velocity": 1.5,
     "rotation": -90.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

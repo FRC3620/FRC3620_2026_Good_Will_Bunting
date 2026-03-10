@@ -33,17 +33,6 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Intake Up",
-      "waypointRelativePos": 0.0,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Intake Up"
-        }
-      }
-    },
-    {
       "name": "Rollers Off",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
