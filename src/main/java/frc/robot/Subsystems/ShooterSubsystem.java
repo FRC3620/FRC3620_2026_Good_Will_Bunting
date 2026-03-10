@@ -127,7 +127,7 @@ public class ShooterSubsystem extends SubsystemBase {
           // Diameter of the flywheel.
           .withDiameter(Inches.of(4))
           // Mass of the flywheel.
-          .withMass(Pounds.of(0.6))
+          .withMass(Pounds.of(1.5))
           // Maximum speed of the flywheel.
           .withUpperSoftLimit(RPM.of(5000))
           // Telemetry name and verbosity for the arm.
