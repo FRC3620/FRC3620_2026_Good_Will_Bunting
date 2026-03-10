@@ -63,18 +63,6 @@
                 "data": {
                   "name": "Intake Down"
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Rollers On"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Preshooter On"
-                }
               }
             ]
           }
