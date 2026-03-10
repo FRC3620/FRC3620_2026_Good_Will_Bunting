@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.46,
+        "y": 2.5
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.71,
+        "y": 2.5
+      },
+      "isLocked": false,
+      "linkedName": "Right Bump Start"
+    },
+    {
+      "anchor": {
+        "x": 3.6746406388642416,
+        "y": 2.5
+      },
+      "prevControl": {
+        "x": 3.4246406388642416,
+        "y": 2.5
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Right Bump Left"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 2.5,
+    "rotation": -45.74810694428179
+  },
+  "reversed": false,
+  "folder": "Before and After Right Bump",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -47.0
+  },
+  "useDefaultConstraints": true
+}

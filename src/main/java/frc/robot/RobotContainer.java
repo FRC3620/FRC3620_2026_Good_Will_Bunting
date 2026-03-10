@@ -830,15 +830,18 @@ public class RobotContainer implements RobotModeChangeListener {
                 swerveSubsystem.getState(),
                 swerveSubsystem.getPigeon2().getRotation2d()))))
         .alongWith(shooterSubsystem.createSetSpeedToTargetCommand(
-            new Translation3d(
-                Feet.of(15.17),
-                Feet.of(13.235),
-                Feet.of(6)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                swerveSubsystem.getKinematics(),
-                swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d())))));
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
+));
+
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(

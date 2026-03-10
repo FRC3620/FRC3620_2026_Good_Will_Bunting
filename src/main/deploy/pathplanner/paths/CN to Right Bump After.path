@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 6.759219165927241
+        "x": 7.819316770186335,
+        "y": 3.62053238686779
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.78632240425908,
-        "y": 5.673569987192303
+        "x": 7.923939662821651,
+        "y": 2.606495119787045
       },
       "isLocked": false,
-      "linkedName": "Left Neutral Collect"
+      "linkedName": "Right Center Neutral Collect"
     },
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 4.473611357586512
+        "x": 5.742954747116238,
+        "y": 2.5
       },
       "prevControl": {
-        "x": 7.821491180689479,
-        "y": 5.648282615580488
+        "x": 6.773087843833185,
+        "y": 2.4535847382431224
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Center Neutral Collect"
+      "linkedName": "Right Bump After"
     }
   ],
   "rotationTargets": [],
@@ -33,19 +33,19 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Rollers On",
+      "name": "Rollers Off",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Rollers On"
+          "name": "Rollers Off"
         }
       }
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 1.5,
+    "maxVelocity": 2.5,
     "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -53,14 +53,14 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": -90.0
+    "velocity": 2.5,
+    "rotation": -45.0
   },
   "reversed": false,
-  "folder": "Left Bump Start General",
+  "folder": "Before and After Right Bump",
   "idealStartingState": {
-    "velocity": 1.5,
-    "rotation": -90.0
+    "velocity": 0,
+    "rotation": -89.48288107004976
   },
   "useDefaultConstraints": false
 }
