@@ -13,18 +13,18 @@ public class FMSTriggers {
     public final Trigger isActivePeriod;
     public final Trigger isInactivePeriod;
     public final Trigger isEndgame;
-    public final Trigger fmsTriggersOff;
+    //public final Trigger fmsTriggersOff;
 
     public FMSTriggers() {
 
-        final BooleanSupplier useFMSTriggers = () -> SmartDashboard.getBoolean("useFMSTriggers", true);
-        SmartDashboard.putBoolean("triggers On", true);
+
+        //SmartDashboard.putBoolean("triggers On", true);
 
         isActivePeriod = new Trigger(() -> HubTracker.isAllianceHubActive());
         isInactivePeriod = isActivePeriod.negate();
         isEndgame = new Trigger(() -> DriverStation.getMatchTime() <= 20);
 
-        fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
+       // fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
 
     }
 

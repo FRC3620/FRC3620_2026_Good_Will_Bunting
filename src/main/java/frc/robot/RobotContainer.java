@@ -314,34 +314,45 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem == null) {
       return;
     }
-    SmartDashboard.putBoolean("frc3620/StateMachine/FMS triggers On", true);
+
+   final Trigger fmsTriggersOff;
 
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
+    SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", true);
+
+    SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
+    final BooleanSupplier useFMSTriggers = () -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
+
+    fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
+
+
     passingState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
         scoringState));
 
     scoringState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
         passingState));
     scoringState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        passingState));
+
+    //this might need to change
+    scoringState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
         passingState));
     scoringState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
-        passingState));
-    scoringState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
         passingState));
 
     passingState.addTransition(new StateTransition(
-        (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
         hoardingState));
     passingState.addTransition(new StateTransition(
-        (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(
             fieldTriggers.enterDeadZone),
         hoardingState));
     /*
