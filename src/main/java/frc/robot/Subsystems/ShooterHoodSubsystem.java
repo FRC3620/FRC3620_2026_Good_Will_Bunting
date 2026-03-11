@@ -120,7 +120,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
         SmartDashboard.putNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
-
+        SmartDashboard.putNumber("frc3620/ShotCalculator/Ratio Over Min Velocity", 1.03);
+        SmartDashboard.putNumber("frc3620/ShooterHood/multiplier", 1);
         SmartDashboard.putData(this);
 
     }

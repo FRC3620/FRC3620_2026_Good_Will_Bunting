@@ -68,7 +68,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(1.0); // need to test this
+            rv = flyWheel.set(0.8); // need to test this
         } else {
             rv = idle();
         }
