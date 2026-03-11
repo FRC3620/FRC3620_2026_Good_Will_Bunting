@@ -549,7 +549,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-                  conveyerSubsystem.setDutyCycle(0.8)
+              conveyerSubsystem.setDutyCycle(0.8)
                   .alongWith(intakeAgitatorSubsystem.agitatorOn()));
     }
 
@@ -643,15 +643,15 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
 
-          SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
-              shooterSubsystem.sysIdDynamicForward());
-          SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
-              shooterSubsystem.sysIdDynamicReverse());
+      SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
+          shooterSubsystem.sysIdDynamicForward());
+      SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
+          shooterSubsystem.sysIdDynamicReverse());
 
-          SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
-              shooterSubsystem.sysIdQuasistaticForward());
-          SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
-              shooterSubsystem.sysIdQuasistaticReverse());
+      SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
+          shooterSubsystem.sysIdQuasistaticForward());
+      SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
+          shooterSubsystem.sysIdQuasistaticReverse());
 
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
@@ -664,7 +664,7 @@ public class RobotContainer implements RobotModeChangeListener {
                 swerveSubsystem.getKinematics(),
                 swerveSubsystem.getState(),
                 swerveSubsystem.getPigeon2().getRotation2d())))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))));
+            .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))));
       }
     }
 
@@ -784,12 +784,13 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
 
     NamedCommands.registerCommand("Cross Bump Backward",
-        new CrossBumpCommand(swerveSubsystem, drive, 2.5, 0.0, 0.0).withTimeout(3));
+        new CrossBumpCommand(swerveSubsystem, drive, 2.0, 0.0, 0.0).withTimeout(3));
     NamedCommands.registerCommand("Cross Bump Forward",
-        new CrossBumpCommand(swerveSubsystem, drive, -2.5, 0.0, 0.0).withTimeout(3));
+        new CrossBumpCommand(swerveSubsystem, drive, -2.0, 0.0, 0.0).withTimeout(3));
 
     NamedCommands.registerCommand("Intake Down",
-        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.OUT.getAngle()));
+        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.OUT.getAngle())
+            .alongWith(intakeRollerSubsystem.rollersOn()));
     NamedCommands.registerCommand("Intake Up",
         intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
 
@@ -806,8 +807,7 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
-        .alongWith(conveyerSubsystem.setDutyCycle(0.8))
-        .alongWith(intakeRollerSubsystem.rollersOn()));
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8)));
 
     NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
         new Translation2d(
@@ -829,18 +829,16 @@ public class RobotContainer implements RobotModeChangeListener {
                 swerveSubsystem.getState(),
                 swerveSubsystem.getPigeon2().getRotation2d()))))
         .alongWith(shooterSubsystem.createSetSpeedToTargetCommand(
-        new Translation3d(
-            Feet.of(15.17),
-            Feet.of(13.235),
-            Feet.of(6)),
-        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-            swerveSubsystem.getKinematics(),
-            swerveSubsystem.getState(),
-            swerveSubsystem.getPigeon2().getRotation2d()))))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))
-));
-
+            new Translation3d(
+                Feet.of(15.17),
+                Feet.of(13.235),
+                Feet.of(6)),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                swerveSubsystem.getKinematics(),
+                swerveSubsystem.getState(),
+                swerveSubsystem.getPigeon2().getRotation2d()))))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))));
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(

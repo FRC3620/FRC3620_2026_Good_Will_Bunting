@@ -13,6 +13,25 @@
                 "data": {
                   "commands": [
                     {
+                      "type": "race",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "wait",
+                            "data": {
+                              "waitTime": 1.0
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Intake Down"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
                       "type": "path",
                       "data": {
                         "pathName": "Shoot On The Fly RL"
@@ -38,12 +57,6 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.5
-                      }
-                    },
-                    {
                       "type": "named",
                       "data": {
                         "name": "Feed Shot"
@@ -57,12 +70,6 @@
                 "data": {
                   "name": "Initialize Shot"
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Down"
-                }
               }
             ]
           }
@@ -70,7 +77,7 @@
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": "Tests",
   "choreoAuto": false
 }
