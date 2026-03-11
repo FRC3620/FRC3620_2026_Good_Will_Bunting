@@ -7,31 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Bump Before"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Cross Bump Forwards"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Right Bump After to RN"
+            "pathName": "RB to RN"
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "RN to CN"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "CN to Right Bump After"
           }
         },
         {
@@ -66,13 +48,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Right Bump Before to Climb"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Feed Shot"
+                  "pathName": "CN to RC"
                 }
               }
             ]
