@@ -29,6 +29,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ShotCalculator {
 
+    public enum FieldTargets {
+        //EXACT CENTER OF HUB
+        BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
+        //TBD
+        OP_PASS(new Translation3d(Meters.of(8.2296), Meters.of(0), Meters.of(0.762))),
+        DEPOT_PASS(new Translation3d(Meters.of(5.4864), Meters.of(0), Meters.of(0.762)));      
+    }
+
     private static final double ratioOverMinVelocity = 1.03; // placeholder value
     private static final Translation3d turretOffset = new Translation3d(
         Meters.of(-0.1651), Meters.of(-0.15875), Meters.of(0.54864));
