@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.825939177101969,
-        "y": 2.8424329159212878
+        "x": 7.134221824686941,
+        "y": 3.183166368515206
       },
       "isLocked": false,
       "linkedName": "Right Bump Start"
@@ -20,8 +20,8 @@
         "y": 1.1417746228926342
       },
       "prevControl": {
-        "x": 6.27427549194991,
-        "y": 0.765581395348837
+        "x": 6.8989534883720935,
+        "y": 0.4410733452593911
       },
       "nextControl": null,
       "isLocked": false,
@@ -53,7 +53,7 @@
   "eventMarkers": [
     {
       "name": "Intake Down",
-      "waypointRelativePos": 0.22372881355932195,
+      "waypointRelativePos": 0.0,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
