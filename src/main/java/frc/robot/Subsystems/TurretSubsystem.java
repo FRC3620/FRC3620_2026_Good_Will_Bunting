@@ -21,6 +21,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -74,8 +75,13 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.13916015625);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.7958984375);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.15576171875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.8125);
+
+  private SlewRateLimiter turretLimiter = new SlewRateLimiter(180.0);
+  private Angle filteredTargetAngle = Degrees.of(0);
+  private double turretFilterAlpha = 1; // smoothing factor
+  private double turretTargetingOffset = 0;
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -91,7 +97,7 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(90, 0, 0, DegreesPerSecond.of(2500), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(2500), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Degrees.of(0), Degrees.of(360))
@@ -128,6 +134,8 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean(RERUN_SEED, false);
 
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset);
   }
 
   public Command createSetAngleCommand(Supplier<Angle> angle) {
@@ -169,8 +177,16 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
+      filteredTargetAngle = getAngle(); // Initialize filtered angle to current angle
       rv = createSetAngleCommand(
-          () -> ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity));
+          () -> {
+            Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
+            double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
+            turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
+            filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
+            Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
+            return filteredTargetAngle.plus(targetingOffsetAngle);
+          });
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }

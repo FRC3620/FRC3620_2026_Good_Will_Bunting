@@ -74,8 +74,8 @@ public class HealthSubsystem extends SubsystemBase {
   Health booleanSupplierHealth = Health.GOOD;
   Health circuitBreakerHealth = Health.GOOD;
 
-  @Override
-  public void periodic() {
+  //@Override
+  public void dont_periodic() {
     Health newHealth = Health.GOOD;
 
     // only need to do this once
