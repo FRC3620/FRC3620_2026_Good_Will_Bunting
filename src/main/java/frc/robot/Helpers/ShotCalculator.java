@@ -39,7 +39,7 @@ public class ShotCalculator {
 
     private static final double ratioOverMinVelocity = 1.03; // placeholder value
     private static final Translation3d turretOffset = new Translation3d(
-        Meters.of(-0.1651), Meters.of(-0.15875), Meters.of(0.54864));
+        Meters.of(-0.152), Meters.of(0.122), Meters.of(0.54864));
 
     public static Distance calculateBaseHDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPose) {
         Translation2d turretPosition = robotPose.get().getTranslation().plus(turretOffset.toTranslation2d().rotateBy(robotPose.get().getRotation()));
@@ -70,6 +70,7 @@ public class ShotCalculator {
     public static LinearVelocity calculateBaseExitVelocity(Translation3d targetPosition, Supplier<Pose2d> robotPose) {
         Distance hDistance = calculateBaseHDistanceToTarget(targetPosition.toTranslation2d(), robotPose);
         Distance deltaZ = targetPosition.getMeasureZ().minus(turretOffset.getMeasureZ());
+        double ratioOverMinVelocity = SmartDashboard.getNumber("frc3620/ShotCalculator/Ratio Over Min Velocity", 1.03); // empirically determined ratio to add to the minimum velocity to ensure the shot reaches the target, accounts for drag and other unmodeled factors
 
         LinearVelocity exitVelocity = FeetPerSecond.of(
             ratioOverMinVelocity
@@ -104,6 +105,7 @@ public class ShotCalculator {
         Distance hDistance = calculateBaseHDistanceToTarget(targetPosition.toTranslation2d(), robotPose);
         Distance deltaZ = targetPosition.getMeasureZ().minus(turretOffset.getMeasureZ());
         LinearVelocity exitVelocity = calculateBaseExitVelocity(targetPosition, robotPose);
+        double ratioAngle = SmartDashboard.getNumber("frc3620/ShooterHood/multiplier", 1);
 
         Angle highExitAngle = Radians.of(
             Math.atan2(
@@ -113,7 +115,7 @@ public class ShotCalculator {
                     - 32.2 * ((32.2 * hDistance.in(Feet) * hDistance.in(Feet)) + 2 * deltaZ.in(Feet) * exitVelocity.in(FeetPerSecond) * exitVelocity.in(FeetPerSecond)), 0.0))
                     , (32.2 * hDistance.in(Feet))
                 )
-            );
+            ).times(ratioAngle);
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/BaseHighExitAngleDeg", highExitAngle.in(Degrees));
         return highExitAngle;
@@ -127,6 +129,8 @@ public class ShotCalculator {
     public static VelocityVector calculateRobotVelocity(SwerveDriveKinematics kinematics,
             SwerveDriveState swerveStates, Rotation2d pigeoYaw) {
 
+                double xMultiplier = SmartDashboard.getNumber("frc3620/ShotCalculator/XVelocityMultipler", 1);
+                double yMultiplier = SmartDashboard.getNumber("frc3620/ShotCalculator/YVelocityMultipler", 1);
         // Gets the robot-relative speeds of the robot based on the current module
         // states
         ChassisSpeeds robotRelativeSpeeds = kinematics.toChassisSpeeds(swerveStates.ModuleStates);
@@ -136,8 +140,8 @@ public class ShotCalculator {
                 .fromRobotRelativeSpeeds(robotRelativeSpeeds, pigeoYaw);
 
         VelocityVector velocity = new VelocityVector(
-            FeetPerSecond.of(Feet.convertFrom(fieldRelativeSpeeds.vxMetersPerSecond, Meters)),
-            FeetPerSecond.of(Feet.convertFrom(fieldRelativeSpeeds.vyMetersPerSecond, Meters)));
+            FeetPerSecond.of(Feet.convertFrom(fieldRelativeSpeeds.vxMetersPerSecond, Meters)).times(xMultiplier),
+            FeetPerSecond.of(Feet.convertFrom(fieldRelativeSpeeds.vyMetersPerSecond, Meters)).times(yMultiplier));
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/RobotVelocityFtps", velocity.getNorm().in(FeetPerSecond));
         SmartDashboard.putNumber("frc3620/ShotCalculator/RobotVelocityXFtps", velocity.getX().in(FeetPerSecond));
