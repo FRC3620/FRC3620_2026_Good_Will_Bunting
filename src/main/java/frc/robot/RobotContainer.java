@@ -45,6 +45,7 @@ import org.usfirst.frc3620.Utilities;
 
 import java.util.EnumSet;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -320,72 +321,95 @@ public class RobotContainer implements RobotModeChangeListener {
       return;
     }
 
+   final Trigger fmsTriggersOff;
+
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
-    scoringState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot),
-      hoardingState));
-    scoringState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost),
-      hoardingState));
-    scoringState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone),
-      hoardingState));
-    scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      hoardingState));
+    SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", true);
+
+    SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
+    final BooleanSupplier useFMSTriggers = () -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
+
+    fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
+
+
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
+        scoringState));
 
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
-      outpostPassingState));
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
+        passingState));
     scoringState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
-      depotPassingState));
-    
-    hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      scoringState));
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        passingState));
 
-    hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralDepot),
-      depotPassingState));
-    hoardingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterNeutralOutpost),
-      outpostPassingState));
-  
-    outpostPassingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      hoardingState));
-    outpostPassingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterDeadZone),
-      hoardingState));
-    outpostPassingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      scoringState));
-    outpostPassingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone),
-      hoardingState));
-    outpostPassingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      scoringState));
+    //this might need to change
+    scoringState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
+        passingState));
+    scoringState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        passingState));
 
-    depotPassingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      hoardingState));
-    depotPassingState.addTransition(new StateTransition(
-      fmsTriggers.isInactivePeriod.and(fieldTriggers.enterDeadZone),
-      hoardingState));
-    depotPassingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      scoringState));
-    depotPassingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone),
-      hoardingState));
-    depotPassingState.addTransition(new StateTransition(
-      fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-      scoringState));
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
+        hoardingState));
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(
+            fieldTriggers.enterDeadZone),
+        hoardingState));
+    /*
+     * passingState.addTransition(new StateTransition(
+     * (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+     * fieldTriggers.enterOurAllianceZone),
+     * hoardingState));
+      */
+
+    /*
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterNeutralDepot),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterNeutralOutpost),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterDeadZone),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+     * fieldTriggers.enterOurAllianceZone),
+     * hoardingState));
+     */
+
+    /*
+     * scoringState.addTransition(new StateTransition(
+     * fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.
+     * climb),
+     * climbingState));
+     * 
+     * hoardingState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterOurAllianceZone),
+     * scoringState));
+     */
+    hoardingState.addTransition(new StateTransition(
+        (fieldTriggers.enterOpponentDepot),
+        passingState));
+    hoardingState.addTransition(new StateTransition(
+        (fieldTriggers.enterOpponentOutpost),
+        passingState));
+    hoardingState.addTransition(new StateTransition(
+        (fieldTriggers.enterNeutralDepot),
+        passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralOutpost,
+        passingState));
   }
 
   private void makeStateMachine() {
