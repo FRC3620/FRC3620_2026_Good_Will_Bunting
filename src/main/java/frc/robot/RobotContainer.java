@@ -544,6 +544,10 @@ public class RobotContainer implements RobotModeChangeListener {
      **********************************************************************************
      */
 
+    if (shooterHoodSubsystem != null && shooterSubsystem != null && turretSubsystem != null) {
+      SmartDashboard.putData("frc3620/Shoot/AUTO AIM COMMAND", new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+
+    }
     if (shooterSubsystem != null) {
       /*
        * SHOOTER SYSID
@@ -653,19 +657,6 @@ public class RobotContainer implements RobotModeChangeListener {
           new CrossBumpCommand(swerveSubsystem, drive, 0.5, 0.0, 0.0));
       SmartDashboard.putData("frc3620/CrossBumpForwardCommand",
           new CrossBumpCommand(swerveSubsystem, drive, -0.5, 0.0, 0.0));
-
-      if (swerveSubsystem != null) {
-        SmartDashboard.putData("frc3620/ShooterHood/AutoAim", shooterHoodSubsystem.createAutoAngleToTargetCommand(
-            new Translation3d(
-                Feet.of(15.17),
-                Feet.of(13.235),
-                Feet.of(6)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                swerveSubsystem.getKinematics(),
-                swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d()))));
-      }
     }
 
     if (intakeRollerSubsystem != null) {
@@ -686,17 +677,6 @@ public class RobotContainer implements RobotModeChangeListener {
           shooterSubsystem.sysIdQuasistaticForward());
       SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
           shooterSubsystem.sysIdQuasistaticReverse());
-
-      if (swerveSubsystem != null) {
-        SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
-            ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition(),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                swerveSubsystem.getKinematics(),
-                swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d())))
-            .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> ShotCalculator.calculatePreshooterSpeed())));
-      }
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -720,17 +700,6 @@ public class RobotContainer implements RobotModeChangeListener {
     if (turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Turret/DashboardControl",
           turretSubsystem.setAngleDashboardCommand().ignoringDisable(true));
-      if (swerveSubsystem != null) {
-        SmartDashboard.putData("frc3620/Turret/AutoAim", turretSubsystem.createSetAngleToTargetCommand(
-            new Translation2d(
-                Feet.of(15.17),
-                Feet.of(13.235)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                swerveSubsystem.getKinematics(),
-                swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d()))));
-      }
     }
 
     if (intakeAgitatorSubsystem != null) {
