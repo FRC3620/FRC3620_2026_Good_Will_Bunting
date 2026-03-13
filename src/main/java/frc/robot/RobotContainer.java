@@ -334,7 +334,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
 
-
+/*
     passingState.addTransition(new StateTransition(
         (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
         scoringState));
@@ -398,6 +398,7 @@ public class RobotContainer implements RobotModeChangeListener {
      * .enterOurAllianceZone),
      * scoringState));
      */
+    /*
     hoardingState.addTransition(new StateTransition(
         (fieldTriggers.enterOpponentDepot),
         passingState));
@@ -410,6 +411,8 @@ public class RobotContainer implements RobotModeChangeListener {
     hoardingState.addTransition(new StateTransition(
         fieldTriggers.enterNeutralOutpost,
         passingState));
+
+        */
   }
 
   private void makeStateMachine() {
