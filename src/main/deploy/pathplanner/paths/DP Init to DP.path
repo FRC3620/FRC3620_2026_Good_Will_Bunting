@@ -3,47 +3,35 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 4.473611357586512
+        "x": 1.8686830357142856,
+        "y": 5.594546130952381
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.078908606921029,
-        "y": 4.529946761313221
+        "x": 1.8556324404761906,
+        "y": 6.155721726190477
       },
       "isLocked": false,
-      "linkedName": "Left Center Neutral Collect"
+      "linkedName": "Depot Init"
     },
     {
       "anchor": {
-        "x": 5.75,
-        "y": 5.529
+        "x": 0.7934871339840279,
+        "y": 5.898092280390418
       },
       "prevControl": {
-        "x": 6.5477462289263535,
-        "y": 5.495696539485359
+        "x": 1.2161532738095238,
+        "y": 5.881659226190477
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Bump After"
+      "linkedName": "Depot"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Rollers Off",
-      "waypointRelativePos": 0,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Rollers Off"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 1.5,
     "maxAcceleration": 1.5,
@@ -53,11 +41,11 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 2.5,
-    "rotation": -135.0
+    "velocity": 0,
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Before and After Left Bump",
+  "folder": "Left Bump Start General",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

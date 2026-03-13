@@ -132,7 +132,7 @@
                           {
                             "type": "named",
                             "data": {
-                              "name": null
+                              "name": "Initialize Shot"
                             }
                           }
                         ]
