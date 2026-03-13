@@ -86,7 +86,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     JOSTLE_TOP(Degrees.of(45)),
     JOSTLE_BOTTOM(Degrees.of(57));
 
-    private final Angle angle;;
+    private final Angle angle;
 
     IntakeShoulderPositions(Angle a) {
       this.angle = a;

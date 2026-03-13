@@ -11,15 +11,18 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.AutoAimShooterCommand;
+import frc.robot.Helpers.ShotCalculator;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.SuperState;
 
-public class PassingState extends SuperState {
+public class OutpostPassingState extends SuperState {
 
 
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition());
     }
 
     @Override

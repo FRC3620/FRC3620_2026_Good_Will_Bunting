@@ -20,15 +20,20 @@
         "y": 1.1417746228926342
       },
       "prevControl": {
-        "x": 7.288154392191659,
-        "y": 0.047258207630877624
+        "x": 6.533881932021467,
+        "y": -0.2566189624329165
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Right Neutral Collect"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.8074866310160422,
+      "rotationDegrees": 90.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [
@@ -45,8 +50,8 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
-    "maxAcceleration": 2.5,
+    "maxVelocity": 2.0,
+    "maxAcceleration": 2.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
