@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.SuperState;
 
-public class PassingState extends SuperState {
+public class OutpostPassingState extends SuperState {
 
 
     @Override
