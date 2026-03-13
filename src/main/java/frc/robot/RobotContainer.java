@@ -45,6 +45,7 @@ import org.usfirst.frc3620.Utilities;
 
 import java.util.EnumSet;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Degrees;
@@ -71,7 +72,10 @@ import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.states.ClimbingState;
 import frc.robot.fsm.states.DeadeyeState;
+import frc.robot.fsm.states.DepotPassingState;
 import frc.robot.fsm.states.HoardingState;
+import frc.robot.fsm.states.OutpostPassingState;
+import frc.robot.fsm.states.OutpostPassingState;
 import frc.robot.fsm.states.ScoringState;
 import frc.robot.Subsystems.QuestNavSubsystem;
 // frc.robot.FSM.States;
@@ -111,10 +115,12 @@ public class RobotContainer implements RobotModeChangeListener {
   public final static TaggedLogger logger = LoggingMaster.getLogger(RobotContainer.class);
 
   // States
+  private OutpostPassingState outpostPassingState;
   private ScoringState scoringState;
   private ClimbingState climbingState;
   private DeadeyeState deadeyeState;
   private HoardingState hoardingState;
+  private DepotPassingState depotPassingState;
 
   private static StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
@@ -301,6 +307,8 @@ public class RobotContainer implements RobotModeChangeListener {
   }
 
   private void makeStates() {
+    outpostPassingState = new OutpostPassingState();
+    depotPassingState = new DepotPassingState();
     scoringState = new ScoringState();
     climbingState = new ClimbingState();
     deadeyeState = new DeadeyeState();
@@ -313,37 +321,99 @@ public class RobotContainer implements RobotModeChangeListener {
       return;
     }
 
+   final Trigger fmsTriggersOff;
+
     fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
     fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
+    SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", true);
+
+    SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
+    final BooleanSupplier useFMSTriggers = () -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
+
+    fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
+
+
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterOurAllianceZone),
+        scoringState));
+
     scoringState.addTransition(new StateTransition(
-        fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot),
-        hoardingState));
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
+        passingState));
     scoringState.addTransition(new StateTransition(
-        fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost),
-        hoardingState));
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        passingState));
+
+    //this might need to change
     scoringState.addTransition(new StateTransition(
-        fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone),
-        hoardingState));
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralOutpost),
+        passingState));
     scoringState.addTransition(new StateTransition(
-        fmsTriggers.isInactivePeriod.and(fieldTriggers.enterOurAllianceZone),
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterNeutralDepot),
+        passingState));
+
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isActivePeriod.or(fmsTriggersOff)).and(fieldTriggers.enterDeadZone),
         hoardingState));
+    passingState.addTransition(new StateTransition(
+        (fmsTriggers.isInactivePeriod.or(fmsTriggersOff)).and(
+            fieldTriggers.enterDeadZone),
+        hoardingState));
+    /*
+     * passingState.addTransition(new StateTransition(
+     * (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+     * fieldTriggers.enterOurAllianceZone),
+     * hoardingState));
+      */
+
+    /*
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterNeutralDepot),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterNeutralOutpost),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterDeadZone),
+     * hoardingState));
+     * scoringState.addTransition(new StateTransition(
+     * (fmsTriggers.isInactivePeriod.or(fmsTriggers.fmsTriggersOff)).and(
+     * fieldTriggers.enterOurAllianceZone),
+     * hoardingState));
+     */
 
     /*
      * scoringState.addTransition(new StateTransition(
      * fmsTriggers.isEndgame.and(fieldTriggers.enterClimbZone).and(buttonTriggers.
      * climb),
      * climbingState));
+     * 
+     * hoardingState.addTransition(new StateTransition(
+     * (fmsTriggers.isActivePeriod.or(fmsTriggers.fmsTriggersOff)).and(fieldTriggers
+     * .enterOurAllianceZone),
+     * scoringState));
      */
     hoardingState.addTransition(new StateTransition(
-        fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone),
-        scoringState));
-
+        (fieldTriggers.enterOpponentDepot),
+        passingState));
+    hoardingState.addTransition(new StateTransition(
+        (fieldTriggers.enterOpponentOutpost),
+        passingState));
+    hoardingState.addTransition(new StateTransition(
+        (fieldTriggers.enterNeutralDepot),
+        passingState));
+    hoardingState.addTransition(new StateTransition(
+        fieldTriggers.enterNeutralOutpost,
+        passingState));
   }
 
   private void makeStateMachine() {
-    stateMachine = new StateMachine(scoringState);
+    stateMachine = new StateMachine(outpostPassingState);
   }
 
   public static StateMachine getStateMachine() {
