@@ -655,16 +655,13 @@ public class RobotContainer implements RobotModeChangeListener {
 
       if (swerveSubsystem != null) {
         SmartDashboard.putData("frc3620/Shooter/AutoAim", shooterSubsystem.createSetSpeedToTargetCommand(
-            new Translation3d(
-                Feet.of(15.17),
-                Feet.of(13.235),
-                Feet.of(6)),
+            ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition(),
             () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
             () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                 swerveSubsystem.getKinematics(),
                 swerveSubsystem.getState(),
                 swerveSubsystem.getPigeon2().getRotation2d())))
-            .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))));
+            .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> ShotCalculator.calculatePreshooterSpeed())));
       }
     }
 

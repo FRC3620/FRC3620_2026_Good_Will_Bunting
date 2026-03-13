@@ -77,6 +77,7 @@ public class PreshooterSubsystem extends SubsystemBase {
             setDefaultCommand(idle());
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
+        SmartDashboard.putNumber("frc3620/ShotCalculator/PreShooterRatio", 1.0);
     }
 
     /*
