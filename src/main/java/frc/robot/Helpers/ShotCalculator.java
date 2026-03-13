@@ -31,10 +31,21 @@ public class ShotCalculator {
 
     public enum FieldTargets {
         //EXACT CENTER OF HUB
+
         BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
         //TBD
         OP_PASS(new Translation3d(Inches.of(90), Inches.of(60), Inches.of(0))),
-        DEPOT_PASS(new Translation3d(Inches.of(90), Inches.of(180), Inches.of(0)));      
+        DEPOT_PASS(new Translation3d(Inches.of(90), Inches.of(180), Inches.of(0)));     
+        
+        private final Translation3d targetPosition;
+
+        FieldTargets(Translation3d targetPosition) {
+            this.targetPosition = targetPosition;
+        }
+
+        public Translation3d getTargetPosition() {
+            return targetPosition;
+        }
     }
 
     private static final double ratioOverMinVelocity = 1.03; // placeholder value
