@@ -19,14 +19,14 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
     public AutoAimShooterCommand(Translation3d target) {
 
         Supplier<Pose2d> robotPose =
-            () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
+            () -> RobotContainer.swerveSubsystem.getState().Pose;
 
         Supplier<VelocityVector> robotVelocity =
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            () -> ShotCalculator.calculateRobotVelocity(
                 RobotContainer.swerveSubsystem.getKinematics(),
                 RobotContainer.swerveSubsystem.getState(),
                 RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()
-            ));
+            );
 
         addCommands(
 
@@ -49,7 +49,7 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
             ),
 
             RobotContainer.preshooterSubsystem.createSetVelocityCommand(
-                () -> RPM.of(700)
+                () -> ShotCalculator.calculatePreshooterSpeed()
             )
         );
     }
