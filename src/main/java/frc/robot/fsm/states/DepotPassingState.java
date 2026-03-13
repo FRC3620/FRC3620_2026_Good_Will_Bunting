@@ -16,13 +16,13 @@ import frc.robot.Helpers.ShotCalculator;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.SuperState;
 
-public class OutpostPassingState extends SuperState {
+public class DepotPassingState extends SuperState {
 
 
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
-        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition());
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition());
     }
 
     @Override
