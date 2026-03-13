@@ -1,5 +1,7 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -28,32 +30,26 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
         addCommands(
 
-            RobotContainer.intakeRollerSubsystem.rollersOn(),
-
-            RobotContainer.intakeShoulderSubsystem.createSetPositionCommand(
-                () -> IntakeShoulderSubsystem.IntakeShoulderPositions.OUT.getAngle()
-            ),
-
             RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                AllianceFlipUtil.apply(target.toTranslation2d()),
+                target.toTranslation2d(),
                 robotPose,
                 robotVelocity
             ),
 
             RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
                 target,
-                () -> AllianceFlipUtil.apply(robotPose.get()),
-                () -> AllianceFlipUtil.apply(robotVelocity.get())
+                robotPose,
+                robotVelocity
             ),
 
             RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
                 target,
-                () -> AllianceFlipUtil.apply(robotPose.get()),
-                () -> AllianceFlipUtil.apply(robotVelocity.get())
+                robotPose,
+                robotVelocity
             ),
 
             RobotContainer.preshooterSubsystem.createSetVelocityCommand(
-                () -> Units.RPM.of(2000)
+                () -> ShotCalculator.calculatePreshooterSpeed()
             )
         );
     }
