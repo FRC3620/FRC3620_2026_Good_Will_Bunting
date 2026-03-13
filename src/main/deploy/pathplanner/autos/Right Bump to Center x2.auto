@@ -90,13 +90,13 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "RB to RN"
+                        "pathName": "RB to RN close"
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "RN to CN"
+                        "pathName": "RN close to CN close"
                       }
                     },
                     {
@@ -106,7 +106,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "CN to RB"
+                              "pathName": "CN close to RB"
                             }
                           },
                           {
