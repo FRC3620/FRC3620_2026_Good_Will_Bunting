@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.122182596291013,
-        "y": 5.555292439372327
+        "x": 6.273258928571428,
+        "y": 4.713630952380952
       },
       "isLocked": false,
       "linkedName": "Left Bump Start"
@@ -20,8 +20,8 @@
         "y": 6.759219165927241
       },
       "prevControl": {
-        "x": 5.85437416695885,
-        "y": 5.827635713716114
+        "x": 7.06281994047619,
+        "y": 7.7217931547619045
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,29 +34,9 @@
       "rotationDegrees": -135.0
     }
   ],
-  "constraintZones": [
-    {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.0,
-      "maxWaypointRelativePos": 0.6833220796758945,
-      "constraints": {
-        "maxVelocity": 2.0,
-        "maxAcceleration": 2.5,
-        "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 720.0,
-        "nominalVoltage": 12.0,
-        "unlimited": false
-      }
-    }
-  ],
+  "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [
-    {
-      "name": "Rollers On",
-      "waypointRelativePos": 0.4496644295302018,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
     {
       "name": "Intake Down",
       "waypointRelativePos": 0.7919463087248321,
@@ -78,7 +58,7 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 1.5,
     "rotation": -90.0
   },
   "reversed": false,

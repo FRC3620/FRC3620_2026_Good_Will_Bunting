@@ -3,47 +3,35 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.46,
-        "y": 2.5
+        "x": 1.8686830357142856,
+        "y": 5.594546130952381
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.9523868677905942,
-        "y": 2.526015971606033
+        "x": 1.8556324404761906,
+        "y": 6.155721726190477
       },
       "isLocked": false,
-      "linkedName": "Right Bump Start"
+      "linkedName": "Depot Init"
     },
     {
       "anchor": {
-        "x": 1.0832120674356693,
-        "y": 2.5
+        "x": 0.7934871339840279,
+        "y": 5.898092280390418
       },
       "prevControl": {
-        "x": 2.1213930789707187,
-        "y": 2.330993788819876
+        "x": 1.2161532738095238,
+        "y": 5.881659226190477
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Climb"
+      "linkedName": "Depot"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Intake Up",
-      "waypointRelativePos": 0.9949664429530206,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Intake Up"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 1.5,
     "maxAcceleration": 1.5,
@@ -54,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Before and After Right Bump",
+  "folder": "Left Bump Start General",
   "idealStartingState": {
-    "velocity": 2.0,
-    "rotation": -47.0
+    "velocity": 0,
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
