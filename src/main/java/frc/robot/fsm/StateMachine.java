@@ -7,6 +7,7 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.fsm.states.IState;
 
@@ -14,18 +15,29 @@ public class StateMachine {
 
     public final static TaggedLogger logger = LoggingMaster.getLogger(StateMachine.class);
 
+    private boolean useStateMachine = true;
+
     private IState currentState;
 
     public StateMachine(IState initialState) {
-        if (DriverStation.isAutonomous()) {
-        }else{
+        if(!useStateMachine) {
+            if (DriverStation.isAutonomous()) {
+                this.currentState = initialState;
+            }else{
+                this.currentState = initialState;
+                this.currentState.onEnter();
+            }
+        } 
+        else 
+        {
             this.currentState = initialState;
-            this.currentState.onEnter();
         }
     }
 
     public void update() {
-        if(DriverStation.isAutonomous()) {
+        if (!useStateMachine) {
+            SmartDashboard.putString("FSM Current State", "DISABLED");
+        } else if(DriverStation.isAutonomous()) {
             SmartDashboard.putString("FSM Current State", "Running Auto");
         } else {
             currentState.execute();
@@ -37,9 +49,21 @@ public class StateMachine {
                 currentState.onEnter();
             }
         }
+        if(currentState != null) {
+            SmartDashboard.putBoolean("frc3620/StateMachine/useStateMachine?", useStateMachine);
+            SmartDashboard.putBoolean("frc3620/StateMachine/isActivePeriod", RobotContainer.fmsTriggers.isActivePeriod.getAsBoolean());
+        }
     }
 
     public IState getCurrentState() {
         return currentState;
+    }
+
+    public boolean isActive() {
+        return useStateMachine;
+    }
+
+    public void setActive(boolean active) {
+        this.useStateMachine = active;
     }
 }

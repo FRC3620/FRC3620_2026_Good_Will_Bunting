@@ -14,6 +14,7 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -31,7 +32,12 @@ public class ScoringState extends SuperState {
     @Override
     public void onEnter() {
         // Code to run when entering the Scoring state
-       new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition());
+        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycle(0.8);
+
+        CommandScheduler.getInstance().schedule(
+            conveyerOn.alongWith(
+            new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
+        ));
     }
 
     @Override

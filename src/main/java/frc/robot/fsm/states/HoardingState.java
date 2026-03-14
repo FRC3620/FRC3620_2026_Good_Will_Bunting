@@ -30,7 +30,7 @@ public class HoardingState extends SuperState {
     public void onEnter() {
         // Code to run when entering the Scoring state
 
-        Command conveyerOff = RobotContainer.conveyerSubsystem.setSpeed(() -> RPM.of(0.0));
+        Command conveyerOff = RobotContainer.conveyerSubsystem.setDutyCycle(0.0);
 
         CommandScheduler.getInstance().schedule(conveyerOff);
     
@@ -45,7 +45,6 @@ public class HoardingState extends SuperState {
     @Override
     public void onExit() {
         // Code to run when exiting the Scoring state
-
 
     }
 
