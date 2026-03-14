@@ -18,6 +18,7 @@ public class StateMachine {
 
     public StateMachine(IState initialState) {
         if (DriverStation.isAutonomous()) {
+            this.currentState = initialState;
         }else{
             this.currentState = initialState;
             this.currentState.onEnter();

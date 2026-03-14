@@ -35,8 +35,8 @@ public class ShotCalculator {
 
         BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
         //TBD
-        OP_PASS(new Translation3d(Inches.of(90), Inches.of(60), Inches.of(0))),
-        DEPOT_PASS(new Translation3d(Inches.of(90), Inches.of(180), Inches.of(0)));     
+        OP_PASS(new Translation3d(Inches.of(90), Inches.of(40), Inches.of(0))),
+        DEPOT_PASS(new Translation3d(Inches.of(90), Inches.of(280), Inches.of(0)));     
         
         private final Translation3d targetPosition;
 
