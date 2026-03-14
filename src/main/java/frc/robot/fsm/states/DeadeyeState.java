@@ -9,7 +9,9 @@ import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.SuperState;
@@ -35,5 +37,10 @@ public class DeadeyeState extends SuperState {
         // Code to run when exiting the Scoring state
 
 
+    }
+
+    @Override
+    public LEDPattern getLEDPattern() {
+        return LEDPattern.solid(Color.kAntiqueWhite);
     }
 }

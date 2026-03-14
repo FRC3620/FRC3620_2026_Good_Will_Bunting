@@ -13,7 +13,9 @@ import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -52,4 +54,8 @@ public class ScoringState extends SuperState {
 
     }
 
+    @Override
+    public LEDPattern getLEDPattern() {
+        return LEDPattern.solid(Color.kGreen);
+    }
 }

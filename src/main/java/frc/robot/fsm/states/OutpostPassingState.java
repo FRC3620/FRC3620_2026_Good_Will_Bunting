@@ -9,7 +9,9 @@ import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -43,6 +45,11 @@ public class OutpostPassingState extends SuperState {
     public void onExit() {
         // Code to run when exiting the Passing state
 
+    }
+
+    @Override
+    public LEDPattern getLEDPattern() {
+        return LEDPattern.solid(Color.kPink);
     }
 
 }
