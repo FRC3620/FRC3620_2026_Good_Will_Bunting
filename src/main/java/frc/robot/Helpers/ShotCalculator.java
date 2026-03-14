@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RevolutionsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.function.Supplier;
 
@@ -29,8 +30,31 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ShotCalculator {
 
+    public enum FieldTargets {
+        //EXACT CENTER OF HUB
+
+        BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
+        //TBD
+        OP_PASS(new Translation3d(Inches.of(90), Inches.of(40), Inches.of(0))),
+        DEPOT_PASS(new Translation3d(Inches.of(90), Inches.of(280), Inches.of(0)));     
+        
+        private final Translation3d targetPosition;
+
+        FieldTargets(Translation3d targetPosition) {
+            this.targetPosition = targetPosition;
+        }
+
+        public Translation3d getTargetPosition() {
+            return targetPosition;
+        }
+    }
+
+    private static final double ratioOverMinVelocity = 1.03; // placeholder value
     private static final Translation3d turretOffset = new Translation3d(
         Meters.of(-0.152), Meters.of(0.122), Meters.of(0.54864));
+
+    private static AngularVelocity shooterSpeed = RotationsPerSecond.of(0);
+    private static double preShooterRatio = 1.0;
 
     public static Distance calculateBaseHDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPose) {
         Translation2d turretPosition = robotPose.get().getTranslation().plus(turretOffset.toTranslation2d().rotateBy(robotPose.get().getRotation()));
@@ -236,6 +260,14 @@ public class ShotCalculator {
         AngularVelocity rpsBig = RevolutionsPerSecond.of(shotSpeed.in(FeetPerSecond) / wheelCircumference.in(Feet));
         AngularVelocity shooterRps = RevolutionsPerSecond.of(2 * rpsBig.in(RevolutionsPerSecond) / counterWeelRecibrocahl);
 
+        
+        shooterSpeed = shooterRps;
+
         return shooterRps;
+    }
+
+    public static AngularVelocity calculatePreshooterSpeed() {
+        preShooterRatio = SmartDashboard.getNumber("frc3620/ShotCalculator/PreShooterRatio", preShooterRatio);
+        return shooterSpeed.times(preShooterRatio);
     }
 }

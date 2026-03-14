@@ -1,7 +1,5 @@
 package frc.robot.fsm.states;
 
-import static edu.wpi.first.units.Units.RPM;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,42 +9,40 @@ import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
-import com.pathplanner.lib.config.RobotConfig;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.AutoAimShooterCommand;
 import frc.robot.RobotContainer;
-import frc.robot.Subsystems.ConveyerSubsystem;
+import frc.robot.Helpers.ShotCalculator;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.SuperState;
 
-public class HoardingState extends SuperState {
-
+public class OutpostPassingState extends SuperState {
 
 
     @Override
     public void onEnter() {
-        // Code to run when entering the Scoring state
+        // Code to run when entering the Passing state
+        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycle(0.8);
 
-        Command conveyerOff = RobotContainer.conveyerSubsystem.setDutyCycle(0.0);
-
-        CommandScheduler.getInstance().schedule(conveyerOff);
-    
+        CommandScheduler.getInstance().schedule(
+            conveyerOn.alongWith(
+                new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition())
+            ));
     }
 
     @Override
     public void execute() {
-        // Code to run while in the Scoring state
+        // Code to run while in the Passing state
 
     }
 
     @Override
     public void onExit() {
-        // Code to run when exiting the Scoring state
+        // Code to run when exiting the Passing state
 
     }
-
 
 }

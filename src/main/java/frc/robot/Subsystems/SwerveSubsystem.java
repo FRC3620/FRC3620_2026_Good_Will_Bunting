@@ -23,6 +23,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -283,6 +284,7 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
          * This ensures driving behavior doesn't change until an explicit disable event
          * occurs during testing.
          */
+
         if (!m_hasAppliedOperatorPerspective || DriverStation.isDisabled()) {
             DriverStation.getAlliance().ifPresent(allianceColor -> {
                 setOperatorPerspectiveForward(
@@ -291,6 +293,31 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
                                 : kBlueAlliancePerspectiveRotation);
                 m_hasAppliedOperatorPerspective = true;
             });
+        }
+
+        if (Utils.isSimulation()) {
+            var state = getStateCopy();
+            SmartDashboard.putBoolean("frc3620/Debug/SwerveSim", true);
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/RobotPoseX", state.Pose.getX());
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/RobotPoseY", state.Pose.getY());
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/RobotPoseYawDeg", state.Pose.getRotation().getDegrees());
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Vx", state.Speeds.vxMetersPerSecond);
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Vy", state.Speeds.vyMetersPerSecond);
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Omega", state.Speeds.omegaRadiansPerSecond);
+            SmartDashboard.putNumber("frc3620/Debug/SwerveSim/OdometryPeriodSec", state.OdometryPeriod);
+
+            for (int i = 0; i < state.ModulePositions.length; i++) {
+                SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Module" + i + "/DistanceMeters",
+                        state.ModulePositions[i].distanceMeters);
+                SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Module" + i + "/AngleDeg",
+                        state.ModulePositions[i].angle.getDegrees());
+            }
+            for (int i = 0; i < state.ModuleTargets.length; i++) {
+                SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Target" + i + "/Speed",
+                        state.ModuleTargets[i].speedMetersPerSecond);
+                SmartDashboard.putNumber("frc3620/Debug/SwerveSim/Target" + i + "/AngleDeg",
+                        state.ModuleTargets[i].angle.getDegrees());
+            }
         }
     }
 

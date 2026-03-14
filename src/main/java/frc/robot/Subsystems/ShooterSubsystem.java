@@ -81,9 +81,19 @@ public class ShooterSubsystem extends SubsystemBase {
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
-    rpmCorrectionMap.put(0, 0.0);
-    rpmCorrectionMap.put(9, 0.0);
+    rpmCorrectionMap.put(4, -55.0);
+    rpmCorrectionMap.put(5, -60.0);
+    rpmCorrectionMap.put(6, -60.0);
+    rpmCorrectionMap.put(7, -60.0);
+    rpmCorrectionMap.put(8, -67.0);
+    rpmCorrectionMap.put(9, -50.0);
+    rpmCorrectionMap.put(10, -36.0);
+    rpmCorrectionMap.put(11, -26.0);
+    rpmCorrectionMap.put(12, -55.0);
+    rpmCorrectionMap.put(13, -28.0);
     rpmCorrectionMap.put(14, 0.0);
+    rpmCorrectionMap.put(15, 0.0);
+    rpmCorrectionMap.put(16, 0.0);
     rpmCorrectionMap.put(17, 0.0);
     rpmCorrectionMap.put(18, 0.0);
 
