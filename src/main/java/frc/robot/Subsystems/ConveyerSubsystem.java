@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.ShotCalculator;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -46,7 +47,8 @@ public class ConveyerSubsystem extends SubsystemBase {
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
+                    HealthSubsystem.healthOptionsForYAMS);
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
                             0.1, // kP - tune this
@@ -103,17 +105,22 @@ public class ConveyerSubsystem extends SubsystemBase {
 
     public Command setSpeedDashboardCommand() {
         if (flyWheel != null) {
-            return setSpeed(() -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)))
-            .withName(telemetryPrefix + " Set Speed Dashboard");
+            return setSpeed(
+                    () -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)))
+                    .withName(telemetryPrefix + " Set Speed Dashboard");
         } else {
             return idle();
         }
     }
 
     public Command setDutyCycle(double dutyCycle) {
-        if (flyWheel != null) {
-            return flyWheel.set(dutyCycle);
-        } 
+        if (RobotContainer.turretSubsystem.atTarget().getAsBoolean() &&
+                RobotContainer.shooterSubsystem.atRPM().getAsBoolean() &&
+                RobotContainer.preshooterSubsystem.atRPM().getAsBoolean()) {
+            if (flyWheel != null) {
+                return flyWheel.set(dutyCycle);
+            }
+        }
         return idle();
     }
-} 
+}

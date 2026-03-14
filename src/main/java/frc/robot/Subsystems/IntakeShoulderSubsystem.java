@@ -81,7 +81,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private final Angle CALIBRATED_POS = Degrees.of(0.0); // place holders
 
   public enum IntakeShoulderPositions {
-    OUT(Degrees.of(88)),
+    OUT(Degrees.of(91)),
     IN(Degrees.of(0)),
     JOSTLE_TOP(Degrees.of(45)),
     JOSTLE_BOTTOM(Degrees.of(57));

@@ -13,6 +13,7 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -82,6 +83,10 @@ public class TurretSubsystem extends SubsystemBase {
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretFilterAlpha = 1; // smoothing factor
   private double turretTargetingOffset = 0;
+
+  private boolean atTarget = false;
+
+  private Angle targetAngle = Degrees.of(0);
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -183,11 +188,14 @@ public class TurretSubsystem extends SubsystemBase {
       rv = createSetAngleCommand(
           () -> {
             Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
-            double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
+            double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha",
+                turretFilterAlpha);
             turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
             filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
-            Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
-            return filteredTargetAngle.plus(targetingOffsetAngle);
+            Angle targetingOffsetAngle = Degrees.of(SmartDashboard
+                .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
+            targetAngle = filteredTargetAngle.plus(targetingOffsetAngle);
+            return targetAngle;
           });
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
@@ -340,6 +348,18 @@ public class TurretSubsystem extends SubsystemBase {
       SmartDashboard.putNumber(
           "Turret/CRT/Config/Reccomender/RecommendedIterations", pair.theoreticalIterations());
     }
+  }
+
+  public BooleanSupplier atTarget() {
+
+    Angle current = getAngle();
+    if (current.isNear(targetAngle, Degrees.of(2))) {
+      atTarget = true;
+    } else {
+      atTarget = false;
+    }
+
+    return () -> atTarget;
   }
 
   private static record AbsSensorRead(boolean ok, double absA, double absB, String status) {
