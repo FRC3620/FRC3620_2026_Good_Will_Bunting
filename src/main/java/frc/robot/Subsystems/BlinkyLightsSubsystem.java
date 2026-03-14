@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.Subsystems.HealthSubsystem.Health;
+import frc.robot.fsm.states.IState;
+import frc.robot.fsm.states.ScoringState;
 
 public class BlinkyLightsSubsystem extends SubsystemBase {
   int length = 38;
@@ -36,8 +38,10 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
   LEDPattern bad = LEDPattern.solid(Color.kRed);
   LEDPattern deathrow = base.blink(Seconds.of(0.5));
 
-  AddressableLEDBufferView m_health = m_buffer.createView(0, length / 2);
-  AddressableLEDBufferView m_driver = m_buffer.createView(length / 2 + 1, length - 1).reversed();
+  AddressableLEDBufferView m_healthLeft = m_buffer.createView(0, 4);
+  AddressableLEDBufferView m_healthRight = m_buffer.createView(34, length - 1);
+
+  AddressableLEDBufferView m_driver = m_buffer.createView(5, 33);
 
   /** Creates a new BlinkyLightsSubsystem. */
   public BlinkyLightsSubsystem() {
@@ -60,14 +64,17 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
       currentPattern = deathrow;
     }
     // Apply the LED pattern to the data buffer
-    currentPattern.applyTo(m_health);
+    currentPattern.applyTo(m_healthLeft);
+    currentPattern.applyTo(m_healthRight);
 
     RobotMode robotMode = Robot.getCurrentRobotMode();
-    if (robotMode == RobotMode.TELEOP) {
-      driverTeleop.applyTo(m_driver);
-    }
+    IState currentState = RobotContainer.getStateMachine().getCurrentState();
+
+    
     if (robotMode == RobotMode.DISABLED) {
       driverDisabled.applyTo(m_driver);
+    } else {
+      currentState.getLEDPattern().applyTo(m_driver);
     }
 
     // Write the data to the LED strip
