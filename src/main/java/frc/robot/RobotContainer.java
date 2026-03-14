@@ -333,11 +333,9 @@ public class RobotContainer implements RobotModeChangeListener {
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
     SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", true);
+    Trigger useFMSTriggers = new Trigger(() -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true));
 
-    SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
-    final BooleanSupplier useFMSTriggers = () -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true);
-
-    fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
+    fmsTriggersOff = new Trigger(useFMSTriggers.negate());
 
     SmartDashboard.putBoolean("frc3620/StateMachine/isActivePeriod?", fmsTriggers.isActivePeriod.getAsBoolean());
 
@@ -512,6 +510,8 @@ public class RobotContainer implements RobotModeChangeListener {
     Trigger teachShooterTriggerUnder = operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER);
     Trigger teachShooterTriggerOver = operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER);
 
+    Trigger toggleStateMachineTrigger = driverJoystick.button(OdoIdsFlySky.ButtonId.SWD);
+
     if (swerveSubsystem != null) {
       /*
        **********************************************************************************
@@ -536,6 +536,13 @@ public class RobotContainer implements RobotModeChangeListener {
      **********************************************************************************
      **********************************************************************************
      */
+    toggleStateMachineTrigger.onTrue(new InstantCommand(() -> {
+        stateMachine.setActive(false);
+        logger.info("State machine deactivated by button press");
+      })).onFalse(new InstantCommand(() -> {
+        stateMachine.setActive(true);
+        logger.info("State machine activated by button press");
+      }));
 
     if (shooterHoodSubsystem != null && shooterSubsystem != null && turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Shoot/AUTO AIM COMMAND",
@@ -581,8 +588,8 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-              conveyerSubsystem.setDutyCycle(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn()));
+              (conveyerSubsystem.setDutyCycle(0.8)
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -643,6 +650,7 @@ public class RobotContainer implements RobotModeChangeListener {
      **********************************************************************************
      **********************************************************************************
      */
+
     if (shooterHoodSubsystem != null) {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());

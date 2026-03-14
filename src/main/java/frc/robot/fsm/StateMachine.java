@@ -14,18 +14,27 @@ public class StateMachine {
 
     public final static TaggedLogger logger = LoggingMaster.getLogger(StateMachine.class);
 
+    private boolean useStateMachine = true;
+
     private IState currentState;
 
     public StateMachine(IState initialState) {
-        if (DriverStation.isAutonomous()) {
-            this.currentState = initialState;
-        }else{
-            this.currentState = initialState;
-            this.currentState.onEnter();
+        if(!useStateMachine) {
+            if (DriverStation.isAutonomous()) {
+                this.currentState = initialState;
+            }else{
+                this.currentState = initialState;
+                this.currentState.onEnter();
+            }
         }
     }
 
     public void update() {
+        if (!useStateMachine) {
+            SmartDashboard.putString("FSM Current State", "DISABLED");
+            return;
+        }
+
         if(DriverStation.isAutonomous()) {
             SmartDashboard.putString("FSM Current State", "Running Auto");
         } else {
@@ -42,5 +51,13 @@ public class StateMachine {
 
     public IState getCurrentState() {
         return currentState;
+    }
+
+    public boolean isActive() {
+        return useStateMachine;
+    }
+
+    public void setActive(boolean active) {
+        this.useStateMachine = active;
     }
 }
