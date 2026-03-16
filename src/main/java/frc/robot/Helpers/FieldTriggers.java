@@ -36,7 +36,7 @@ public class FieldTriggers {
 
                 // field areas
                 enterOurAllianceZone = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4.625594);
+                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4);
 
                 enterNeutralDepot = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
