@@ -403,33 +403,32 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone)),
         scoringState));
 
-    
     hoardingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone), 
+        fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone),
         scoringState));
     depotPassingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone), 
+        fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone),
         scoringState));
     outpostPassingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone), 
+        fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone),
         scoringState));
 
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralDepot), 
+        fmsTriggersOff.and(fieldTriggers.enterNeutralDepot),
         depotPassingState));
     hoardingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralDepot), 
+        fmsTriggersOff.and(fieldTriggers.enterNeutralDepot),
         depotPassingState));
-    
+
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralOutpost), 
+        fmsTriggersOff.and(fieldTriggers.enterNeutralOutpost),
         outpostPassingState));
     hoardingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterNeutralOutpost),
         outpostPassingState));
-    
+
     depotPassingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterDeadZone), 
+        fmsTriggersOff.and(fieldTriggers.enterDeadZone),
         hoardingState));
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDeadZone),
@@ -571,12 +570,12 @@ public class RobotContainer implements RobotModeChangeListener {
      **********************************************************************************
      */
     toggleStateMachineTrigger.onTrue(new InstantCommand(() -> {
-        stateMachine.setActive(false);
-        logger.info("State machine deactivated by button press");
-      })).onFalse(new InstantCommand(() -> {
-        stateMachine.setActive(true);
-        logger.info("State machine activated by button press");
-      }));
+      stateMachine.setActive(false);
+      logger.info("State machine deactivated by button press");
+    })).onFalse(new InstantCommand(() -> {
+      stateMachine.setActive(true);
+      logger.info("State machine activated by button press");
+    }));
 
     if (shooterHoodSubsystem != null && shooterSubsystem != null && turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Shoot/AUTO AIM COMMAND",
@@ -622,7 +621,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-              (conveyerSubsystem.setDutyCycle(0.8)
+              (conveyerSubsystem.setDutyCycleGated(0.8)
                   .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
     }
 
@@ -685,10 +684,10 @@ public class RobotContainer implements RobotModeChangeListener {
      **********************************************************************************
      */
 
-     if (questNavSubsystem.getQuestNavConnected() && questNavSubsystem.getQuestNavIsTracking()){
+    if (questNavSubsystem.getQuestNavConnected() && questNavSubsystem.getQuestNavIsTracking()) {
       SmartDashboard.putData("frc3620/QuestNav/Reset", new SetQuestNavPoseFromMegaTag1Command());
 
-     }
+    }
     if (shooterHoodSubsystem != null) {
       SmartDashboard.putData("frc3620/ShooterHood/Calibrate", shooterHoodSubsystem.calibrate());
       SmartDashboard.putData("frc3620/ShooterHood/DashboardControl", shooterHoodSubsystem.setAngleDashboardCommand());
@@ -862,11 +861,43 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())))
-        .alongWith(shooterHoodSubsystem.createSetAngleCommand(()->Degrees.of(30))
-        .alongWith(shooterSubsystem.createSetVelocityCommand(()->RPM.of(1200))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
-  }
+        .alongWith(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(30))
+            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
 
+    // These would be zoned events
+    NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
+        new Translation2d(
+            Feet.of(15.17),
+            Feet.of(13.235)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+
+    NamedCommands.registerCommand("Shoot", shooterSubsystem.createSetSpeedToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+
+    NamedCommands.registerCommand("Set Hood Angle", shooterHoodSubsystem.createAutoAngleToTargetCommand(
+        new Translation3d(
+            Feet.of(15.17),
+            Feet.of(13.235),
+            Feet.of(6)),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+            swerveSubsystem.getKinematics(),
+            swerveSubsystem.getState(),
+            swerveSubsystem.getPigeon2().getRotation2d()))));
+  }
 
   void sendSwerveSubsystemToHealthSubsystem() {
     var modules = swerveSubsystem.getModules();

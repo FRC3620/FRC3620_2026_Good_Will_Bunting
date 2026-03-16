@@ -19,6 +19,7 @@ import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.TreeMap;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -35,6 +36,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -77,6 +79,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private double learningRate = 0.25;
   private Distance bucketSize = Feet.of(1); // ft range for each bucket in the correction map
+
+  private boolean atRPM = false;
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
@@ -258,6 +262,7 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/Shooter/CorrectionMap/" + entry.getKey(),
             entry.getValue());
       }
+      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM().getAsBoolean());
       SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
           new Translation2d(
               Feet.of(15.17),
@@ -289,34 +294,34 @@ public class ShooterSubsystem extends SubsystemBase {
     return sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse);
   }
 
-private double getRPMCorrection(Distance distance) {
+  private double getRPMCorrection(Distance distance) {
 
-  if (rpmCorrectionMap.isEmpty()) {
-    return 0;
+    if (rpmCorrectionMap.isEmpty()) {
+      return 0;
+    }
+
+    Integer lowerKey = rpmCorrectionMap.floorKey(getBucket(distance));
+    Integer upperKey = rpmCorrectionMap.ceilingKey(getBucket(distance));
+
+    if (lowerKey == null)
+      return rpmCorrectionMap.get(upperKey);
+    if (upperKey == null)
+      return rpmCorrectionMap.get(lowerKey);
+
+    if (lowerKey.equals(upperKey)) {
+      return rpmCorrectionMap.get(lowerKey);
+    }
+
+    double lowerDist = lowerKey * bucketSize.in(Feet);
+    double upperDist = upperKey * bucketSize.in(Feet);
+
+    double lowerVal = rpmCorrectionMap.get(lowerKey);
+    double upperVal = rpmCorrectionMap.get(upperKey);
+
+    double t = (distance.in(Feet) - lowerDist) / (upperDist - lowerDist);
+
+    return lowerVal * (1 - t) + upperVal * t;
   }
-
-  Integer lowerKey = rpmCorrectionMap.floorKey(getBucket(distance));
-  Integer upperKey = rpmCorrectionMap.ceilingKey(getBucket(distance));
-
-  if (lowerKey == null)
-    return rpmCorrectionMap.get(upperKey);
-  if (upperKey == null)
-    return rpmCorrectionMap.get(lowerKey);
-
-  if (lowerKey.equals(upperKey)) {
-    return rpmCorrectionMap.get(lowerKey);
-  }
-
-  double lowerDist = lowerKey * bucketSize.in(Feet);
-  double upperDist = upperKey * bucketSize.in(Feet);
-
-  double lowerVal = rpmCorrectionMap.get(lowerKey);
-  double upperVal = rpmCorrectionMap.get(upperKey);
-
-  double t = (distance.in(Feet) - lowerDist) / (upperDist - lowerDist);
-
-  return lowerVal * (1 - t) + upperVal * t;
-}
 
   public void learnShot(Distance distance, double rpmAdjustment) {
 
@@ -341,5 +346,17 @@ private double getRPMCorrection(Distance distance) {
 
   private Integer getBucket(Distance distance) {
     return (int) Math.floor(distance.in(Feet) / bucketSize.in(Feet));
+  }
+
+  public BooleanSupplier atRPM() {
+
+    AngularVelocity current = getVelocity();
+    if (current.isNear(filteredRPM, RPM.of(100))) {
+      atRPM = true;
+    } else {
+      atRPM = false;
+    }
+
+    return () -> atRPM;
   }
 }

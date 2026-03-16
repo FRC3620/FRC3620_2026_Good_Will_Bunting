@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -79,6 +80,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     private Angle filteredTargetAngle = Degrees.of(0);
 
     Double requestedCalibrationPos = null;
+
+    private boolean atTarget = false;
 
     public ShooterHoodSubsystem() {
 
@@ -268,5 +271,17 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         }
                 .withName("Shooter Hood Calibration");
     }
+
+    public BooleanSupplier atTarget() {
+
+    Angle current = getAngle();
+    if (current.isNear(filteredTargetAngle, Degrees.of(5))) {
+      atTarget = true;
+    } else {
+      atTarget = false;
+    }
+
+    return () -> atTarget;
+  }
 
 }

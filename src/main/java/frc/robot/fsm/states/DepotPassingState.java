@@ -27,7 +27,7 @@ public class DepotPassingState extends SuperState {
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
-        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycle(0.8);
+        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
 
         CommandScheduler.getInstance().schedule(
             conveyerOn.alongWith(
