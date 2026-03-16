@@ -18,40 +18,33 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
     public AutoAimShooterCommand(Translation3d target) {
 
-        Supplier<Pose2d> robotPose =
-            () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
+        Supplier<Pose2d> robotPose = () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
 
-        Supplier<VelocityVector> robotVelocity =
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+        Supplier<VelocityVector> robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                 RobotContainer.swerveSubsystem.getKinematics(),
                 RobotContainer.swerveSubsystem.getState(),
-                RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()
-            ));
+                RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()));
 
         addCommands(
 
-            RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                target.toTranslation2d(),
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
+                        target.toTranslation2d(),
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
-                target,
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
+                        target,
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
-                target,
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
+                        target,
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.preshooterSubsystem.createSetVelocityCommand(
-                () -> RPM.of(700)
-            )
-        );
+                RobotContainer.preshooterSubsystem.createSetVelocityCommand(
+                        () -> RPM.of(700)),
+
+                RobotContainer.intakeAgitatorSubsystem.agitatorOn());
     }
 }
-
