@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -39,6 +40,9 @@ public class PreshooterSubsystem extends SubsystemBase {
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
+
+    private boolean atRPM = false;
+    final AngularVelocity CONSTANT_SPEED = RPM.of(700);
 
     public PreshooterSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
@@ -134,6 +138,10 @@ public class PreshooterSubsystem extends SubsystemBase {
         if (flyWheel != null) {
             flyWheel.simIterate();
         }
+    }
+
+    public AngularVelocity getVelocity(){
+        return flyWheel.getSpeed();
     }
 
 }

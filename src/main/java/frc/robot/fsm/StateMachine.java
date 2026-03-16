@@ -7,6 +7,7 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.fsm.states.IState;
 
@@ -26,16 +27,17 @@ public class StateMachine {
                 this.currentState = initialState;
                 this.currentState.onEnter();
             }
+        } 
+        else 
+        {
+            this.currentState = initialState;
         }
     }
 
     public void update() {
         if (!useStateMachine) {
             SmartDashboard.putString("FSM Current State", "DISABLED");
-            return;
-        }
-
-        if(DriverStation.isAutonomous()) {
+        } else if(DriverStation.isAutonomous()) {
             SmartDashboard.putString("FSM Current State", "Running Auto");
         } else {
             currentState.execute();
@@ -46,6 +48,10 @@ public class StateMachine {
                 currentState = nextState.get();
                 currentState.onEnter();
             }
+        }
+        if(currentState != null) {
+            SmartDashboard.putBoolean("frc3620/StateMachine/useStateMachine?", useStateMachine);
+            SmartDashboard.putBoolean("frc3620/StateMachine/isActivePeriod", RobotContainer.fmsTriggers.isActivePeriod.getAsBoolean());
         }
     }
 

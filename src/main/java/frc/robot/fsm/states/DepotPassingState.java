@@ -9,7 +9,9 @@ import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.logger.LogCommand;
 import org.usfirst.frc3620.logger.LoggingMaster;
 
+import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -25,7 +27,7 @@ public class DepotPassingState extends SuperState {
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
-        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycle(0.8);
+        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
 
         CommandScheduler.getInstance().schedule(
             conveyerOn.alongWith(
@@ -45,4 +47,8 @@ public class DepotPassingState extends SuperState {
 
     }
 
+        @Override
+    public LEDPattern getLEDPattern() {
+        return LEDPattern.solid(Color.kPurple);
+    }
 }

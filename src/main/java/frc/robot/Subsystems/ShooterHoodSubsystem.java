@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -80,6 +81,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     Double requestedCalibrationPos = null;
 
+    private boolean atTarget = false;
+
     public ShooterHoodSubsystem() {
 
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6,
@@ -136,6 +139,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             }
 
             pivot.updateTelemetry();
+
+            SmartDashboard.putBoolean("frc3620/ShooterHood/atTarget", atTarget().getAsBoolean());
+
             SmartDashboard.putNumber("frc3620/ShooterHood/Voltage", motorController.getVoltage().in(Volts));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Velocity Deg p SEc",
                     motorController.getMechanismVelocity().in(DegreesPerSecond));
@@ -268,5 +274,17 @@ public class ShooterHoodSubsystem extends SubsystemBase {
         }
                 .withName("Shooter Hood Calibration");
     }
+
+    public BooleanSupplier atTarget() {
+
+    Angle current = getAngle();
+    if (current.isNear(filteredTargetAngle, Degrees.of(5))) {
+      atTarget = true;
+    } else {
+      atTarget = false;
+    }
+
+    return () -> atTarget;
+  }
 
 }
