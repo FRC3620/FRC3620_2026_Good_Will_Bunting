@@ -50,7 +50,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
-                    .withControlMode(ControlMode.OPEN_LOOP)
+                    .withControlMode(ControlMode.CLOSED_LOOP)
+                    .withClosedLoopController(7.0, 0, 0, RPM.of(3000), RotationsPerSecondPerSecond.of(500))
                     .withMotorInverted(true);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
@@ -68,7 +69,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(0.8); // need to test this
+            rv = flyWheel.setSpeed(RPM.of(2500)); // need to test this
         } else {
             rv = idle();
         }
@@ -88,7 +89,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersBackwards() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(-0.8);
+            rv = flyWheel.setSpeed(RPM.of(-2500));
         } else {
             rv = idle();
         }
@@ -99,8 +100,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
-            SmartDashboard.putNumber("frc3620/ "+ telemetryPrefix + "/Intake Velocity", flyWheel.getSpeed().in(RPM));
-            SmartDashboard.putNumber("frc3620/ "+ telemetryPrefix + "/Intake DutyCycle", motorController.getDutyCycle());
+            SmartDashboard.putNumber("frc3620/"+ telemetryPrefix + "/Intake Velocity", flyWheel.getSpeed().in(RPM));
+            SmartDashboard.putNumber("frc3620/"+ telemetryPrefix + "/Intake DutyCycle", motorController.getDutyCycle());
         }
     }
 
