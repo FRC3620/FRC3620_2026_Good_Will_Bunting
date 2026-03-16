@@ -451,21 +451,34 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void configureSwerveButtonBindings() {
     swerveSubsystem.setDefaultCommand(
-        // Drivetrain will execute this command periodically
-        swerveSubsystem.applyRequest(
-            () -> drive
-                // Drive forward with negative Y (forward)
-                .withVelocityX(MathUtil.applyDeadband(
-                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.05) * MaxSpeed)
-                // Drive with negative X (left)
-                .withVelocityY(MathUtil.applyDeadband(
-                    -driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.05) * MaxSpeed) // Drive
-                // Drive counterclockwise with negative X (left) left
-                .withRotationalRate(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X)
-                    * MaxAngularRate))
-            .withName("Drive from Joysticks"));
+        swerveSubsystem.applyRequest(() -> {
 
-    // Idle while the robot is disabled. This ensures the configured
+          double reducedSpeedMultiplier = 0.5;
+
+          boolean overrideReducedSpeed = SmartDashboard.getBoolean("frc3620/Override Reduced Speed", false);;
+          // Base joystick inputs
+          double xInput = MathUtil
+              .applyDeadband(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_Y, OdoIdsXBox.AxisId.LEFT_Y), 0.05);
+          double yInput = MathUtil
+              .applyDeadband(-driverJoystick.getAxis(OdoIdsFlySky.AxisId.LEFT_X, OdoIdsXBox.AxisId.LEFT_X), 0.05);
+          double rotInput = -driverJoystick.getAxis(OdoIdsFlySky.AxisId.RIGHT_X, OdoIdsXBox.AxisId.RIGHT_X);
+
+          // Supplier for dynamic speed multiplier based on FSM state
+        
+
+         double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed) 
+            ? 0.5   // reduced speed in scoring
+            : 1.0;  // full speed otherwise
+
+          SmartDashboard.putBoolean("frc3620/Override Reduced Speed", overrideReducedSpeed);
+
+
+          // Apply scaled velocities
+          return drive
+              .withVelocityX(xInput * MaxSpeed * multiplier)
+              .withVelocityY(yInput * MaxSpeed * multiplier)
+              .withRotationalRate(rotInput * MaxAngularRate * multiplier);
+        }).withName("Drive from Joysticks")); // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
     final var idle = new SwerveRequest.Idle();
     RobotModeTriggers.disabled().whileTrue(
@@ -538,7 +551,6 @@ public class RobotContainer implements RobotModeChangeListener {
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWF) == 0.0);
     Trigger rollersBackwardsTrigger = new Trigger(
         () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWF) == -1.0);
-        
 
     Trigger teachShooterTriggerUnder = operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER);
     Trigger teachShooterTriggerOver = operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER);
@@ -851,10 +863,9 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
     NamedCommands.registerCommand("Initialize Shot",
-      new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
-    );
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
 
-      NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
+    NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
