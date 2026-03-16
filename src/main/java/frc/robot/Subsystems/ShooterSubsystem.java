@@ -262,6 +262,7 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/Shooter/CorrectionMap/" + entry.getKey(),
             entry.getValue());
       }
+      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM().getAsBoolean());
       SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
           new Translation2d(
               Feet.of(15.17),

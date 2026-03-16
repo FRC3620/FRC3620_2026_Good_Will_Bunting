@@ -144,16 +144,4 @@ public class PreshooterSubsystem extends SubsystemBase {
         return flyWheel.getSpeed();
     }
 
-    public BooleanSupplier atRPM() {
-
-    AngularVelocity current = getVelocity();
-    if (current.isNear(CONSTANT_SPEED, RPM.of(200))) {
-      atRPM = true;
-    } else {
-      atRPM = false;
-    }
-
-    return () -> atRPM;
-  }
-
 }

@@ -114,13 +114,18 @@ public class ConveyerSubsystem extends SubsystemBase {
     }
 
     public Command setDutyCycle(double dutyCycle) {
-        if (RobotContainer.turretSubsystem.atTarget().getAsBoolean() &&
-                RobotContainer.shooterSubsystem.atRPM().getAsBoolean() &&
-                RobotContainer.preshooterSubsystem.atRPM().getAsBoolean()) {
+        
             if (flyWheel != null) {
                 return flyWheel.set(dutyCycle);
             }
-        }
         return idle();
     }
+
+    public Command setDutyCycleGated(double dutyCycle){
+        return flyWheel.set(dutyCycle)
+            .onlyWhile(RobotContainer.shooterSubsystem.atRPM())
+            .onlyWhile(RobotContainer.turretSubsystem.atTarget())
+            .onlyWhile(RobotContainer.shooterHoodSubsystem.atTarget());
+    }
+
 }

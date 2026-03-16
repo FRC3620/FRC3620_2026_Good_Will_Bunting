@@ -235,6 +235,7 @@ public class TurretSubsystem extends SubsystemBase {
         attemptRotorSeedFromCANCoders();
       }
       pivot.updateTelemetry();
+      SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/AtTarget", atTarget().getAsBoolean());
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees", getAngle().in(Degrees));
       SmartDashboard.putNumber("Turret/CRT/CurrentPositionDeg",
           smartMotorController.getMechanismPosition().in(Degrees));
@@ -353,7 +354,7 @@ public class TurretSubsystem extends SubsystemBase {
   public BooleanSupplier atTarget() {
 
     Angle current = getAngle();
-    if (current.isNear(targetAngle, Degrees.of(2))) {
+    if (current.isNear(targetAngle, Degrees.of(10))) {
       atTarget = true;
     } else {
       atTarget = false;

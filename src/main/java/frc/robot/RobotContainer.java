@@ -620,7 +620,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-              (conveyerSubsystem.setDutyCycle(0.8)
+              (conveyerSubsystem.setDutyCycleGated(0.8)
                   .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
     }
 
