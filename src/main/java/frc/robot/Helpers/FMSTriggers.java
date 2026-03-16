@@ -11,8 +11,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class FMSTriggers {
 
     public final Trigger isActivePeriod;
-    public final Trigger isInactivePeriod;
+    public final Trigger startOfInactivePeriod;
     public final Trigger isEndgame;
+    public final Trigger aboutToBecomeActive;
+ //   public final Trigger almostActivePeriod;
     //public final Trigger fmsTriggersOff;
 
     public FMSTriggers() {
@@ -21,11 +23,15 @@ public class FMSTriggers {
         //SmartDashboard.putBoolean("triggers On", true);
 
         isActivePeriod = new Trigger(() -> HubTracker.isAllianceHubActive());
-        isInactivePeriod = isActivePeriod.negate();
+        aboutToBecomeActive =
+        new Trigger(() -> HubTracker.willAllianceBecomeActiveSoon());
+        startOfInactivePeriod = aboutToBecomeActive.negate().and(isActivePeriod.negate());
         isEndgame = new Trigger(() -> DriverStation.getMatchTime() <= 20);
+}
+      
 
        // fmsTriggersOff = new Trigger(() -> !useFMSTriggers.getAsBoolean());
 
     }
 
-}
+
