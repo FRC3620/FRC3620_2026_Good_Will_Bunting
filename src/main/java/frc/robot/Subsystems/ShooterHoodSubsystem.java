@@ -139,6 +139,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             }
 
             pivot.updateTelemetry();
+
+            SmartDashboard.putBoolean("frc3620/ShooterHood/atTarget", atTarget().getAsBoolean());
+
             SmartDashboard.putNumber("frc3620/ShooterHood/Voltage", motorController.getVoltage().in(Volts));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Velocity Deg p SEc",
                     motorController.getMechanismVelocity().in(DegreesPerSecond));
