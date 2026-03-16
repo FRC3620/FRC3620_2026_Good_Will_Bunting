@@ -533,11 +533,12 @@ public class RobotContainer implements RobotModeChangeListener {
     Trigger driverIntakeSwitch = driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
 
     Trigger rollersOnTrigger = new Trigger(
-        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == -1.0);
+        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWF) == 1.0);
     Trigger rollersOffTrigger = new Trigger(
-        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 0.0);
+        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWF) == 0.0);
     Trigger rollersBackwardsTrigger = new Trigger(
-        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWB) == 1.0);
+        () -> driverJoystick.getRawAxis(OdoIdsFlySky.AxisId.SWF) == -1.0);
+        
 
     Trigger teachShooterTriggerUnder = operatorJoystick.button(OdoIdsXBox.ButtonId.LEFT_BUMPER);
     Trigger teachShooterTriggerOver = operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER);
@@ -849,41 +850,12 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
-    NamedCommands.registerCommand("Initialize Shot", turretSubsystem.createSetAngleToTargetCommand(
-        new Translation2d(
-            Feet.of(15.17),
-            Feet.of(13.235)),
-        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-        () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-            swerveSubsystem.getKinematics(),
-            swerveSubsystem.getState(),
-            swerveSubsystem.getPigeon2().getRotation2d())))
-        .alongWith(shooterHoodSubsystem.createAutoAngleToTargetCommand(
-            new Translation3d(
-                Feet.of(15.17),
-                Feet.of(13.235),
-                Feet.of(6)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                swerveSubsystem.getKinematics(),
-                swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d()))))
-        .alongWith(shooterSubsystem.createSetSpeedToTargetCommand(
-            new Translation3d(
-                Feet.of(15.17),
-                Feet.of(13.235),
-                Feet.of(6)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                swerveSubsystem.getKinematics(),
-                swerveSubsystem.getState(),
-                swerveSubsystem.getPigeon2().getRotation2d()))))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))));
+    NamedCommands.registerCommand("Initialize Shot",
+      new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
+    );
 
-    NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
-        new Translation2d(
-            Feet.of(15.17),
-            Feet.of(13.235)),
+      NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
