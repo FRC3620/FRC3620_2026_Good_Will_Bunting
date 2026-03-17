@@ -54,7 +54,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
             config.Voltage.withPeakForwardVoltage(12 * 0.95);
             config.Voltage.withPeakReverseVoltage(-12 * 0.95);
-            config.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+            config.MotorOutput.withInverted(InvertedValue.Clockwise_Positive);
 
             motor.getConfigurator().apply(config);
             motor.setNeutralMode(NeutralModeValue.Brake);
@@ -95,7 +95,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     @Override
     public void periodic() {
         if (motor != null) {
-
+            SmartDashboard.putNumber("frc3620/IntakeRollers/Rotor Velocity RPS (about 2x drum speed)", motor.getVelocity().getValueAsDouble());
+            SmartDashboard.putNumber("frc3620/IntakeRollers/Supply Current Amps", motor.getSupplyCurrent().getValueAsDouble());
         }
     }
 
