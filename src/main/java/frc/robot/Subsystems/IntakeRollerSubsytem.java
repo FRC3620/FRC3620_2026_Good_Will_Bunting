@@ -45,13 +45,13 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))
-                    .withIdleMode(MotorMode.BRAKE)
+                    .withControlMode(ControlMode.CLOSED_LOOP)
+                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,36)))
+                    .withClosedLoopController(1.0, 0, 0, RPM.of(3000), RotationsPerSecondPerSecond.of(500))
+                    .withIdleMode(MotorMode.COAST)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
-                    .withControlMode(ControlMode.CLOSED_LOOP)
-                    .withClosedLoopController(7.0, 0, 0, RPM.of(3000), RotationsPerSecondPerSecond.of(500))
                     .withMotorInverted(true);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
@@ -60,7 +60,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
                     .withDiameter(Inch.of(1.5))
                     .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(2000))
+                    .withUpperSoftLimit(RPM.of(3000))
                     .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
         }
     }
@@ -79,7 +79,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersOff() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.set(0);
+            rv = flyWheel.setSpeed(RPM.of(0));
         } else {
             rv = idle();
         }

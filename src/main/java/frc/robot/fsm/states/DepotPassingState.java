@@ -28,10 +28,13 @@ public class DepotPassingState extends SuperState {
     public void onEnter() {
         // Code to run when entering the Passing state
         Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
+        Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
 
         CommandScheduler.getInstance().schedule(
-            conveyerOn.alongWith(
-                new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition())
+            new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition())
+            .alongWith(
+                conveyerOn,
+                agitatorOn
             ));
     }
 
