@@ -45,13 +45,13 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withControlMode(ControlMode.CLOSED_LOOP)
+                    .withControlMode(ControlMode.OPEN_LOOP)
                     .withGearing(new MechanismGearing(GearBox.fromTeeth(18,36)))
                     .withClosedLoopController(7.0, 0, 0, RPM.of(3000), RotationsPerSecondPerSecond.of(500))
-                    .withIdleMode(MotorMode.COAST)
+                    .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(40))
-                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withStatorCurrentLimit(Amps.of(30))
+                    .withSupplyCurrentLimit(Amps.of(30))
                     .withMotorInverted(true);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
@@ -69,7 +69,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(2500)); // need to test this
+            rv = flyWheel.set(0.9); // need to test this
         } else {
             rv = idle();
         }
@@ -79,7 +79,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersOff() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(0));
+            rv = flyWheel.set(0);
         } else {
             rv = idle();
         }
@@ -89,7 +89,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersBackwards() {
         Command rv;
         if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(-2500));
+            rv = flyWheel.set(-0.9);
         } else {
             rv = idle();
         }
