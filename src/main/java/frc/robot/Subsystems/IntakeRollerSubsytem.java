@@ -47,7 +47,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withControlMode(ControlMode.CLOSED_LOOP)
                     .withGearing(new MechanismGearing(GearBox.fromTeeth(18,36)))
-                    .withClosedLoopController(1.0, 0, 0, RPM.of(3000), RotationsPerSecondPerSecond.of(500))
+                    .withClosedLoopController(7.0, 0, 0, RPM.of(3000), RotationsPerSecondPerSecond.of(500))
                     .withIdleMode(MotorMode.COAST)
                     .withTelemetry("motor", TelemetryVerbosity.HIGH)
                     .withStatorCurrentLimit(Amps.of(40))
