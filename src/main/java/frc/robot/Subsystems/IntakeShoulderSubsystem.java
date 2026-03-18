@@ -106,7 +106,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withClosedLoopController(150.0, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
+          .withClosedLoopController(200.0, 0, 0, DegreesPerSecond.of(720), DegreesPerSecondPerSecond.of(720))
           .withFeedforward(new ArmFeedforward(0, 0.5, 0))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 34.0 / 22.0)))
           .withIdleMode(MotorMode.COAST)
