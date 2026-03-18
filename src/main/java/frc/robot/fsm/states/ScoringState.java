@@ -31,25 +31,28 @@ import frc.robot.fsm.SuperState;
 
 public class ScoringState extends SuperState {
 
+    Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
+    Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+
+    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
+            .alongWith(
+                    conveyerOn,
+                    agitatorOn);
+
     @Override
     public void onEnter() {
         // Code to run when entering the Scoring state
-        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
-        Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
-
-
-        CommandScheduler.getInstance().schedule(
-            new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
-            .alongWith(
-                conveyerOn,
-                agitatorOn)
-        );
+        CommandScheduler.getInstance().schedule(doEverythingCommand);
     }
 
     @Override
     public void execute() {
         // Code to run while in the Scoring state
 
+        if (!CommandScheduler.getInstance().isScheduled(doEverythingCommand) 
+        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != RobotContainer.intakeAgitatorSubsystem.agitatorBackwards()) {
+            CommandScheduler.getInstance().schedule(doEverythingCommand);
+        }
     }
 
     @Override
