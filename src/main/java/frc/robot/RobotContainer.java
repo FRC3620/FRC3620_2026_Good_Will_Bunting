@@ -549,7 +549,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     driverJoystick.button(OdoIdsFlySky.ButtonId.SWC, OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+            .alongWith(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
             .ignoringDisable(true));
   }
 
@@ -853,9 +853,9 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
 
     NamedCommands.registerCommand("CalibratePluh", 
-        shooterHoodSubsystem.setAngle(() -> Degrees.of(30)).alongWith(
+        shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(30)).alongWith(
         intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
-        )).withTimeout(5);
+        ).withTimeout(5));
 
     NamedCommands.registerCommand("Cross Bump Backward",
         new CrossBumpCommand(swerveSubsystem, drive, 2.0, 0.0, 0.0).withTimeout(3));
