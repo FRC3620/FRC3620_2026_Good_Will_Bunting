@@ -852,6 +852,11 @@ public class RobotContainer implements RobotModeChangeListener {
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
 
+    NamedCommands.registerCommand("CalibratePluh", 
+        shooterHoodSubsystem.setAngle(() -> Degrees.of(30)).alongWith(
+        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle())
+        )).withTimeout(5);
+
     NamedCommands.registerCommand("Cross Bump Backward",
         new CrossBumpCommand(swerveSubsystem, drive, 2.0, 0.0, 0.0).withTimeout(3));
     NamedCommands.registerCommand("Cross Bump Forward",
