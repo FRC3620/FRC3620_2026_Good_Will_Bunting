@@ -71,7 +71,6 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   boolean isCalibrated = false;
   boolean activeCalibrating = false;
-  private Command calibrationCommand;
 
   private final Voltage CALIBRATION_VOLTAGE = Volts.of(-2);
   private final double VELOCITY_THRESHOLD = 5.0;
@@ -149,8 +148,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     if (pivot != null) {
 
       if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
-        calibrationCommand = calibrate();
-        CommandScheduler.getInstance().schedule(calibrationCommand);
+        //nothing
       }
 
       pivot.updateTelemetry();
@@ -180,7 +178,11 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command createSetPositionCommand(Supplier<Angle> angle) {
     Command rv;
     if (pivot != null) {
-      rv = pivot.setAngle(angle);
+      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
+          rv = calibrate().andThen(pivot.setAngle(angle));
+      } else {
+        rv = pivot.setAngle(angle);
+      }
     } else {
       rv = idle();
     }
