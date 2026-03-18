@@ -35,11 +35,15 @@ public class ScoringState extends SuperState {
     public void onEnter() {
         // Code to run when entering the Scoring state
         Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
+        Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+
 
         CommandScheduler.getInstance().schedule(
-            conveyerOn.alongWith(
             new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
-        ));
+            .alongWith(
+                conveyerOn,
+                agitatorOn)
+        );
     }
 
     @Override

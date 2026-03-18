@@ -230,7 +230,7 @@ public class RobotContainer implements RobotModeChangeListener {
     // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
     // RPM.of(0)));
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.idle());
-    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.rollersOff());
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.idle());
     conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
     // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
     // Degrees.of(30)));
@@ -601,10 +601,11 @@ public class RobotContainer implements RobotModeChangeListener {
     toggleStateMachineTrigger.onTrue(new InstantCommand(() -> {
       stateMachine.setActive(false);
       logger.info("State machine deactivated by button press");
-    })).onFalse(new InstantCommand(() -> {
+    }).ignoringDisable(true))
+    .onFalse(new InstantCommand(() -> {
       stateMachine.setActive(true);
       logger.info("State machine activated by button press");
-    }));
+    }).ignoringDisable(true));
 
     if (shooterHoodSubsystem != null && shooterSubsystem != null && turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Shoot/AUTO AIM COMMAND",

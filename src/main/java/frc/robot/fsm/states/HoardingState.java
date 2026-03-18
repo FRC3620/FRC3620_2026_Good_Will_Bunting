@@ -33,8 +33,9 @@ public class HoardingState extends SuperState {
         // Code to run when entering the Scoring state
 
         Command conveyerOff = RobotContainer.conveyerSubsystem.setDutyCycle(0.0);
+        Command agitatorOff = RobotContainer.intakeAgitatorSubsystem.agitatorOff();
 
-        CommandScheduler.getInstance().schedule(conveyerOff);
+        CommandScheduler.getInstance().schedule(conveyerOff.alongWith(agitatorOff));
     
     }
 
