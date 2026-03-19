@@ -165,11 +165,13 @@ public class RobotContainer implements RobotModeChangeListener {
 
   // hardware here
   public static PowerDistribution powerDistribution;
+   public static Trigger useFMSTriggers = new Trigger(() -> false);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+    
     canDeviceFinder = new CANDeviceFinder();
     logger.info("CAN Devices = {}", canDeviceFinder.getDeviceSet());
 
@@ -322,7 +324,7 @@ public class RobotContainer implements RobotModeChangeListener {
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
     SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", true);
-    Trigger useFMSTriggers = new Trigger(() -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true));
+    useFMSTriggers = new Trigger(() -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true));
 
     fmsTriggersOff = new Trigger(useFMSTriggers.negate());
     fmsTriggersOn = new Trigger(useFMSTriggers);

@@ -9,20 +9,27 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import org.usfirst.frc3620.RobotMode;
 
+import com.fasterxml.jackson.databind.deser.DataFormatReaders.Match;
+
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.AddressableLEDBufferView;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Subsystems.HealthSubsystem.Health;
 import frc.robot.fsm.states.IState;
 import frc.robot.fsm.states.ScoringState;
 
 public class BlinkyLightsSubsystem extends SubsystemBase {
+
   int length = 38;
 
   AddressableLED m_led = new AddressableLED(9);
@@ -70,11 +77,22 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
     RobotMode robotMode = Robot.getCurrentRobotMode();
     IState currentState = RobotContainer.getStateMachine().getCurrentState();
 
-    
     if (robotMode == RobotMode.DISABLED) {
       driverDisabled.applyTo(m_driver);
     } else {
       currentState.getLEDPattern().applyTo(m_driver);
+    }
+    double matchTime = Timer.getMatchTime();
+    SmartDashboard.putNumber("Match Time", matchTime);
+    if (RobotContainer.useFMSTriggers.getAsBoolean() == true) {
+      if ((matchTime <= 110 && matchTime > 105) || (matchTime <= 85 && matchTime > 80) ||
+          (matchTime <= 60 && matchTime > 55) || (matchTime <= 35 && matchTime > 30)) {
+        currentPattern = currentPattern.blink(Seconds.of(0.5));
+        currentPattern.applyTo(m_driver);
+
+      }
+    } else {
+      currentPattern.applyTo(m_driver);
     }
 
     // Write the data to the LED strip
