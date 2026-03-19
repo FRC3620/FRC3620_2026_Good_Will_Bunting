@@ -662,10 +662,10 @@ public class RobotContainer implements RobotModeChangeListener {
               intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
       driverIntakeSwitch
-          .onTrue(
+          .whileTrue(
               intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle())
                   .withTimeout(3))
-          .onFalse(
+          .whileFalse(
               intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
     }
 
