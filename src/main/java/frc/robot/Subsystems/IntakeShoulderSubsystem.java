@@ -69,6 +69,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private SmartMotorController motorController = null;
   private Pivot pivot = null;
 
+  Command calibrationCommand;
   boolean isCalibrated = false;
   boolean activeCalibrating = false;
 
@@ -109,7 +110,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
           .withFeedforward(new ArmFeedforward(0, 0.5, 0))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 34.0 / 22.0)))
           .withIdleMode(MotorMode.COAST)
-          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
+          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.LOW)
           .withStatorCurrentLimit(Amps.of(40))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
@@ -140,15 +141,16 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         .withHardLimit(softLimit, softLimit.plus(Degrees.of(369)))
         .withMOI(Inches.of(25), Pound.of(1))
         // Telemetry
-        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+        .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
   }
 
   @Override
   public void periodic() {
     if (pivot != null) {
 
-      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
-        //nothing
+      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation() && DriverStation.isTeleopEnabled()) {
+        calibrationCommand = calibrate();
+        CommandScheduler.getInstance().schedule(calibrationCommand);
       }
 
       pivot.updateTelemetry();
@@ -178,11 +180,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command createSetPositionCommand(Supplier<Angle> angle) {
     Command rv;
     if (pivot != null) {
-      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
-          rv = calibrate().andThen(pivot.setAngle(angle));
-      } else {
-        rv = pivot.setAngle(angle);
-      }
+      rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(angle));
     } else {
       rv = idle();
     }

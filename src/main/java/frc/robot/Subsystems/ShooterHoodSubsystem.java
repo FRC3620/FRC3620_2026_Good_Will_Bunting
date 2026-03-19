@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -101,7 +102,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     .withMotorInverted(true)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     // .withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
                     // .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
@@ -133,9 +134,10 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public void periodic() {
         if (pivot != null) {
 
-            if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation()) {
-                //nothing
-            }
+        if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation() && DriverStation.isTeleopEnabled()) {
+            calibrationCommand = calibrate();
+            CommandScheduler.getInstance().schedule(calibrationCommand);
+        }
 
             pivot.updateTelemetry();
 
@@ -160,7 +162,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
                 .withStartingPosition(startingAngle)
                 .withMOI(Inches.of(55.7), Pound.of(1))
-                .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+                .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
     }
 
     @Override
@@ -173,11 +175,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public Command createSetAngleCommand(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
-            if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation()) {
-               rv = calibrate().andThen(pivot.setAngle(angle));
-            } else {
-                rv = pivot.setAngle(angle);
-            }
+            rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(angle));
         } else {
             rv = idle();
         }

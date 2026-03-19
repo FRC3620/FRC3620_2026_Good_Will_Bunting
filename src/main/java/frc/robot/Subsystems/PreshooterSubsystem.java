@@ -62,7 +62,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
                     .withIdleMode(MotorMode.COAST)
                     .withMotorInverted(true)
-                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP)
@@ -76,7 +76,7 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(2))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(100000))
-                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
 
             setDefaultCommand(idle());
         }
