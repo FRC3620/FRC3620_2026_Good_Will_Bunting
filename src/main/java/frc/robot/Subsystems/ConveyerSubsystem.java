@@ -59,7 +59,7 @@ public class ConveyerSubsystem extends SubsystemBase {
                     .withMotorInverted(false)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.HIGH)
+                    .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP);
@@ -69,7 +69,7 @@ public class ConveyerSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(4))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(7000))
-                    .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.HIGH);
+                    .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.LOW);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);

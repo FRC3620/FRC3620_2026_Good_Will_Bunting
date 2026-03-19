@@ -185,7 +185,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
         || RobotContainer.shouldMakeAllCANDevices()) {
       powerDistribution = new PowerDistribution(1, ModuleType.kRev);
-      DogLog.setPdh(powerDistribution);
+      //DogLog.setPdh(powerDistribution);
     }
 
     makeJoysticks();

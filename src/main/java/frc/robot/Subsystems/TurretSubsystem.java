@@ -109,7 +109,7 @@ public class TurretSubsystem extends SubsystemBase {
           .withIdleMode(MotorMode.BRAKE)
           .withMotorInverted(true)
           // Setup Telemetry
-          .withTelemetry("motor", TelemetryVerbosity.HIGH)
+          .withTelemetry("motor", TelemetryVerbosity.LOW)
           // Power Optimization
           .withStatorCurrentLimit(Amps.of(40))
           .withClosedLoopRampRate(Seconds.of(0.25))
@@ -127,7 +127,7 @@ public class TurretSubsystem extends SubsystemBase {
           .withHardLimit(Degrees.of(-280), Degrees.of(118))
           .withSoftLimits(Degrees.of(-280), Degrees.of(118))
           // Telemetry
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
           // MOI Calculation
           .withMOI(Meters.of(0.25), Pounds.of(2)));
 
