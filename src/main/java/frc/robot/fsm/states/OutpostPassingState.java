@@ -26,6 +26,7 @@ public class OutpostPassingState extends SuperState {
 
     Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
     Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+    Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
 
         Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition())
             .alongWith(
@@ -42,7 +43,7 @@ public class OutpostPassingState extends SuperState {
     public void execute() {
         // Code to run while in the Passing state
         if (!CommandScheduler.getInstance().isScheduled(doEverythingCommand) 
-        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != RobotContainer.intakeAgitatorSubsystem.agitatorBackwards()) {
+        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != agitatorBack) {
             CommandScheduler.getInstance().schedule(doEverythingCommand);
         }
     }

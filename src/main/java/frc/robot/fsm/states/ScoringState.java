@@ -33,24 +33,24 @@ public class ScoringState extends SuperState {
 
     Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
     Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+    Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
 
-    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
+        Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
             .alongWith(
                     conveyerOn,
                     agitatorOn);
-
     @Override
     public void onEnter() {
-        // Code to run when entering the Scoring state
+        // Code to run when entering the Passing state
+
         CommandScheduler.getInstance().schedule(doEverythingCommand);
     }
 
     @Override
     public void execute() {
-        // Code to run while in the Scoring state
-
+        // Code to run while in the Passing state
         if (!CommandScheduler.getInstance().isScheduled(doEverythingCommand) 
-        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != RobotContainer.intakeAgitatorSubsystem.agitatorBackwards()) {
+        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != agitatorBack) {
             CommandScheduler.getInstance().schedule(doEverythingCommand);
         }
     }
