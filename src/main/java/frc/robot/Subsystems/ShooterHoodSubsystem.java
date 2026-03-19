@@ -95,7 +95,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
             shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
+                    HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
@@ -134,7 +135,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public void periodic() {
         if (pivot != null) {
 
-        if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation() && DriverStation.isTeleopEnabled()) {
+        if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation()) {
             calibrationCommand = calibrate();
             CommandScheduler.getInstance().schedule(calibrationCommand);
         }
@@ -183,6 +184,18 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     }
 
+    public Command createSetAngleCommandGated(Supplier<Angle> angle) {
+        Command rv;
+        if (pivot != null) {
+            rv = Commands.waitUntil(() -> isCalibrated).andThen(Commands.none())
+                    .andThen(createSetAngleCommand(angle).asProxy());
+        } else {
+            rv = idle();
+        }
+        return rv.withName("Shooter Hood setAngle");
+
+    }
+
     public Angle getAngle() {
         if (pivot != null) {
             return pivot.getAngle();
@@ -193,22 +206,25 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     public Command setAngleDashboardCommand() {
-        return createSetAngleCommand(() -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30))).withName("Shooter Hood setAngle Dashboard");
+        return createSetAngleCommandGated(
+                () -> Degrees.of(SmartDashboard.getNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30)))
+                .withName("Shooter Hood setAngle Dashboard");
     }
 
-    public Command createAutoAngleToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition, Supplier<VelocityVector> robotVelocity) {
+    public Command createAutoAngleToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
+            Supplier<VelocityVector> robotVelocity) {
         if (pivot == null)
             return idle();
-            
+
         filteredTargetAngle = getAngle(); // Initialize filtered angle to current angle
-        return createSetAngleCommand(
-            () -> {
-                Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity);
-                double alpha = SmartDashboard.getNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
-                alpha = MathUtil.clamp(alpha, 0.0, 1.0);
-                filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
-                return filteredTargetAngle;
-            }).withName("Shooter Hood Auto Angle To Target");
+        return createSetAngleCommandGated(
+                () -> {
+                    Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity);
+                    double alpha = SmartDashboard.getNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
+                    alpha = MathUtil.clamp(alpha, 0.0, 1.0);
+                    filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
+                    return filteredTargetAngle;
+                }).withName("Shooter Hood Auto Angle To Target");
     }
 
     public Command calibrate() {
@@ -251,22 +267,22 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     return false;
 
                 SmartDashboard.putBoolean("frc3620/ShooterHood/ShouldFinish",
-                        (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
+                        stallStartTime > STALL_TIME_SECONDS);
                 return (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS;
             }
 
             public void end(boolean interrupted) {
                 motorController.setDutyCycle(0);
                 activeCalibrating = false;
-                
+
                 SmartDashboard.putBoolean("SHOOTER HOOD END RAN", true);
-                
-                if(!interrupted) {
+
+                if (!interrupted) {
                     motorController.setEncoderPosition(HOOD_CALIBRATED_POS);
                     motorController.startClosedLoopController();
-    
+
                     motorController.setPosition(HOOD_CALIBRATED_POS);
-    
+
                     isCalibrated = true;
 
                 }
