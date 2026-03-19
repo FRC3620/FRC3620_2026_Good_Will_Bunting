@@ -38,6 +38,17 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
+      "name": "CalibratePluh",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "CalibratePluh"
+        }
+      }
+    },
+    {
       "name": "Intake Down",
       "waypointRelativePos": 0.4753544902093181,
       "endWaypointRelativePos": null,
@@ -65,7 +76,7 @@
   "folder": "Left Bump Start General",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -46.909152432996386
+    "rotation": -46.90915243299639
   },
   "useDefaultConstraints": false
 }

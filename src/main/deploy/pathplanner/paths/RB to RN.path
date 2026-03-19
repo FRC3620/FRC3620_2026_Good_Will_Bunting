@@ -38,8 +38,19 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
+      "name": "CalibratePluh",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "CalibratePluh"
+        }
+      }
+    },
+    {
       "name": "Intake Down",
-      "waypointRelativePos": 0.0,
+      "waypointRelativePos": 0.3160027008777871,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
