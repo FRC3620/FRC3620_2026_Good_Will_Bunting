@@ -536,7 +536,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     driverJoystick.button(OdoIdsFlySky.ButtonId.SWC, OdoIdsXBox.ButtonId.X)
         .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-            .andThen(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
+            .alongWith(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
             .ignoringDisable(true));
   }
 
@@ -599,7 +599,7 @@ public class RobotContainer implements RobotModeChangeListener {
           new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
 
       SmartDashboard.putData("frc3620/Shoot/DeadReckonShotHub",
-          shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(30))
+          shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
               .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200)))
               .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000)))
               .alongWith(turretSubsystem.createSetAngleCommand(() -> Degrees.of(180))));
@@ -852,16 +852,21 @@ public class RobotContainer implements RobotModeChangeListener {
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
 
+    NamedCommands.registerCommand("CalibratePluh", 
+        shooterHoodSubsystem.calibrate().alongWith(
+        intakeShoulderSubsystem.calibrate()
+        ).withTimeout(1));
+
     NamedCommands.registerCommand("Cross Bump Backward",
         new CrossBumpCommand(swerveSubsystem, drive, 2.0, 0.0, 0.0).withTimeout(3));
     NamedCommands.registerCommand("Cross Bump Forward",
         new CrossBumpCommand(swerveSubsystem, drive, -2.0, 0.0, 0.0).withTimeout(3));
 
     NamedCommands.registerCommand("Intake Down",
-        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.OUT.getAngle())
+        intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.OUT.getAngle())
             .alongWith(intakeRollerSubsystem.rollersOn()));
     NamedCommands.registerCommand("Intake Up",
-        intakeShoulderSubsystem.createSetPositionCommand(() -> IntakeShoulderPositions.IN.getAngle()));
+        intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.IN.getAngle()));
 
     NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.rollersOn());
     NamedCommands.registerCommand("Rollers Off", intakeRollerSubsystem.rollersOff());
@@ -890,9 +895,9 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())))
-        .alongWith(shooterHoodSubsystem.createSetAngleCommand(() -> Degrees.of(30))
-            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
+        .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(()->Degrees.of(30))
+        .alongWith(shooterSubsystem.createSetVelocityCommand(()->RPM.of(1200))
+        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(

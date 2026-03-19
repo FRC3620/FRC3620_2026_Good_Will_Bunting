@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 7.795173025732032,
-        "y": 4.473611357586512
+        "y": 4.274365192582025
       },
       "prevControl": null,
       "nextControl": {
         "x": 7.078908606921029,
-        "y": 4.529946761313221
+        "y": 4.330700596308734
       },
       "isLocked": false,
       "linkedName": "Left Center Neutral Collect"

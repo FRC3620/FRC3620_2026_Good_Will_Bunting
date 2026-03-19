@@ -48,7 +48,7 @@
   "folder": "Before and After Left Bump",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -135.0
+    "rotation": -46.909152432996386
   },
   "useDefaultConstraints": true
 }
