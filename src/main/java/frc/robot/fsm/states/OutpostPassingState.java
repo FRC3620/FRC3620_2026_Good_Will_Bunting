@@ -24,25 +24,28 @@ import frc.robot.fsm.SuperState;
 public class OutpostPassingState extends SuperState {
 
 
+    Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
+    Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+    Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
+
+        Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition())
+            .alongWith(
+                    conveyerOn,
+                    agitatorOn);
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
-        Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
-        Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
 
-
-        CommandScheduler.getInstance().schedule(
-            new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition())
-            .alongWith(
-                conveyerOn,
-                agitatorOn
-            ));
+        CommandScheduler.getInstance().schedule(doEverythingCommand);
     }
 
     @Override
     public void execute() {
         // Code to run while in the Passing state
-
+        if (!CommandScheduler.getInstance().isScheduled(doEverythingCommand) 
+        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != agitatorBack) {
+            CommandScheduler.getInstance().schedule(doEverythingCommand);
+        }
     }
 
     @Override

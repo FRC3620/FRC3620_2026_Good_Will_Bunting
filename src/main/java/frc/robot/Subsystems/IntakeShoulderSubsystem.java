@@ -148,7 +148,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     if (pivot != null) {
 
-      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
+      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation() && DriverStation.isTeleopEnabled()) {
         calibrationCommand = calibrate();
         CommandScheduler.getInstance().schedule(calibrationCommand);
       }
@@ -180,7 +180,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command createSetPositionCommand(Supplier<Angle> angle) {
     Command rv;
     if (pivot != null) {
-      rv = pivot.setAngle(angle);
+      rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(angle));
     } else {
       rv = idle();
     }
