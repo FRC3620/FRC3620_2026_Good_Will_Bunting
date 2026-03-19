@@ -101,7 +101,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     .withMotorInverted(true)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("ShooterHoodMotor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     // .withFeedforward(new ArmFeedforward(0.5, 0.2, 0.5, 0))
                     // .withMechanismCircumference(Inches.of(20.5).times(Math.PI))
@@ -161,7 +161,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
                 .withStartingPosition(startingAngle)
                 .withMOI(Inches.of(55.7), Pound.of(1))
-                .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+                .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
     }
 
     @Override

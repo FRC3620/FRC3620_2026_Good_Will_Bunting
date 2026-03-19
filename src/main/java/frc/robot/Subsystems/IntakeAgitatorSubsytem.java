@@ -47,7 +47,7 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))// need to verify gearing here
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.OPEN_LOOP)
@@ -60,7 +60,7 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
                     .withDiameter(Inch.of(1.5))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(2000))
-                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
         }
     }
 
