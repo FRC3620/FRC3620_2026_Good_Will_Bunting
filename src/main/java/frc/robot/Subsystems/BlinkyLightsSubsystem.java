@@ -61,39 +61,43 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
     // Create an LED pattern that sets the entire strip to solid red
     Health currentHealth = RobotContainer.healthSubsystem.getCurrentHealth();
-    LEDPattern currentPattern = good;
+    LEDPattern healthCurrentPattern = good;
+    LEDPattern driverCurrentPattern = good;
 
     if (currentHealth == Health.MEDIOCRE) {
-      currentPattern = mediocre;
+      healthCurrentPattern = mediocre;
     } else if (currentHealth == Health.BAD) {
-      currentPattern = bad;
+      healthCurrentPattern = bad;
     } else if (currentHealth == Health.DEATHROW) {
-      currentPattern = deathrow;
+      healthCurrentPattern = deathrow;
     }
     // Apply the LED pattern to the data buffer
-    currentPattern.applyTo(m_healthLeft);
-    currentPattern.applyTo(m_healthRight);
+    healthCurrentPattern.applyTo(m_healthLeft);
+    healthCurrentPattern.applyTo(m_healthRight);
 
     RobotMode robotMode = Robot.getCurrentRobotMode();
     IState currentState = RobotContainer.getStateMachine().getCurrentState();
 
     if (robotMode == RobotMode.DISABLED) {
-      driverDisabled.applyTo(m_driver);
+      driverCurrentPattern = driverDisabled;
     } else {
-      currentState.getLEDPattern().applyTo(m_driver);
+      driverCurrentPattern = currentState.getLEDPattern();
     }
     double matchTime = Timer.getMatchTime();
     SmartDashboard.putNumber("Match Time", matchTime);
     if (RobotContainer.useFMSTriggers.getAsBoolean() == true) {
-      if ((matchTime <= 110 && matchTime > 105) || (matchTime <= 85 && matchTime > 80) ||
+      if 
+          ((matchTime <= 115 && matchTime > 110) || (matchTime <= 90 && matchTime > 85) ||
+          (matchTime <= 65 && matchTime > 60) || (matchTime <= 40 && matchTime > 35)) {
+        driverCurrentPattern = driverCurrentPattern.blink(Seconds.of(0.4));
+      } else if 
+          ((matchTime <= 110 && matchTime > 105) || (matchTime <= 85 && matchTime > 80) ||
           (matchTime <= 60 && matchTime > 55) || (matchTime <= 35 && matchTime > 30)) {
-        currentPattern = currentPattern.blink(Seconds.of(0.5));
-        currentPattern.applyTo(m_driver);
-
+        driverCurrentPattern = driverCurrentPattern.blink(Seconds.of(0.1));
       }
     } else {
-      currentPattern.applyTo(m_driver);
     }
+    driverCurrentPattern.applyTo(m_driver);
 
     // Write the data to the LED strip
     m_led.setData(m_buffer);

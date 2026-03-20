@@ -43,15 +43,15 @@ public class HubTracker {
             }
         }
 
-        Alliance initialAlliance = DriverStation.getGameSpecificMessage().charAt(0) == 'R' ? Alliance.Red
+        Alliance autoWinner = DriverStation.getGameSpecificMessage().charAt(0) == 'R' ? Alliance.Red
                 : Alliance.Blue;
 
         if (currentTime >= 130 || currentTime < 30) {
             return DriverStation.getAlliance().orElse(Alliance.Blue);
         } else if (currentTime >= 105 || (currentTime < 80 && currentTime >= 55)) {
-            return initialAlliance == Alliance.Red ? Alliance.Blue : Alliance.Red;
+            return autoWinner == Alliance.Red ? Alliance.Blue : Alliance.Red;
         } else {
-            return initialAlliance;
+            return autoWinner;
         }
         
     }

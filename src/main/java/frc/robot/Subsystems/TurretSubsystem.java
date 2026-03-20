@@ -203,9 +203,9 @@ public class TurretSubsystem extends SubsystemBase {
 
   public static Angle closestAngle(Supplier<Angle> target) {
 
-    if (target.get().gte(Degrees.of(118))) {
+    if (target.get().gte(Degrees.of(135))) {
       return target.get().minus(Degrees.of(360));
-    } else if (target.get().lte(Degrees.of(-280))) {
+    } else if (target.get().lte(Degrees.of(-298))) {
       return target.get().plus(Degrees.of(360));
     }
     return target.get();
