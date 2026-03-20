@@ -737,7 +737,7 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
 
-      SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
+      /*SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
           shooterSubsystem.sysIdDynamicForward());
       SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
           shooterSubsystem.sysIdDynamicReverse());
@@ -745,7 +745,7 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
           shooterSubsystem.sysIdQuasistaticForward());
       SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
-          shooterSubsystem.sysIdQuasistaticReverse());
+          shooterSubsystem.sysIdQuasistaticReverse());*/
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -881,7 +881,7 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
-        .alongWith(conveyerSubsystem.setDutyCycle(0.8)));
+        .alongWith(conveyerSubsystem.setDutyCycleGated(0.8)));
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
