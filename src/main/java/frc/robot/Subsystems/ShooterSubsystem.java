@@ -293,7 +293,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public Command sysIdDynamicReverse() {
     return sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse);
-  }
+  } 
 
   private double getRPMCorrection(Distance distance) {
 

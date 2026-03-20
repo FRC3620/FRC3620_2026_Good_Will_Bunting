@@ -15,19 +15,19 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "LB to LN"
+                        "pathName": "RB to RN"
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "LN to CN"
+                        "pathName": "RN to LN"
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "CN to DP Init"
+                        "pathName": "LN to Depot Init"
                       }
                     },
                     {
@@ -52,6 +52,6 @@
     }
   },
   "resetOdom": false,
-  "folder": "Left Bump Start",
+  "folder": "Right Bump Start",
   "choreoAuto": false
 }
