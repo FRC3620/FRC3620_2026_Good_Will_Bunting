@@ -576,7 +576,7 @@ public class RobotContainer implements RobotModeChangeListener {
     Trigger driverLeftTriggerFlySky = new Trigger(
         driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
-        driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false));
+        driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).and(() -> !stateMachine.isActive()));
 
     Trigger driverIntakeSwitch = driverJoystick.button(OdoIdsFlySky.ButtonId.SWA);
 
