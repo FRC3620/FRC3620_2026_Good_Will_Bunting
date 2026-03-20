@@ -677,10 +677,7 @@ public class RobotContainer implements RobotModeChangeListener {
       rollersOffTrigger.onTrue(
           intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-          intakeRollerSubsystem.rollersBackwards()
-              .alongWith(
-                  intakeAgitatorSubsystem.agitatorBackwards())
-              .withName("Spit Balls Back"));
+          intakeRollerSubsystem.rollersBackwards());
     }
 
   }

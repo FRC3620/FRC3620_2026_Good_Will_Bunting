@@ -49,10 +49,7 @@ public class ScoringState extends SuperState {
     @Override
     public void execute() {
         // Code to run while in the Passing state
-        if (!CommandScheduler.getInstance().isScheduled(doEverythingCommand) 
-        && RobotContainer.intakeAgitatorSubsystem.getCurrentCommand() != agitatorBack) {
-            CommandScheduler.getInstance().schedule(doEverythingCommand);
-        }
+
     }
 
     @Override

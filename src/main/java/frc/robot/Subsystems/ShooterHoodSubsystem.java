@@ -69,7 +69,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     boolean activeCalibrating = false;
     Command calibrationCommand;
 
-    private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1);
+    private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.5);
     private final double VELOCITY_THRESHOLD = 2.0; // deg/sec
     private final double STALL_TIME_SECONDS = 0.25;
 
