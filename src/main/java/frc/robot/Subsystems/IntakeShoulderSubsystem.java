@@ -311,4 +311,11 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         .withName("Intake Shoulder Calibration");
   }
 
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
+    }
+
 }

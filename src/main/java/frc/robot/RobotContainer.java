@@ -64,6 +64,7 @@ import frc.robot.Helpers.AllianceFlipUtil;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.OrchestraManager;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
@@ -163,6 +164,8 @@ public class RobotContainer implements RobotModeChangeListener {
   public static PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
+  public static OrchestraManager orchestra;
+
   // hardware here
   public static PowerDistribution powerDistribution;
    public static Trigger useFMSTriggers = new Trigger(() -> false);
@@ -197,6 +200,7 @@ public class RobotContainer implements RobotModeChangeListener {
       missingDevicesAlert.set(true);
       missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
     }
+    
 
     makeStates();
     makeStateTransitions();
@@ -261,6 +265,28 @@ public class RobotContainer implements RobotModeChangeListener {
     conveyerSubsystem = new ConveyerSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
+    if(swerveSubsystem != null)
+    orchestra = new OrchestraManager(
+      swerveSubsystem.getModule(0).getDriveMotor(),
+      swerveSubsystem.getModule(0).getSteerMotor(),
+      swerveSubsystem.getModule(1).getDriveMotor(),
+      swerveSubsystem.getModule(1).getSteerMotor(),
+      swerveSubsystem.getModule(2).getDriveMotor(),
+      swerveSubsystem.getModule(2).getSteerMotor(),
+      swerveSubsystem.getModule(3).getDriveMotor(),
+      swerveSubsystem.getModule(3).getSteerMotor(),
+      turretSubsystem.getMotor(),
+      shooterSubsystem.getMotor1(),
+      shooterSubsystem.getMotor2(),
+      intakeShoulderSubsystem.getMotor(),
+      intakeRollerSubsystem.getMotor(),
+      intakeAgitatorSubsystem.getMotor(),
+      shooterHoodSubsystem.getMotor(),
+      preshooterSubsystem.getMotor(),
+      conveyerSubsystem.getMotor()
+    );
+
+    makeMusic();
     // healthSubsystem.dumpDatabase();
   }
 
@@ -294,6 +320,10 @@ public class RobotContainer implements RobotModeChangeListener {
       logger.info("swerve drive = {}", rv);
     }
     return rv;
+  }
+
+  private void makeMusic() {
+    orchestra.loadSong("titanium.chrp");
   }
 
   private void makeStates() {
@@ -1022,4 +1052,7 @@ public class RobotContainer implements RobotModeChangeListener {
     return false;
   }
 
+  public void stopMusic() {
+    orchestra.stop();
+  }
 }
