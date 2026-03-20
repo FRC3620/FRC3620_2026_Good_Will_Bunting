@@ -124,8 +124,8 @@ public class TurretSubsystem extends SubsystemBase {
           .withStartingPosition(Degrees.of(0))
           // .withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-280), Degrees.of(118))
-          .withSoftLimits(Degrees.of(-280), Degrees.of(118))
+          .withHardLimit(Degrees.of(-298), Degrees.of(135))
+          .withSoftLimits(Degrees.of(-298), Degrees.of(135))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
           // MOI Calculation
@@ -203,12 +203,14 @@ public class TurretSubsystem extends SubsystemBase {
 
   public static Angle closestAngle(Supplier<Angle> target) {
 
-    if (target.get().gte(Degrees.of(135))) {
-      return target.get().minus(Degrees.of(360));
-    } else if (target.get().lte(Degrees.of(-298))) {
-      return target.get().plus(Degrees.of(360));
+    Angle targetA = target.get();
+
+    if (targetA.gte(Degrees.of(135))) {
+      return targetA.minus(Degrees.of(360));
+    } else if (targetA.lte(Degrees.of(-298))) {
+      return targetA.plus(Degrees.of(360));
     }
-    return target.get();
+    return targetA;
   }
 
   @Override
