@@ -211,8 +211,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     if (pivot == null) {
       return idle();
     }
-    Time UP_HOLD_TIME = Seconds.of(0.5);
-    Time DOWN_HOLD_TIME = Seconds.of(0.5);
+    Time UP_HOLD_TIME = Seconds.of(0.25);
+    Time DOWN_HOLD_TIME = Seconds.of(0.25);
 
     return Commands.sequence(
         createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle()).withTimeout(DOWN_HOLD_TIME),
