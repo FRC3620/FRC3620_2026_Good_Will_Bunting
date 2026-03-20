@@ -14,17 +14,18 @@ public class OrchestraManager {
      * Each motor plays one track from the .chrp file in order.
      */
     public OrchestraManager(TalonFX... motors) {
+
+    }
+
+    public void addInstrument(TalonFX motor, int track) {
+        if (motor == null)
+            return;
         AudioConfigs audioConfigs = new AudioConfigs()
                 .withAllowMusicDurDisable(true)
                 .withBeepOnBoot(false)
                 .withBeepOnConfig(false);
-
-        for (TalonFX motor : motors) {
-            if (motor == null)
-                continue;
-            motor.getConfigurator().apply(audioConfigs);
-            m_orchestra.addInstrument(motor);
-        }
+        motor.getConfigurator().apply(audioConfigs);
+        m_orchestra.addInstrument(motor, track);
     }
 
     /**
