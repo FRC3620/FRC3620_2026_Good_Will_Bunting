@@ -132,6 +132,7 @@ public class ShooterSubsystem extends SubsystemBase {
           // Motor properties to prevent over currenting.
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
+          .withMechanismCircumference(Inches.of(Math.PI * 4))
           .withStatorCurrentLimit(Amps.of(40))
           .withClosedLoopRampRate(Seconds.of(0.5))
           .withOpenLoopRampRate(Seconds.of(0.5));
