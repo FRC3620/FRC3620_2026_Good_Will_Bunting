@@ -76,7 +76,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
         if (motor1 != null) {
-            rv = run(() -> motor1.set(0.9)); // need to test this
+            rv = run(() -> motor1.set(0.67)); // need to test this
         } else {
             rv = idle();
         }
@@ -96,7 +96,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public Command rollersBackwards() {
         Command rv;
         if (motor1 != null) {
-            rv = run(() -> motor1.set(-0.9));
+            rv = run(() -> motor1.set(-0.67));
         } else {
             rv = idle();
         }

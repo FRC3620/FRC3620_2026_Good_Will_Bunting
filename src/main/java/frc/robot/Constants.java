@@ -23,7 +23,7 @@ public final class Constants {
     public static final int MOTORID_SHOOTER2 = 12;
    
     public static final int MOTORID_INTAKEROLLERS1 = 5;
-    public static final int MOTORID_INTAKEROLLERS2 = 15;
+    public static final int MOTORID_INTAKEROLLERS2 = 8;
     public static final int MOTORID_INTAKEAGITATOR = 10;
     public static final int MOTORID_HOOD = 13;
     public static final int ENCODERID_HOOD = 26;
