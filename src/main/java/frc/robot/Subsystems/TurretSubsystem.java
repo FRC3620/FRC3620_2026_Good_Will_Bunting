@@ -70,14 +70,16 @@ public class TurretSubsystem extends SubsystemBase {
   private boolean startTimer = false;
   private boolean delayForCRTDone = false;
 
+  Timer atTargetTime = new Timer();
+
   /** Manually rerun CRT seeding. */
   private static final String RERUN_SEED = "Turret/CRT/RerunSeed";
 
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.49609375);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.7705078125);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.49560546875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.770751953125);
 
   private SlewRateLimiter turretLimiter = new SlewRateLimiter(180.0);
   private Angle filteredTargetAngle = Degrees.of(0);
@@ -223,6 +225,8 @@ public class TurretSubsystem extends SubsystemBase {
       startTimer = true;
     }
 
+    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/AtTargetTimer", atTargetTime.get());
+
     if (pivot != null) {
 
       if (startUpTimer.hasElapsed(5)) {
@@ -355,9 +359,16 @@ public class TurretSubsystem extends SubsystemBase {
 
   public BooleanSupplier atTarget() {
 
+    atTargetTime.reset();
     Angle current = getAngle();
     if (current.isNear(targetAngle, Degrees.of(10))) {
-      atTarget = true;
+
+      atTargetTime.start();
+
+      //if (atTargetTime.hasElapsed(.75)) {
+        atTarget = true;
+      //}
+
     } else {
       atTarget = false;
     }
