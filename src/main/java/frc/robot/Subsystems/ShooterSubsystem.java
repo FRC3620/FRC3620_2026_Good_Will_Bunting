@@ -303,25 +303,24 @@ public class ShooterSubsystem extends SubsystemBase {
       return 0;
     }
 
-    Integer lowerKey = rpmCorrectionMap.floorKey(getBucket(distance));
-    Integer upperKey = rpmCorrectionMap.ceilingKey(getBucket(distance));
+    double distBuckets = distance.in(Feet)/bucketSize.in(Feet);
 
-    if (lowerKey == null)
-      return rpmCorrectionMap.get(upperKey);
-    if (upperKey == null)
-      return rpmCorrectionMap.get(lowerKey);
+    Integer lowKey = rpmCorrectionMap.floorKey((int) Math.floor(distBuckets));
+    Integer highKey = rpmCorrectionMap.ceilingKey((int) Math.ceil(distBuckets));
 
-    if (lowerKey.equals(upperKey)) {
-      return rpmCorrectionMap.get(lowerKey);
-    }
+    if (highKey == null && lowKey == null) return 0;
+    if (lowKey == null) return rpmCorrectionMap.get(highKey);
+    if (highKey == null) return rpmCorrectionMap.get(lowKey);
 
-    double lowerDist = lowerKey * bucketSize.in(Feet);
-    double upperDist = upperKey * bucketSize.in(Feet);
+    if (lowKey.equals(highKey)) return rpmCorrectionMap.get(lowKey);
 
-    double lowerVal = rpmCorrectionMap.get(lowerKey);
-    double upperVal = rpmCorrectionMap.get(upperKey);
+    double lowerDist = lowKey * bucketSize.in(Feet);
+    double highDist = highKey * bucketSize.in(Feet);
 
-    double t = (distance.in(Feet) - lowerDist) / (upperDist - lowerDist);
+    double lowerVal = rpmCorrectionMap.get(lowKey);
+    double upperVal = rpmCorrectionMap.get(highKey);
+
+    double t = (distance.in(Feet) - lowerDist) / (highDist - lowerDist);
 
     return lowerVal * (1 - t) + upperVal * t;
   }
