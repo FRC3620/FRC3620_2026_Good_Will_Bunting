@@ -43,9 +43,12 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     private TalonFX motor2 = null;
 
     public IntakeRollerSubsytem() {
-        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
+        boolean makeDevices = (RobotContainer.canDeviceFinder.isDevicePresent(
                 org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
-                motorId1, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
+                motorId1, telemetryPrefix) &&
+                RobotContainer.canDeviceFinder.isDevicePresent(
+                    org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
+                motorId2, telemetryPrefix + " Follower")) || RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
             motor1 = new TalonFX(motorId1);
@@ -62,8 +65,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             config.Voltage.withPeakReverseVoltage(-12 * 0.8);
             config.MotorOutput.withInverted(InvertedValue.Clockwise_Positive);
 
+            motor1.setNeutralMode(NeutralModeValue.Brake);
             motor1.getConfigurator().apply(config);
-            motor2.setNeutralMode(NeutralModeValue.Brake);
 
             motor2.setControl(new Follower(motorId1, MotorAlignmentValue.Opposed));
         }
