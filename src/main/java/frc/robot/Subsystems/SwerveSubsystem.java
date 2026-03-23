@@ -21,6 +21,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -211,12 +213,28 @@ public class SwerveSubsystem extends TunerSwerveDrivetrain implements Subsystem 
         try {
             config = RobotConfig.fromGUISettings();
             AutoBuilder.configure(
-                    () -> getState().Pose, // Supplier of current robot
-                                                                                           // pose
-                    this::resetPose, // Consumer for seeding pose against
-                                                                                    // auto
-                    () -> getState().Speeds, // Supplier of current robot speeds
-                    // Consumer of ChassisSpeeds and feedforwards to drive the robot
+                    () -> getState().Pose, // Supplier of current robot pose
+                    this::resetPose, // Consumer for seeding pose against auto
+                    () -> {
+                        if (RobotContainer.questNavSubsystem != null
+                                && RobotContainer.questNavSubsystem.getQuestNavConnected()
+                                && RobotContainer.questNavSubsystem.getQuestNavIsTracking()) {
+
+                            LinearVelocity vx = MetersPerSecond.of(RobotContainer.questNavSubsystem.getQuestNavVX());
+                            LinearVelocity vy = MetersPerSecond.of(RobotContainer.questNavSubsystem.getQuestNavVY());
+                            AngularVelocity omega = RadiansPerSecond
+                                    .of(RobotContainer.questNavSubsystem.getQuestNavOmega());
+
+                            // Convert from field-relative → robot-relative
+                            return ChassisSpeeds.fromFieldRelativeSpeeds(
+                                    vx,
+                                    vy,
+                                    omega,
+                                    RobotContainer.questNavSubsystem.getNavQuestPose3d().toPose2d().getRotation());
+                        }
+                        return getState().Speeds;
+                    }, // Supplier of current robot speeds
+                       // Consumer of ChassisSpeeds and feedforwards to drive the robot
                     (speeds, feedforwards) -> setControl(
                             m_pathApplyRobotSpeeds.withSpeeds(ChassisSpeeds.discretize(speeds, 0.020))
                                     .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
