@@ -223,7 +223,7 @@ public class RobotContainer implements RobotModeChangeListener {
     // RPM.of(0)));
     intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.idle());
     intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.idle());
-    conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setSpeed(() -> RPM.of(0)));
+    conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setDutyCycle(0));
     // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
     // Degrees.of(30)));
     preshooterSubsystem.setDefaultCommand(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
@@ -685,7 +685,8 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem.setDutyCycleGated(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive())
+          );
     }
 
     if (intakeShoulderSubsystem != null) {

@@ -86,21 +86,22 @@ public class ShooterSubsystem extends SubsystemBase {
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
-    rpmCorrectionMap.put(4, -55.0);
-    rpmCorrectionMap.put(5, -60.0);
-    rpmCorrectionMap.put(6, -60.0);
-    rpmCorrectionMap.put(7, -60.0);
-    rpmCorrectionMap.put(8, -67.0);
-    rpmCorrectionMap.put(9, -50.0);
-    rpmCorrectionMap.put(10, -36.0);
-    rpmCorrectionMap.put(11, -26.0);
-    rpmCorrectionMap.put(12, -55.0);
-    rpmCorrectionMap.put(13, -28.0);
-    rpmCorrectionMap.put(14, 0.0);
-    rpmCorrectionMap.put(15, 0.0);
-    rpmCorrectionMap.put(16, 0.0);
-    rpmCorrectionMap.put(17, 0.0);
-    rpmCorrectionMap.put(18, 0.0);
+    rpmCorrectionMap.put(4, -36.0);
+    rpmCorrectionMap.put(5, -36.0);
+    rpmCorrectionMap.put(6, -25.0);
+    rpmCorrectionMap.put(7, -17.0);
+    rpmCorrectionMap.put(8, -10.0);
+    rpmCorrectionMap.put(9, -10.0);
+    rpmCorrectionMap.put(10, -10.0);
+    rpmCorrectionMap.put(11, -10.0);
+    rpmCorrectionMap.put(12, 0.0);
+    rpmCorrectionMap.put(13, 10.0);
+    rpmCorrectionMap.put(14, 20.0);
+    rpmCorrectionMap.put(15, 30.0);
+    rpmCorrectionMap.put(16, 30.0);
+    rpmCorrectionMap.put(17, 30.0);
+    rpmCorrectionMap.put(18, 40.0);
+    rpmCorrectionMap.put(19,40.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -118,7 +119,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(0.2, 0, 0.0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
+          .withClosedLoopController(0.25, 0, 0.45, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
           .withSimClosedLoopController(10, 0, 0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
@@ -132,6 +133,7 @@ public class ShooterSubsystem extends SubsystemBase {
           // Motor properties to prevent over currenting.
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
+          .withMechanismCircumference(Inches.of(Math.PI * 4))
           .withStatorCurrentLimit(Amps.of(40))
           .withClosedLoopRampRate(Seconds.of(0.5))
           .withOpenLoopRampRate(Seconds.of(0.5));
@@ -301,25 +303,24 @@ public class ShooterSubsystem extends SubsystemBase {
       return 0;
     }
 
-    Integer lowerKey = rpmCorrectionMap.floorKey(getBucket(distance));
-    Integer upperKey = rpmCorrectionMap.ceilingKey(getBucket(distance));
+    double distBuckets = distance.in(Feet)/bucketSize.in(Feet);
 
-    if (lowerKey == null)
-      return rpmCorrectionMap.get(upperKey);
-    if (upperKey == null)
-      return rpmCorrectionMap.get(lowerKey);
+    Integer lowKey = rpmCorrectionMap.floorKey((int) Math.floor(distBuckets));
+    Integer highKey = rpmCorrectionMap.ceilingKey((int) Math.ceil(distBuckets));
 
-    if (lowerKey.equals(upperKey)) {
-      return rpmCorrectionMap.get(lowerKey);
-    }
+    if (highKey == null && lowKey == null) return 0;
+    if (lowKey == null) return rpmCorrectionMap.get(highKey);
+    if (highKey == null) return rpmCorrectionMap.get(lowKey);
 
-    double lowerDist = lowerKey * bucketSize.in(Feet);
-    double upperDist = upperKey * bucketSize.in(Feet);
+    if (lowKey.equals(highKey)) return rpmCorrectionMap.get(lowKey);
 
-    double lowerVal = rpmCorrectionMap.get(lowerKey);
-    double upperVal = rpmCorrectionMap.get(upperKey);
+    double lowerDist = lowKey * bucketSize.in(Feet);
+    double highDist = highKey * bucketSize.in(Feet);
 
-    double t = (distance.in(Feet) - lowerDist) / (upperDist - lowerDist);
+    double lowerVal = rpmCorrectionMap.get(lowKey);
+    double upperVal = rpmCorrectionMap.get(highKey);
+
+    double t = (distance.in(Feet) - lowerDist) / (highDist - lowerDist);
 
     return lowerVal * (1 - t) + upperVal * t;
   }

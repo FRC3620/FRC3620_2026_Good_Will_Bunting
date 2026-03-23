@@ -219,6 +219,11 @@ public class QuestNavSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
 
+    if (questNav.isConnected() && questNav.isTracking()) {
+      SmartDashboard.putNumber("QuestNav.XVelocity", getQuestNavVX());
+      SmartDashboard.putNumber("QuestNav.YVelocity", getQuestNavVY());
+    }
+
     questNav.commandPeriodic();
     updateVisionMeasurement();
 

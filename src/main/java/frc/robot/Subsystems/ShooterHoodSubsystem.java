@@ -94,7 +94,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, Constants.ENCODERID_HOOD,
                     telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
-            shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
+            //shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
                     HealthSubsystem.healthOptionsForYAMS);
 
@@ -152,8 +152,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrated", isCalibrated);
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrating", activeCalibrating);
-            SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
-                    Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
+            //SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
+            //        Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
         }
     }
 
