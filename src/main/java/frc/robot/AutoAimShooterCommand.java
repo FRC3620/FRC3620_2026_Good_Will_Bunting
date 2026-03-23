@@ -19,19 +19,24 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
     public AutoAimShooterCommand(Translation3d target) {
 
+        Supplier<VelocityVector> robotVelocity;
+
         Supplier<Pose2d> robotPose = () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
 
-        /*
-         * Supplier<VelocityVector> robotVelocity =
-         * () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-         * RobotContainer.swerveSubsystem.getKinematics(),
-         * RobotContainer.swerveSubsystem.getState(),
-         * RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()
-         * ));
-         */
-        Supplier<VelocityVector> robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateQuestVelocity(
-                RobotContainer.questNavSubsystem.getQuestNavVX(), RobotContainer.questNavSubsystem.getQuestNavVY(),
-                RobotContainer.questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d()));
+        if (RobotContainer.questNavSubsystem.getQuestNavConnected()
+                && RobotContainer.questNavSubsystem.getQuestNavIsTracking()) {
+
+            robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateQuestVelocity(
+                    RobotContainer.questNavSubsystem.getQuestNavVX(), RobotContainer.questNavSubsystem.getQuestNavVY(),
+                    RobotContainer.questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d()));
+
+        } else {
+            robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                    RobotContainer.swerveSubsystem.getKinematics(),
+                    RobotContainer.swerveSubsystem.getState(),
+                    RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()));
+
+        }
 
         addCommands(
 
