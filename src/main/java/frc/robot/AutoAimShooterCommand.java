@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.AllianceFlipUtil;
@@ -18,40 +19,38 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
     public AutoAimShooterCommand(Translation3d target) {
 
-        Supplier<Pose2d> robotPose =
-            () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
+        Supplier<Pose2d> robotPose = () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
 
-        Supplier<VelocityVector> robotVelocity =
-            () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                RobotContainer.swerveSubsystem.getKinematics(),
-                RobotContainer.swerveSubsystem.getState(),
-                RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()
-            ));
+        /*
+         * Supplier<VelocityVector> robotVelocity =
+         * () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+         * RobotContainer.swerveSubsystem.getKinematics(),
+         * RobotContainer.swerveSubsystem.getState(),
+         * RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()
+         * ));
+         */
+        Supplier<VelocityVector> robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateQuestVelocity(
+                RobotContainer.questNavSubsystem.getQuestNavVX(), RobotContainer.questNavSubsystem.getQuestNavVY(),
+                RobotContainer.questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d()));
 
         addCommands(
 
-            RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                target.toTranslation2d(),
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
+                        target.toTranslation2d(),
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
-                target,
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
+                        target,
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
-                target,
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
+                        target,
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.preshooterSubsystem.createSetVelocityCommand(
-                () -> RPM.of(700)
-            )
-        );
+                RobotContainer.preshooterSubsystem.createSetVelocityCommand(
+                        () -> RPM.of(700)));
     }
 }
-

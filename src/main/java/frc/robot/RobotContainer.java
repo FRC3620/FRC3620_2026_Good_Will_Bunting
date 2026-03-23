@@ -165,13 +165,13 @@ public class RobotContainer implements RobotModeChangeListener {
 
   // hardware here
   public static PowerDistribution powerDistribution;
-   public static Trigger useFMSTriggers = new Trigger(() -> false);
+  public static Trigger useFMSTriggers = new Trigger(() -> false);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
-    
+
     canDeviceFinder = new CANDeviceFinder();
     logger.info("CAN Devices = {}", canDeviceFinder.getDeviceSet());
 
@@ -187,7 +187,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
         || RobotContainer.shouldMakeAllCANDevices()) {
       powerDistribution = new PowerDistribution(1, ModuleType.kRev);
-      //DogLog.setPdh(powerDistribution);
+      // DogLog.setPdh(powerDistribution);
     }
 
     makeJoysticks();
@@ -509,6 +509,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     CommandScheduler.getInstance().schedule(
         new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
+    CommandScheduler.getInstance().schedule(
+        new SetQuestNavPoseFromMegaTag1Command().withName("Reset Quest from MegaTag1").ignoringDisable(true));
 
     /*
      * SWERVE SYSID
@@ -604,12 +606,14 @@ public class RobotContainer implements RobotModeChangeListener {
               .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000)))
               .alongWith(turretSubsystem.createSetAngleCommand(() -> Degrees.of(180))));
 
-              /*                 ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
-                  () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-                  () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
-                      swerveSubsystem.getKinematics(),
-                      swerveSubsystem.getState(),
-                      swerveSubsystem.getPigeon2().getRotation2d())) */
+      /*
+       * ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
+       * () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+       * () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+       * swerveSubsystem.getKinematics(),
+       * swerveSubsystem.getState(),
+       * swerveSubsystem.getPigeon2().getRotation2d()))
+       */
 
     }
     if (shooterSubsystem != null) {
@@ -652,8 +656,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem.setDutyCycleGated(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive())
-          );
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -735,15 +738,17 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/Shooter/DashboardControl",
           shooterSubsystem.setVelocityDashboardCommand().ignoringDisable(true));
 
-      /*SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
-          shooterSubsystem.sysIdDynamicForward());
-      SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
-          shooterSubsystem.sysIdDynamicReverse());
-
-      SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
-          shooterSubsystem.sysIdQuasistaticForward());
-      SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
-          shooterSubsystem.sysIdQuasistaticReverse());*/
+      /*
+       * SmartDashboard.putData("frc3620/Shooter/SYSID/DForward",
+       * shooterSubsystem.sysIdDynamicForward());
+       * SmartDashboard.putData("frc3620/Shooter/SYSID/DReverse",
+       * shooterSubsystem.sysIdDynamicReverse());
+       * 
+       * SmartDashboard.putData("frc3620/Shooter/SYSID/QSForward",
+       * shooterSubsystem.sysIdQuasistaticForward());
+       * SmartDashboard.putData("frc3620/Shooter/SYSID/QSReverse",
+       * shooterSubsystem.sysIdQuasistaticReverse());
+       */
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -850,10 +855,9 @@ public class RobotContainer implements RobotModeChangeListener {
   public static void setupPathPlannerCommands() {
     NamedCommands.registerCommand("Reset QuestNav", new SetQuestNavPoseFromMegaTag1Command());
 
-    NamedCommands.registerCommand("CalibratePluh", 
+    NamedCommands.registerCommand("CalibratePluh",
         shooterHoodSubsystem.calibrate().alongWith(
-        intakeShoulderSubsystem.calibrate()
-        ).withTimeout(1));
+            intakeShoulderSubsystem.calibrate()).withTimeout(1));
 
     NamedCommands.registerCommand("Cross Bump Backward",
         new CrossBumpCommand(swerveSubsystem, drive, 2.0, 0.0, 0.0).withTimeout(3));
@@ -893,9 +897,20 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())))
-        .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(()->Degrees.of(30))
-        .alongWith(shooterSubsystem.createSetVelocityCommand(()->RPM.of(1200))
-        .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
+        .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
+            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
+
+    // WITH QUEST VELOCITY
+    NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
+        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
+        () -> AllianceFlipUtil
+            .apply(ShotCalculator.calculateQuestVelocity(questNavSubsystem.getQuestNavVX(),
+                questNavSubsystem.getQuestNavVY(), questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d())))
+        .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
+            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
