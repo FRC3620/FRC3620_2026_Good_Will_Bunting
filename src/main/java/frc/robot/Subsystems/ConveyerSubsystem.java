@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.ShotCalculator;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -46,7 +47,8 @@ public class ConveyerSubsystem extends SubsystemBase {
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
+                    HealthSubsystem.healthOptionsForYAMS);
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
                             0.1, // kP - tune this
@@ -57,7 +59,7 @@ public class ConveyerSubsystem extends SubsystemBase {
                     .withMotorInverted(false)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.HIGH)
+                    .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP);
@@ -67,7 +69,7 @@ public class ConveyerSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(4))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(7000))
-                    .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.HIGH);
+                    .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.LOW);
 
             // Create the FlyWheel
             flyWheel = new FlyWheel(rollerConfig);
@@ -89,7 +91,9 @@ public class ConveyerSubsystem extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         // Only simulate, don't manually run the roller
-        flyWheel.simIterate();
+        if (flyWheel != null) {
+            flyWheel.simIterate();
+        }
     }
 
     public void periodic() {
@@ -101,17 +105,36 @@ public class ConveyerSubsystem extends SubsystemBase {
 
     public Command setSpeedDashboardCommand() {
         if (flyWheel != null) {
-            return setSpeed(() -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)))
-            .withName(telemetryPrefix + " Set Speed Dashboard");
+            return setSpeed(
+                    () -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)))
+                    .withName(telemetryPrefix + " Set Speed Dashboard");
         } else {
             return idle();
         }
     }
 
     public Command setDutyCycle(double dutyCycle) {
-        if (flyWheel != null) {
-            return flyWheel.set(dutyCycle);
-        } 
+        
+            if (flyWheel != null) {
+                return flyWheel.set(dutyCycle);
+            }
         return idle();
+    }
+
+    public Command setDutyCycleGated(double dutyCycle){
+        if (flyWheel != null) {
+            return flyWheel.set(dutyCycle)
+                .onlyWhile(RobotContainer.shooterSubsystem.atRPM())
+                .onlyWhile(RobotContainer.turretSubsystem.atTarget())
+                .onlyWhile(RobotContainer.shooterHoodSubsystem.atTarget());
+        }
+        return idle();
+    }
+
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
     }
 }

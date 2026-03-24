@@ -16,6 +16,7 @@ import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -39,10 +40,13 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Subsystems.IntakeShoulderSubsystem.IntakeShoulderPositions;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
@@ -65,9 +69,9 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private SmartMotorController motorController = null;
   private Pivot pivot = null;
 
+  Command calibrationCommand;
   boolean isCalibrated = false;
   boolean activeCalibrating = false;
-  private Command calibrationCommand;
 
   private final Voltage CALIBRATION_VOLTAGE = Volts.of(-2);
   private final double VELOCITY_THRESHOLD = 5.0;
@@ -77,10 +81,12 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private final Angle CALIBRATED_POS = Degrees.of(0.0); // place holders
 
   public enum IntakeShoulderPositions {
-    OUT(Degrees.of(88)),
-    IN(Degree.of(0));
+    OUT(Degrees.of(100)),
+    IN(Degrees.of(0)),
+    JOSTLE_TOP(Degrees.of(35)),
+    JOSTLE_BOTTOM(Degrees.of(50));
 
-    private final Angle angle;;
+    private final Angle angle;
 
     IntakeShoulderPositions(Angle a) {
       this.angle = a;
@@ -100,11 +106,11 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withClosedLoopController(150.0, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(360))
+          .withClosedLoopController(200.0, 0, 0, DegreesPerSecond.of(720), DegreesPerSecondPerSecond.of(720))
           .withFeedforward(new ArmFeedforward(0, 0.5, 0))
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 24.0 / 15.0)))
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 34.0 / 22.0)))
           .withIdleMode(MotorMode.COAST)
-          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.HIGH)
+          .withTelemetry(telemetryPrefix + "Motor", TelemetryVerbosity.LOW)
           .withStatorCurrentLimit(Amps.of(40))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
@@ -112,11 +118,10 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
       createPivot(CALIBRATED_POS);
 
-      setDefaultCommand(idle().withName("intake shoulder default command"));
-
     }
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/setExtenstionDashboard", 0);
     SmartDashboard.putData(this);
+
   }
 
   private void createPivot(Angle startingAngle) {
@@ -136,7 +141,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         .withHardLimit(softLimit, softLimit.plus(Degrees.of(369)))
         .withMOI(Inches.of(25), Pound.of(1))
         // Telemetry
-        .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+        .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
   }
 
   @Override
@@ -160,6 +165,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/activeCalibration", activeCalibrating);
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/motorCurrent",
           motorController.getStatorCurrent().in(Amps));
+      SmartDashboard.putData("frc3620/" + telemetryPrefix + "/subsystem", this);
 
     }
   }
@@ -175,29 +181,17 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     Command rv;
     if (pivot != null) {
       rv = pivot.setAngle(angle);
-      /*
-       * new Command() {
-       * {
-       * addRequirements(IntakeShoulderSubsystem.this);
-       * }
-       * public void initialize() {
-       * pivot.setAngle(angle);
-       * }
-       * 
-       * public void execute(){
-       * pivot.setAngle(angle);
-       * 
-       * }
-       * public boolean isFinished() {
-       * return Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) < 5;
-       * }
-       * 
-       * public void end(boolean interrupted) {
-       * 
-       * }
-       * 
-       * };
-       */
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " SetPosition");
+  }
+
+  public Command createSetPositionCommandGated(Supplier<Angle> angle) {
+    Command rv;
+    if (pivot != null) {
+      rv = Commands.waitUntil(() -> isCalibrated).andThen(Commands.none())
+          .andThen(createSetPositionCommand(angle).asProxy());
     } else {
       rv = idle();
     }
@@ -206,9 +200,24 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public Command createSetPositionThenCoast(Supplier<Angle> angle) {
     if (pivot != null) {
-      return pivot.setAngle(angle).onlyWhile(()-> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 5).andThen(createDoNothingCommand());
-      }
+      return pivot.setAngle(angle)
+          .onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 20);
+    }
     return idle();
+  }
+
+  public Command createJostleCommand() {
+
+    if (pivot == null) {
+      return idle();
+    }
+    Time UP_HOLD_TIME = Seconds.of(0.25);
+    Time DOWN_HOLD_TIME = Seconds.of(0.25);
+
+    return Commands.sequence(
+        createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle()).withTimeout(DOWN_HOLD_TIME),
+        createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_TOP.getAngle()).withTimeout(UP_HOLD_TIME))
+        .repeatedly().withName("Jostle Command");
   }
 
   public Command setPositionDashboardCommand() {
@@ -229,8 +238,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   }
 
   public Command createDoNothingCommand() {
-    if(pivot != null){
-    return pivot.set(0);
+    if (pivot != null) {
+      return idle();
     }
     return idle();
   }
@@ -273,7 +282,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
       public boolean isFinished() {
         SmartDashboard.putBoolean("frc3620/IntakeShoulder/ShouldFinish",
-            (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
+            stallStartTime > STALL_TIME_SECONDS);
         if (stallStartTime < 0)
           return false;
 
@@ -301,5 +310,12 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     }
         .withName("Intake Shoulder Calibration");
   }
+
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
+    }
 
 }

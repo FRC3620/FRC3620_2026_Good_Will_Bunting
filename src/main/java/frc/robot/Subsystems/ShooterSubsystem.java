@@ -7,15 +7,20 @@ package frc.robot.Subsystems;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotation;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.TreeMap;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -25,12 +30,16 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -38,6 +47,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.AllianceFlipUtil;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import yams.gearing.GearBox;
@@ -64,8 +74,34 @@ public class ShooterSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private FlyWheel flywheel = null;
 
+  private AngularVelocity filteredRPM = RPM.of(0);
+
+  private TreeMap<Integer, Double> rpmCorrectionMap = new TreeMap<>();
+
+  private double learningRate = 0.25;
+  private Distance bucketSize = Feet.of(1); // ft range for each bucket in the correction map
+
+  private boolean atRPM = false;
+
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
+
+    rpmCorrectionMap.put(4, -36.0);
+    rpmCorrectionMap.put(5, -36.0);
+    rpmCorrectionMap.put(6, -25.0);
+    rpmCorrectionMap.put(7, -17.0);
+    rpmCorrectionMap.put(8, -10.0);
+    rpmCorrectionMap.put(9, -10.0);
+    rpmCorrectionMap.put(10, -10.0);
+    rpmCorrectionMap.put(11, -10.0);
+    rpmCorrectionMap.put(12, 0.0);
+    rpmCorrectionMap.put(13, 10.0);
+    rpmCorrectionMap.put(14, 20.0);
+    rpmCorrectionMap.put(15, 30.0);
+    rpmCorrectionMap.put(16, 30.0);
+    rpmCorrectionMap.put(17, 30.0);
+    rpmCorrectionMap.put(18, 40.0);
+    rpmCorrectionMap.put(19,40.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -83,13 +119,13 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(0.2, 0, 0.0, DegreesPerSecond.of(14400), DegreesPerSecondPerSecond.of(14400))
-          .withSimClosedLoopController(10, 0, 0, DegreesPerSecond.of(360), DegreesPerSecondPerSecond.of(180))
+          .withClosedLoopController(0.25, 0, 0.45, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
+          .withSimClosedLoopController(10, 0, 0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
           // Telemetry name and verbosity level
-          .withTelemetry("motor1", TelemetryVerbosity.HIGH)
+          .withTelemetry("motor1", TelemetryVerbosity.LOW)
           // Gearing from the motor rotor to final shaft.
           // In this example gearbox(3,4) is the same as gearbox("3:1","4:1") which
           // corresponds to the gearbox attached to your motor.
@@ -97,6 +133,7 @@ public class ShooterSubsystem extends SubsystemBase {
           // Motor properties to prevent over currenting.
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
+          .withMechanismCircumference(Inches.of(Math.PI * 4))
           .withStatorCurrentLimit(Amps.of(40))
           .withClosedLoopRampRate(Seconds.of(0.5))
           .withOpenLoopRampRate(Seconds.of(0.5));
@@ -107,11 +144,11 @@ public class ShooterSubsystem extends SubsystemBase {
           // Diameter of the flywheel.
           .withDiameter(Inches.of(4))
           // Mass of the flywheel.
-          .withMass(Pounds.of(0.6))
+          .withMass(Pounds.of(1.5))
           // Maximum speed of the flywheel.
           .withUpperSoftLimit(RPM.of(5000))
           // Telemetry name and verbosity for the arm.
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH);
+          .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW);
       flywheel = new FlyWheel(Config);
 
       sysIdRoutine = new SysIdRoutine(
@@ -127,7 +164,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
                 SignalLogger.writeDouble("Shooter Voltage", voltage.in(Volts));
                 SignalLogger.writeDouble("Shooter_Velocity_RPS", getVelocity().in(RotationsPerSecond));
-                SignalLogger.writeDouble("Shooter_Position_Rotations", smartMotorController.getMechanismPosition().in(Rotations));
+                SignalLogger.writeDouble("Shooter_Position_Rotations",
+                    smartMotorController.getMechanismPosition().in(Rotations));
               },
               null,
               this));
@@ -135,6 +173,7 @@ public class ShooterSubsystem extends SubsystemBase {
       setDefaultCommand(idle());
     }
     SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
+    SmartDashboard.putNumber("frc3620/Shooter/Filtering Alpha", 1.0);
 
   }
 
@@ -160,22 +199,41 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(speed.get()).withName(telemetryPrefix + " SetVelocity");
+    return flywheel.setSpeed(speed).withName(telemetryPrefix + " SetVelocity");
   }
 
   public Command setVelocityDashboardCommand() {
     if (flywheel == null)
       return idle();
 
-      return createSetVelocityCommand(() -> RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0)));
+    return createSetVelocityCommand(
+        () -> RPM.of(SmartDashboard.getNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0)));
 
   }
 
-  public Command createSetSpeedToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition, Supplier<VelocityVector> robotVelocity) {
+  public Command createSetSpeedToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
+      Supplier<VelocityVector> robotVelocity) {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(() -> ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity)).withName(telemetryPrefix + " SetSpeedToTarget");
+    filteredRPM = getVelocity(); // Initialize filtered RPM to current RPM
+    return flywheel.setSpeed(
+        () -> {
+          AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
+
+          Distance distanceFeet = getDistanceToTarget(targetPosition.toTranslation2d(), robotPosition);
+
+          double correctionRPM = getRPMCorrection(distanceFeet);
+
+          AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
+          double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 1.0);
+          alpha = MathUtil.clamp(alpha, 0.0, 1.0);
+          filteredRPM = filteredRPM.times(1.0 - alpha).plus(corrected.times(alpha));
+
+          SmartDashboard.putNumber("frc3620/Shooter/DistanceFeet", distanceFeet.in(Feet));
+          SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
+          return filteredRPM;
+        });
   }
 
   /**
@@ -200,6 +258,19 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel != null) {
       flywheel.updateTelemetry();
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Actual", getVelocity().in(RPM));
+      SmartDashboard.putNumber(
+          "frc3620/Shooter/CorrectionMap/LearnedPoints",
+          rpmCorrectionMap.size());
+      for (var entry : rpmCorrectionMap.entrySet()) {
+        SmartDashboard.putNumber("frc3620/Shooter/CorrectionMap/" + entry.getKey(),
+            entry.getValue());
+      }
+      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM().getAsBoolean());
+      SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
+          new Translation2d(
+              Feet.of(15.17),
+              Feet.of(13.235)),
+          () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose))));
     }
   }
 
@@ -226,4 +297,81 @@ public class ShooterSubsystem extends SubsystemBase {
     return sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse);
   }
 
+  private double getRPMCorrection(Distance distance) {
+
+    if (rpmCorrectionMap.isEmpty()) {
+      return 0;
+    }
+
+    double distBuckets = distance.in(Feet)/bucketSize.in(Feet);
+
+    Integer lowKey = rpmCorrectionMap.floorKey((int) Math.floor(distBuckets));
+    Integer highKey = rpmCorrectionMap.ceilingKey((int) Math.ceil(distBuckets));
+
+    if (highKey == null && lowKey == null) return 0;
+    if (lowKey == null) return rpmCorrectionMap.get(highKey);
+    if (highKey == null) return rpmCorrectionMap.get(lowKey);
+
+    if (lowKey.equals(highKey)) return rpmCorrectionMap.get(lowKey);
+
+    double lowerDist = lowKey * bucketSize.in(Feet);
+    double highDist = highKey * bucketSize.in(Feet);
+
+    double lowerVal = rpmCorrectionMap.get(lowKey);
+    double upperVal = rpmCorrectionMap.get(highKey);
+
+    double t = (distance.in(Feet) - lowerDist) / (highDist - lowerDist);
+
+    return lowerVal * (1 - t) + upperVal * t;
+  }
+
+  public void learnShot(Distance distance, double rpmAdjustment) {
+
+    Integer bucket = getBucket(distance);
+
+    double current = rpmCorrectionMap.getOrDefault(bucket, 0.0);
+
+    double updated = current + learningRate * rpmAdjustment;
+
+    SmartDashboard.putNumber("DELETEMELATER/bucketToGoInFt", bucket);
+    SmartDashboard.putNumber("DELETEMELATER/CurrentRPMOffset", current);
+    SmartDashboard.putNumber("DELETEMELATER/UpdatedRPMOffset", updated);
+    SmartDashboard.putNumber("DELETEMELATER/DistanceInput", distance.in(Feet));
+    SmartDashboard.putNumber("DELETEMELATER/BucketSize", bucketSize.in(Feet));
+
+    rpmCorrectionMap.put(bucket, updated);
+  }
+
+  private Distance getDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPosition) {
+    return ShotCalculator.calculateBaseHDistanceToTarget(targetPosition, robotPosition);
+  }
+
+  private Integer getBucket(Distance distance) {
+    return (int) Math.floor(distance.in(Feet) / bucketSize.in(Feet));
+  }
+
+  public BooleanSupplier atRPM() {
+
+    AngularVelocity current = getVelocity();
+    if (current.isNear(filteredRPM, RPM.of(100))) {
+      atRPM = true;
+    } else {
+      atRPM = false;
+    }
+
+    return () -> atRPM;
+  }
+
+  public TalonFX getMotor1() {
+    if (motor1 != null) {
+      return motor1;
+    }
+    return null;
+  }
+  public TalonFX getMotor2() {
+    if (motor2 != null) {
+      return motor2;
+    }
+    return null;
+  }
 }

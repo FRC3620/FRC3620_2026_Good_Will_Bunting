@@ -1,0 +1,79 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 6.976134094151213,
+        "y": 4.455506419400857
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.536039527762976,
+        "y": 3.7956348074179758
+      },
+      "isLocked": false,
+      "linkedName": "Lakeshore Left CN"
+    },
+    {
+      "anchor": {
+        "x": 1.8686830357142856,
+        "y": 5.594546130952381
+      },
+      "prevControl": {
+        "x": 8.282938659058484,
+        "y": 5.801126961483595
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.6609808102345464,
+      "rotationDegrees": -135.0
+    },
+    {
+      "waypointRelativePos": 0.891257995735609,
+      "rotationDegrees": -135.0
+    },
+    {
+      "waypointRelativePos": 0.9402985074626847,
+      "rotationDegrees": 180.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Feed Shot",
+      "waypointRelativePos": 0.9777177582714361,
+      "endWaypointRelativePos": 1.0,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Feed Shot"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Left Bump Start General",
+  "idealStartingState": {
+    "velocity": 1.5,
+    "rotation": 180.0
+  },
+  "useDefaultConstraints": false
+}

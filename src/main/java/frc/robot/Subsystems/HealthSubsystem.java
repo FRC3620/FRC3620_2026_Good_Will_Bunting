@@ -74,8 +74,8 @@ public class HealthSubsystem extends SubsystemBase {
   Health booleanSupplierHealth = Health.GOOD;
   Health circuitBreakerHealth = Health.GOOD;
 
-  @Override
-  public void periodic() {
+  //@Override
+  public void dont_periodic() {
     Health newHealth = Health.GOOD;
 
     // only need to do this once
@@ -122,6 +122,7 @@ public class HealthSubsystem extends SubsystemBase {
     }
     currentHealth = newHealth;
     SmartDashboard.putString("Health/Overall", currentHealth.toString());
+    SmartDashboard.putBoolean("Health/Ok", currentHealth == Health.GOOD);
 
     RadioLEDState newRadioLEDState = null;
     switch (newHealth) {
@@ -299,7 +300,7 @@ public class HealthSubsystem extends SubsystemBase {
 
     List<String> getAllIllSupplierNames() {
       List<String> rv = new ArrayList<>(ill_booleanSuppliers.size());
-      for (var bs : all_booleanSuppliers) {
+      for (var bs : ill_booleanSuppliers) {
         rv.add(all_names.get(bs));
       }
       return rv;
@@ -343,11 +344,12 @@ public class HealthSubsystem extends SubsystemBase {
       add(() -> isOk(), "PDH", new HealthOptions());
     }
 
+    String lastAlertText = "";
+
     public boolean isOk() {
       boolean ok = true;
       PowerDistributionFaults faults = powerDistribution.getFaults();
       Set<String> breakerFaults = new HashSet<>();
-      String lastAlertText = "";
       for (int channel = 0; channel < 24; channel++) {
         if (faults.getBreakerFault(channel) && !breakersToIgnore.contains(channel)) {
           ok = false;

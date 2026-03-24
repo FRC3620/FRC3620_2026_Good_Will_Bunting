@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -40,6 +41,9 @@ public class PreshooterSubsystem extends SubsystemBase {
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
 
+    private boolean atRPM = false;
+    final AngularVelocity CONSTANT_SPEED = RPM.of(700);
+
     public PreshooterSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
                 org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
@@ -51,14 +55,14 @@ public class PreshooterSubsystem extends SubsystemBase {
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(
-                            8.0, // kP - tune this
+                            10.0, // kP - tune this
                             0.0, // kI
                             0.0, // kD
                             DegreesPerSecond.of(28800000), DegreesPerSecondPerSecond.of(28800))
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
                     .withIdleMode(MotorMode.COAST)
                     .withMotorInverted(true)
-                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
+                    .withTelemetry("motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimit(Amps.of(40))
                     .withControlMode(ControlMode.CLOSED_LOOP)
@@ -72,11 +76,12 @@ public class PreshooterSubsystem extends SubsystemBase {
                     .withDiameter(Inch.of(2))
                     .withMass(Pound.of(0.5))
                     .withUpperSoftLimit(RPM.of(100000))
-                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
 
             setDefaultCommand(idle());
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
+        SmartDashboard.putNumber("frc3620/ShotCalculator/PreShooterRatio", 1.0);
     }
 
     /*
@@ -133,6 +138,17 @@ public class PreshooterSubsystem extends SubsystemBase {
         if (flyWheel != null) {
             flyWheel.simIterate();
         }
+    }
+
+    public AngularVelocity getVelocity(){
+        return flyWheel.getSpeed();
+    }
+
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
     }
 
 }

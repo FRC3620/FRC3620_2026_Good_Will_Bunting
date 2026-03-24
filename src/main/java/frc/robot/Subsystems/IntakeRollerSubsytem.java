@@ -7,8 +7,15 @@ import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -28,47 +35,48 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class IntakeRollerSubsytem extends SubsystemBase {
-    int motorId = Constants.MOTORID_INTAKEROLLERS;
+    int motorId1 = Constants.MOTORID_INTAKEROLLERS1;
+    int motorId2 = Constants.MOTORID_INTAKEROLLERS2;
     String telemetryPrefix = "IntakeRollers";
 
-    private TalonFX motor = null;
-    private SmartMotorController motorController;
-    private FlyWheel flyWheel;
+    private TalonFX motor1 = null;
+    private TalonFX motor2 = null;
 
     public IntakeRollerSubsytem() {
-        boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
+        boolean makeDevices = (RobotContainer.canDeviceFinder.isDevicePresent(
                 org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
-                motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
+                motorId1, telemetryPrefix) &&
+                RobotContainer.canDeviceFinder.isDevicePresent(
+                    org.usfirst.frc3620.CANDeviceType.TALON_PHOENIX6,
+                motorId2, telemetryPrefix + " Follower")) || RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
-            motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            motor1 = new TalonFX(motorId1);
+            motor2 = new TalonFX(motorId2);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
-            SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))
-                    .withIdleMode(MotorMode.BRAKE)
-                    .withTelemetry("motor", TelemetryVerbosity.HIGH)
-                    .withStatorCurrentLimit(Amps.of(40))
-                    .withSupplyCurrentLimit(Amps.of(40))
-                    .withControlMode(ControlMode.OPEN_LOOP)
-                    .withMotorInverted(true);
+            TalonFXConfiguration config = new TalonFXConfiguration()
+            .withMotionMagic(new MotionMagicConfigs()
+                .withMotionMagicCruiseVelocity(RPM.of(3000))
+                .withMotionMagicAcceleration(RotationsPerSecondPerSecond.of(50)));
 
-            motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
+            config.Voltage.withPeakForwardVoltage(12 * 0.8);
+            config.Voltage.withPeakReverseVoltage(-12 * 0.8);
+            config.MotorOutput.withInverted(InvertedValue.Clockwise_Positive);
 
-            // Create the FlyWheel
-            flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(1.5))
-                    .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(2000))
-                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH));
+            motor1.setNeutralMode(NeutralModeValue.Brake);
+            motor1.getConfigurator().apply(config);
+
+            motor2.setControl(new Follower(motorId1, MotorAlignmentValue.Opposed));
         }
     }
 
     public Command rollersOn() {
         // Only use YAMS control, not manual rollers.set()
         Command rv;
-        if (flyWheel != null) {
-            rv = flyWheel.set(.5); // need to test this
+        if (motor1 != null) {
+            rv = run(() -> motor1.set(0.80)); // need to test this
         } else {
             rv = idle();
         }
@@ -77,8 +85,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     public Command rollersOff() {
         Command rv;
-        if (flyWheel != null) {
-            rv = flyWheel.set(0);
+        if (motor1 != null) {
+            rv = run(() -> motor1.set(0));
         } else {
             rv = idle();
         }
@@ -87,8 +95,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     public Command rollersBackwards() {
         Command rv;
-        if (flyWheel != null) {
-            rv = flyWheel.set(-.2);
+        if (motor1 != null) {
+            rv = run(() -> motor1.set(-0.90));
         } else {
             rv = idle();
         }
@@ -97,17 +105,29 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (flyWheel != null) {
-            flyWheel.updateTelemetry();
-            SmartDashboard.putNumber(telemetryPrefix + "Intake Velocity", flyWheel.getSpeed().in(RPM));
+        if (motor1 != null) {
+            SmartDashboard.putNumber("frc3620/IntakeRollers/Rotor Velocity RPS (about 2x drum speed)", motor1.getVelocity().getValueAsDouble());
+            SmartDashboard.putNumber("frc3620/IntakeRollers/Supply Current Amps", motor1.getSupplyCurrent().getValueAsDouble());
         }
     }
 
 
     @Override
     public void simulationPeriodic() {
-        if (flyWheel != null) {
-            flyWheel.simIterate();
+
+    }
+
+    public TalonFX getMotor1() {
+        if (motor1 != null) {
+            return motor1;
         }
+        return null;
+    }
+
+    public TalonFX getMotor2() {
+        if (motor2 != null) {
+            return motor2;
+        }
+        return null;
     }
 }

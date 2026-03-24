@@ -16,10 +16,10 @@ public class FieldTriggers {
         public final Trigger enterOurAllianceZone;
         public final Trigger enterNeutralDepot;
         public final Trigger enterNeutralOutpost;
-        public final Trigger enterOpponentDepot;
-        public final Trigger enterOpponentOutpost;
+      //  public final Trigger enterOpponentDepot;
+       // public final Trigger enterOpponentOutpost;
         public final Trigger enterDeadZone;
-        public final Trigger enterClimbZone;
+     //   public final Trigger enterClimbZone;
 
         public FieldTriggers(Supplier<Pose2d> pSupplier) {
                 // if pose supplier returns null use a default pose
@@ -36,23 +36,23 @@ public class FieldTriggers {
 
                 // field areas
                 enterOurAllianceZone = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4.625594);
+                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4);
 
                 enterNeutralDepot = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
                                                 && AllianceFlipUtil.applyX(
-                                                                safePose.get().getMeasureX().in(Meters)) < 11.887454
+                                                                safePose.get().getMeasureX().in(Meters)) < 15
                                                 && AllianceFlipUtil
                                                                 .applyY(safePose.get().getMeasureY()
                                                                                 .in(Meters)) > 4.763135);
                 enterNeutralOutpost = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
                                                 && AllianceFlipUtil.applyX(
-                                                                safePose.get().getMeasureX().in(Meters)) < 11.887454
+                                                                safePose.get().getMeasureX().in(Meters)) < 15
                                                 && AllianceFlipUtil
                                                                 .applyY(safePose.get().getMeasureY()
                                                                                 .in(Meters)) < 3.266821);
-                enterOpponentDepot = new Trigger(
+              /*   enterOpponentDepot = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.887454
                                                 && AllianceFlipUtil
                                                                 .applyY(safePose.get().getMeasureY()
@@ -61,7 +61,7 @@ public class FieldTriggers {
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.887454
                                                 && AllianceFlipUtil
                                                                 .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) < 3.266821);
+                                                                                .in(Meters)) < 3.266821);*/
                 enterDeadZone = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
                                                 && AllianceFlipUtil
@@ -70,12 +70,12 @@ public class FieldTriggers {
                                                 && AllianceFlipUtil
                                                                 .applyY(safePose.get().getMeasureY()
                                                                                 .in(Meters)) < 4.763135);
-                enterClimbZone = new Trigger(
+                /*enterClimbZone = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 2.5
                                                 && AllianceFlipUtil
                                                                 .applyY(safePose.get().getMeasureY().in(Meters)) > 7.1
                                                 && AllianceFlipUtil
-                                                                .applyX(safePose.get().getMeasureY().in(Meters)) < 9.3);
+                                                                .applyX(safePose.get().getMeasureY().in(Meters)) < 9.3);*/
 
         }
 

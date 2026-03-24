@@ -1,0 +1,66 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.795173025732032,
+        "y": 4.274365192582025
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.078908606921029,
+        "y": 4.330700596308734
+      },
+      "isLocked": false,
+      "linkedName": "Left Center Neutral Collect"
+    },
+    {
+      "anchor": {
+        "x": 5.75,
+        "y": 5.529
+      },
+      "prevControl": {
+        "x": 6.5477462289263535,
+        "y": 5.495696539485359
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Left Bump After"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Rollers Off",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Rollers Off"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 1.5,
+    "maxAcceleration": 1.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 2.5,
+    "rotation": -135.0
+  },
+  "reversed": false,
+  "folder": "Before and After Left Bump",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "useDefaultConstraints": true
+}

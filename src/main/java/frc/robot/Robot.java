@@ -7,6 +7,7 @@ import org.tinylog.TaggedLogger;
 
 import org.usfirst.frc3620.*;
 import org.usfirst.frc3620.logger.LoggingMaster;
+import org.usfirst.frc3620.odo.OdoIdsFlySky;
 
 import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
@@ -90,6 +91,7 @@ public class Robot extends TimedRobot {
     Runtime rt = Runtime.getRuntime();
     SmartDashboard.putNumber("frc3620/heap/free", rt.freeMemory());
     SmartDashboard.putNumber("frc3620/heap/total", rt.totalMemory());
+    SmartDashboard.putNumber("frc3620/FlySky", RobotContainer.driverJoystick.getAxis(OdoIdsFlySky.AxisId.SWG));
 
     m_robotContainer.getStateMachine().update();
   }
@@ -98,11 +100,17 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     processRobotModeChange(RobotMode.DISABLED);
+
+    if (RobotContainer.orchestra != null) RobotContainer.orchestra.play();
   }
 
   @Override
   public void disabledPeriodic() {
     logCANBusIfNecessary(); // don't do this when enabled; unnecessary overhead
+
+    if (RobotContainer.orchestra != null && !RobotContainer.orchestra.isPlaying()) {
+        RobotContainer.orchestra.play();
+    }
   }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
@@ -118,6 +126,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
+
+    if (RobotContainer.orchestra != null) RobotContainer.orchestra.stop();
   }
 
   /** This function is called periodically during autonomous. */
@@ -138,6 +148,9 @@ public class Robot extends TimedRobot {
 
     processRobotModeChange(RobotMode.TELEOP);
     logMatchInfo();
+
+    if (RobotContainer.orchestra != null) RobotContainer.orchestra.stop();
+
   }
 
   /** This function is called periodically during operator control. */
@@ -152,6 +165,8 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().cancelAll();
 
     processRobotModeChange(RobotMode.TEST);
+
+    if (RobotContainer.orchestra != null)  RobotContainer.orchestra.stop();
   }
 
   /** This function is called periodically during test mode. */

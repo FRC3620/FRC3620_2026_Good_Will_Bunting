@@ -1,0 +1,67 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 6.976134094151213,
+        "y": 6.810342368045649
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.967283472678261,
+        "y": 5.724693189310711
+      },
+      "isLocked": false,
+      "linkedName": "Lakeshore LN"
+    },
+    {
+      "anchor": {
+        "x": 6.976134094151213,
+        "y": 4.455506419400857
+      },
+      "prevControl": {
+        "x": 7.002452249108661,
+        "y": 5.630177677394832
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Lakeshore Left CN"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.28358208955223874,
+      "rotationDegrees": -70.0
+    },
+    {
+      "waypointRelativePos": 0.45,
+      "rotationDegrees": -100.0
+    },
+    {
+      "waypointRelativePos": 0.7,
+      "rotationDegrees": -70.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 1.0,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 1.5,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Left Bump Start General",
+  "idealStartingState": {
+    "velocity": 1.5,
+    "rotation": -90.0
+  },
+  "useDefaultConstraints": false
+}

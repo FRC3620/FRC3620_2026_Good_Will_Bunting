@@ -1,0 +1,71 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.46,
+        "y": 2.5
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.134221824686941,
+        "y": 3.183166368515206
+      },
+      "isLocked": false,
+      "linkedName": "Right Bump Start"
+    },
+    {
+      "anchor": {
+        "x": 8.244122681883024,
+        "y": 1.182025677603425
+      },
+      "prevControl": {
+        "x": 6.2774465049928665,
+        "y": 0.44452211126961483
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Right Neutral Collect"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5714285714285717,
+      "rotationDegrees": -45.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Intake Down",
+      "waypointRelativePos": 0.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Intake Down"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 1.5,
+    "rotation": 90.0
+  },
+  "reversed": false,
+  "folder": "Right Bump Start General",
+  "idealStartingState": {
+    "velocity": 0.0,
+    "rotation": -47.0
+  },
+  "useDefaultConstraints": false
+}
