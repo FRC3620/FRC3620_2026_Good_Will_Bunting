@@ -144,4 +144,11 @@ public class PreshooterSubsystem extends SubsystemBase {
         return flyWheel.getSpeed();
     }
 
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
+    }
+
 }

@@ -116,4 +116,18 @@ public class IntakeRollerSubsytem extends SubsystemBase {
     public void simulationPeriodic() {
 
     }
+
+    public TalonFX getMotor1() {
+        if (motor1 != null) {
+            return motor1;
+        }
+        return null;
+    }
+
+    public TalonFX getMotor2() {
+        if (motor2 != null) {
+            return motor2;
+        }
+        return null;
+    }
 }

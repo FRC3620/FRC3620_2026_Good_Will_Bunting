@@ -295,7 +295,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public Command sysIdDynamicReverse() {
     return sysIdRoutine.dynamic(SysIdRoutine.Direction.kReverse);
-  } 
+  }
 
   private double getRPMCorrection(Distance distance) {
 
@@ -360,5 +360,18 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     return () -> atRPM;
+  }
+
+  public TalonFX getMotor1() {
+    if (motor1 != null) {
+      return motor1;
+    }
+    return null;
+  }
+  public TalonFX getMotor2() {
+    if (motor2 != null) {
+      return motor2;
+    }
+    return null;
   }
 }
