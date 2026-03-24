@@ -117,9 +117,16 @@ public class IntakeRollerSubsytem extends SubsystemBase {
 
     }
 
-    public TalonFX getMotor() {
-        if (motor != null) {
-            return motor;
+    public TalonFX getMotor1() {
+        if (motor1 != null) {
+            return motor1;
+        }
+        return null;
+    }
+
+    public TalonFX getMotor2() {
+        if (motor2 != null) {
+            return motor2;
         }
         return null;
     }
