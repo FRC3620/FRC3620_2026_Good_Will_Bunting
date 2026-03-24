@@ -385,4 +385,11 @@ public class TurretSubsystem extends SubsystemBase {
       pivot.simIterate();
     }
   }
+
+  public TalonFX getMotor() {
+    if (motor != null) {
+      return motor;
+    }
+    return null;
+  }
 }

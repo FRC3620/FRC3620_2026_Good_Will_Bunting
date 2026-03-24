@@ -131,4 +131,10 @@ public class ConveyerSubsystem extends SubsystemBase {
         return idle();
     }
 
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
+    }
 }

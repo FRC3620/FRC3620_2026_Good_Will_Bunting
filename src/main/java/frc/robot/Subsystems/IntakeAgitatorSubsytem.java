@@ -110,4 +110,11 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
             flyWheel.simIterate();
         }
     }
+
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
+    }
 }

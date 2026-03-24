@@ -64,6 +64,7 @@ import frc.robot.Helpers.AllianceFlipUtil;
 import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
+import frc.robot.Helpers.OrchestraManager;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
@@ -163,6 +164,8 @@ public class RobotContainer implements RobotModeChangeListener {
   public static PreshooterSubsystem preshooterSubsystem;
   public BlinkyLightsSubsystem blinkyLightsSubsystem;
 
+  public static OrchestraManager orchestra;
+
   // hardware here
   public static PowerDistribution powerDistribution;
   public static Trigger useFMSTriggers = new Trigger(() -> false);
@@ -261,6 +264,31 @@ public class RobotContainer implements RobotModeChangeListener {
     conveyerSubsystem = new ConveyerSubsystem();
     blinkyLightsSubsystem = new BlinkyLightsSubsystem();
 
+    if (swerveSubsystem != null)
+      orchestra = new OrchestraManager();
+    if (swerveSubsystem != null) {
+      orchestra.addInstrument(swerveSubsystem.getModule(0).getDriveMotor(), 4); // fretless bass - most notes, low
+      orchestra.addInstrument(swerveSubsystem.getModule(1).getDriveMotor(), 4); // doubled bass
+      orchestra.addInstrument(swerveSubsystem.getModule(2).getDriveMotor(), 9); // unknown/drums - busy, low range
+      orchestra.addInstrument(swerveSubsystem.getModule(3).getDriveMotor(), 9); // doubled
+      orchestra.addInstrument(swerveSubsystem.getModule(0).getSteerMotor(), 1); // acoustic bass line
+      orchestra.addInstrument(swerveSubsystem.getModule(1).getSteerMotor(), 1); // doubled
+      orchestra.addInstrument(swerveSubsystem.getModule(2).getSteerMotor(), 3); // violin melody - shooters handle highs
+                                                                                // best
+      orchestra.addInstrument(swerveSubsystem.getModule(3).getSteerMotor(), 3); // doubled melody
+      orchestra.addInstrument(shooterSubsystem.getMotor1(), 3); // tripled melody
+      orchestra.addInstrument(shooterSubsystem.getMotor2(), 3); // quadrupled melody
+      orchestra.addInstrument(turretSubsystem.getMotor(), 10); // lead synth mid
+      orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
+      orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
+      orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
+      orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
+      orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
+      orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
+      orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
+      makeMusic();
+    }
+
     // healthSubsystem.dumpDatabase();
   }
 
@@ -294,6 +322,10 @@ public class RobotContainer implements RobotModeChangeListener {
       logger.info("swerve drive = {}", rv);
     }
     return rv;
+  }
+
+  private void makeMusic() {
+    orchestra.loadSong("titanium.chrp");
   }
 
   private void makeStates() {
@@ -901,17 +933,6 @@ public class RobotContainer implements RobotModeChangeListener {
             .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
                 .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
 
-    // WITH QUEST VELOCITY
-    NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
-        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
-        () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
-        () -> AllianceFlipUtil
-            .apply(ShotCalculator.calculateQuestVelocity(questNavSubsystem.getQuestNavVX(),
-                questNavSubsystem.getQuestNavVY(), questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d())))
-        .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
-            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
-
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
         new Translation2d(
@@ -1038,4 +1059,7 @@ public class RobotContainer implements RobotModeChangeListener {
     return false;
   }
 
+  public void stopMusic() {
+    orchestra.stop();
+  }
 }

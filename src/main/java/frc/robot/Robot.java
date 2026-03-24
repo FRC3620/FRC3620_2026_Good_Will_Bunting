@@ -100,11 +100,17 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     processRobotModeChange(RobotMode.DISABLED);
+
+    if (RobotContainer.orchestra != null) RobotContainer.orchestra.play();
   }
 
   @Override
   public void disabledPeriodic() {
     logCANBusIfNecessary(); // don't do this when enabled; unnecessary overhead
+
+    if (RobotContainer.orchestra != null && !RobotContainer.orchestra.isPlaying()) {
+        RobotContainer.orchestra.play();
+    }
   }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
@@ -120,6 +126,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
+
+    if (RobotContainer.orchestra != null) RobotContainer.orchestra.stop();
   }
 
   /** This function is called periodically during autonomous. */
@@ -140,6 +148,9 @@ public class Robot extends TimedRobot {
 
     processRobotModeChange(RobotMode.TELEOP);
     logMatchInfo();
+
+    if (RobotContainer.orchestra != null) RobotContainer.orchestra.stop();
+
   }
 
   /** This function is called periodically during operator control. */
@@ -154,6 +165,8 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().cancelAll();
 
     processRobotModeChange(RobotMode.TEST);
+
+    if (RobotContainer.orchestra != null)  RobotContainer.orchestra.stop();
   }
 
   /** This function is called periodically during test mode. */
