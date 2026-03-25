@@ -9,16 +9,15 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.util.datalog.StructLogEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.RollingAveragePose3d;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
+import edu.wpi.first.wpilibj.DataLogManager;
 
 public class QuestNavSubsystem extends SubsystemBase {
 
@@ -41,9 +40,6 @@ public class QuestNavSubsystem extends SubsystemBase {
   private double vy = 0;
   private double omega = 0;
 
-  // private Transform2d QUEST_TO_ROBOT2D = new
-  // Transform2d(Units.inchesToMeters(15.0), Units.inchesToMeters(0), new
-  // Rotation2d(0));
   private Transform3d QUEST_TO_ROBOT_CHUD = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_CHUD),
       0,
       Units.inchesToMeters(QUEST_NAV_HEIGHT_CHUD),
@@ -58,9 +54,10 @@ public class QuestNavSubsystem extends SubsystemBase {
   Pose3d roboPose = new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0));
 
   // Define the publisher as a class-level variable to keep it active
-  StructPublisher<Pose3d> posePub = NetworkTableInstance.getDefault()
-      .getStructTopic("QuestNavPose3d", Pose3d.struct)
-      .publish();
+  private StructLogEntry<Pose3d> posePub = StructLogEntry.create(
+      DataLogManager.getLog(),
+      "QuestNav/Pose3d",
+      Pose3d.struct);
 
   /** Creates a new QuestNav. */
   public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
@@ -86,7 +83,6 @@ public class QuestNavSubsystem extends SubsystemBase {
      */
 
     questNav.setPose(initialQuestNavPose);
-
   }
 
   public void updateAverageRobotPose(Pose3d questPose) {
@@ -101,9 +97,9 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     Matrix<N3, N1> QUESTNAV_STD_DEVS = VecBuilder.fill(0.02, 0.02, 0.035);
 
-    SmartDashboard.putBoolean("QuestNav.isConnected", questNav.isConnected());
-    SmartDashboard.putBoolean("QuestNav.isTracking", questNav.isTracking());
-    SmartDashboard.putNumber("QuestNav.batteryPercent", getQuestNavPower());
+    SmartDashboard.putBoolean("QuestNav/isConnected", questNav.isConnected());
+    SmartDashboard.putBoolean("QuestNav/isTracking", questNav.isTracking());
+    SmartDashboard.putNumber("QuestNav/batteryPercent", getQuestNavPower());
 
     if (questNav.isConnected() && questNav.isTracking()) {
 
@@ -132,11 +128,13 @@ public class QuestNavSubsystem extends SubsystemBase {
             updateVelocity(roboPose, timestamp);
           }
         } else {
-          updateVelocity(robotPose, timestamp);
-          swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-          roboPose = robotPose;
+          if (swerveSubsystem != null) {
+            updateVelocity(robotPose, timestamp);
+            swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+            roboPose = robotPose;
+          }
         }
-
+        posePub.append(roboPose);
       }
     }
   }
@@ -220,14 +218,10 @@ public class QuestNavSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
 
     if (questNav.isConnected() && questNav.isTracking()) {
-      SmartDashboard.putNumber("QuestNav.XVelocity", getQuestNavVX());
-      SmartDashboard.putNumber("QuestNav.YVelocity", getQuestNavVY());
+      SmartDashboard.putNumber("QuestNav/XVelocity", getQuestNavVX());
+      SmartDashboard.putNumber("QuestNav/YVelocity", getQuestNavVY());
     }
-
     questNav.commandPeriodic();
     updateVisionMeasurement();
-
-    posePub.set(roboPose);
-
   }
 }
