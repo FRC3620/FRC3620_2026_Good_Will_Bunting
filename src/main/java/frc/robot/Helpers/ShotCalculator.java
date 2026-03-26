@@ -85,6 +85,10 @@ public class ShotCalculator {
     private static AngularVelocity shooterSpeed = RotationsPerSecond.of(0);
     private static double preShooterRatio = 1.0;
 
+    private static final Distance SHOOTER_WHEEL_DIAMETER = Inches.of(4);
+    private static final Distance SHOOTER_WHEEL_CIRCUMFERENCE = SHOOTER_WHEEL_DIAMETER.times(Math.PI);
+    private static final double COUNTER_WHEEL_RECIPROCAL = 1.75;
+
     public static void updateFromDashboard() {
         syncTarget(hubSub, FieldTargets.BLUE_HUB, "Hub");
         syncTarget(opPassSub, FieldTargets.OP_PASS, "OpPass");
@@ -275,16 +279,79 @@ public class ShotCalculator {
         return rotation;
     }
 
-    public static Angle calculateExitAngle(Translation3d targetPosition, Supplier<Pose2d> robotPose,
-            Supplier<VelocityVector> robotVelocity) {
-        VelocityVector netHorizontalVelocity = calculateNetHorizontalVelocity(targetPosition, robotPose, robotVelocity);
-        LinearVelocity netVerticalVelocity = calculateNetVerticalVelocity(targetPosition, robotPose, robotVelocity);
+    /*
+     * public static Angle calculateExitAngle(Translation3d targetPosition,
+     * Supplier<Pose2d> robotPose,
+     * Supplier<VelocityVector> robotVelocity) {
+     * VelocityVector netHorizontalVelocity =
+     * calculateNetHorizontalVelocity(targetPosition, robotPose, robotVelocity);
+     * LinearVelocity netVerticalVelocity =
+     * calculateNetVerticalVelocity(targetPosition, robotPose, robotVelocity);
+     * 
+     * Angle angle = Radians.of(
+     * Math.atan2(netVerticalVelocity.in(FeetPerSecond),
+     * netHorizontalVelocity.getNorm().in(FeetPerSecond)));
+     * 
+     * SmartDashboard.putNumber("frc3620/ShotCalculator/FinalExitAngleDeg",
+     * angle.in(Degrees));
+     * return angle;
+     * }
+     */
 
-        Angle angle = Radians.of(
-                Math.atan2(netVerticalVelocity.in(FeetPerSecond), netHorizontalVelocity.getNorm().in(FeetPerSecond)));
+    public static Angle calculateExitAngleFromActualSpeed(
+            Translation3d targetPosition,
+            Supplier<Pose2d> robotPose,
+            Supplier<VelocityVector> robotVelocity,
+            Supplier<AngularVelocity> actualShooterSpeed) {
 
-        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalExitAngleDeg", angle.in(Degrees));
+        // Convert actual shooter wheel speed back to linear exit velocity
+        // (inverse of calculateShooterSpeed)
+
+        // Reverse the shooter gear math from calculateShooterSpeed
+        AngularVelocity rpsBig = RevolutionsPerSecond.of(
+                actualShooterSpeed.get().in(RevolutionsPerSecond) * COUNTER_WHEEL_RECIPROCAL / 2.0);
+        LinearVelocity actualExitVelocity = FeetPerSecond.of(
+                rpsBig.in(RevolutionsPerSecond) * SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitVelocityFtps",
+                actualExitVelocity.in(FeetPerSecond));
+
+        // Recompute net horizontal velocity using actual exit velocity
+        Angle bFieldAngle = calculateBaseFieldAngleToTarget(targetPosition.toTranslation2d(), robotPose);
+        Angle bExitAngle = calculateHighBaseExitAngle(targetPosition, robotPose);
+
+        LinearVelocity actualHorizontalExitVelocity = actualExitVelocity
+                .times(Math.cos(bExitAngle.in(Radians)));
+
+        LinearVelocity hXExitVelocity = actualHorizontalExitVelocity.times(Math.cos(bFieldAngle.in(Radians)));
+        LinearVelocity hYExitVelocity = actualHorizontalExitVelocity.times(Math.sin(bFieldAngle.in(Radians)));
+
+        LinearVelocity netHXV = hXExitVelocity.minus(robotVelocity.get().getX());
+        LinearVelocity netHYV = hYExitVelocity.minus(robotVelocity.get().getY());
+        VelocityVector netHorizontal = new VelocityVector(netHXV, netHYV);
+
+        LinearVelocity actualVerticalExitVelocity = actualExitVelocity
+                .times(Math.sin(bExitAngle.in(Radians)));
+
+        Angle angle = Radians.of(Math.atan2(
+                actualVerticalExitVelocity.in(FeetPerSecond),
+                netHorizontal.getNorm().in(FeetPerSecond)));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitAngleDeg", angle.in(Degrees));
         return angle;
+    }
+
+    public static Angle calculateHoodAngle(
+            Translation3d targetPosition,
+            Supplier<Pose2d> robotPose,
+            Supplier<VelocityVector> robotVelocity,
+            Supplier<AngularVelocity> actualShooterSpeed) {
+
+        Angle hoodAngle = Degrees.of(100).minus(
+                calculateExitAngleFromActualSpeed(targetPosition, robotPose, robotVelocity, actualShooterSpeed));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleActual", hoodAngle.in(Degrees));
+        return hoodAngle;
     }
 
     public static VelocityVector calculateNetHorizontalVelocity(Translation3d targetPosition,
@@ -336,13 +403,20 @@ public class ShotCalculator {
         return netShot.getNorm();
     }
 
-    public static Angle calculateHoodAngle(Translation3d targetPosition, Supplier<Pose2d> robotPose,
-            Supplier<VelocityVector> robotVelocity) {
-        Angle hoodAngle = Degrees.of(100).minus(calculateExitAngle(targetPosition, robotPose, robotVelocity));
-
-        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngle", hoodAngle.in(Degrees));
-        return hoodAngle;
-    }
+    /*
+     * public static Angle calculateHoodAngle(Translation3d targetPosition,
+     * Supplier<Pose2d> robotPose,
+     * Supplier<VelocityVector> robotVelocity, Supplier<AngularVelocity>
+     * shooterAngularVelocity) {
+     * Angle hoodAngle =
+     * Degrees.of(100).minus(calculateExitAngleFromActualSpeed(targetPosition,
+     * robotPose, robotVelocity, shooterAngularVelocity));
+     * 
+     * SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngle",
+     * hoodAngle.in(Degrees));
+     * return hoodAngle;
+     * }
+     */
 
     public static AngularVelocity calculateShooterSpeed(
             Translation3d targetPosition,
@@ -351,14 +425,9 @@ public class ShotCalculator {
 
         LinearVelocity shotSpeed = calculateNetShotVelocity(targetPosition, robotPose, robotVelocity);
 
-        Distance wheelDiameter = Inches.of(4);
-        Distance wheelCircumference = wheelDiameter.times(Math.PI);
-
-        double counterWeelRecibrocahl = 1.75;
-
-        AngularVelocity rpsBig = RevolutionsPerSecond.of(shotSpeed.in(FeetPerSecond) / wheelCircumference.in(Feet));
+        AngularVelocity rpsBig = RevolutionsPerSecond.of(shotSpeed.in(FeetPerSecond) / SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
         AngularVelocity shooterRps = RevolutionsPerSecond
-                .of(2 * rpsBig.in(RevolutionsPerSecond) / counterWeelRecibrocahl);
+                .of(2 * rpsBig.in(RevolutionsPerSecond) / COUNTER_WHEEL_RECIPROCAL);
 
         shooterSpeed = shooterRps;
 
