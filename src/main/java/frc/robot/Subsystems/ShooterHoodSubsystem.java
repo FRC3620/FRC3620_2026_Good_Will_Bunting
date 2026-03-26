@@ -94,7 +94,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, Constants.ENCODERID_HOOD,
                     telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
-            //shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
+            // shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
                     HealthSubsystem.healthOptionsForYAMS);
 
@@ -134,10 +134,10 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public void periodic() {
         if (pivot != null) {
 
-        if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation()) {
-            calibrationCommand = calibrate();
-            CommandScheduler.getInstance().schedule(calibrationCommand);
-        }
+            if (!isCalibrated && !activeCalibrating && !RobotBase.isSimulation()) {
+                calibrationCommand = calibrate();
+                CommandScheduler.getInstance().schedule(calibrationCommand);
+            }
 
             pivot.updateTelemetry();
 
@@ -151,8 +151,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees", getAngle().in(Degrees));
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrated", isCalibrated);
             SmartDashboard.putBoolean("frc3620/ShooterHood/isCalibrating", activeCalibrating);
-            //SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
-            //        Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(), Rotations));
+            // SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Degrees Encoder",
+            // Degrees.convertFrom(shooterHoodEncoder.getPosition().getValueAsDouble(),
+            // Rotations));
         }
     }
 
@@ -175,8 +176,10 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public Command createSetAngleCommand(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
-            targetAngle = angle.get();
-            rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(angle));
+            rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(() -> {
+                targetAngle = angle.get();
+                return targetAngle;
+            }));
         } else {
             rv = idle();
         }
@@ -218,7 +221,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
         return createSetAngleCommandGated(
                 () -> {
-                    Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity, shooterSpeed);
+                    Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity,
+                            shooterSpeed);
                     return raw;
                 }).withName("Shooter Hood Auto Angle To Target");
     }
@@ -290,15 +294,15 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     public BooleanSupplier atTarget() {
 
-    Angle current = getAngle();
-    if (current.isNear(targetAngle, Degrees.of(5))) {
-      atTarget = true;
-    } else {
-      atTarget = false;
-    }
+        Angle current = getAngle();
+        if (current.isNear(targetAngle, Degrees.of(5))) {
+            atTarget = true;
+        } else {
+            atTarget = false;
+        }
 
-    return () -> atTarget;
-  }
+        return () -> atTarget;
+    }
 
     public TalonFX getMotor() {
         if (motor != null) {
