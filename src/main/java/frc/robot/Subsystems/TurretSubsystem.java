@@ -83,7 +83,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
-  private double turretFilterAlpha = 1;
+  private double turretFilterAlpha = 0.8;
 
   private boolean atTarget = false;
 
@@ -215,7 +215,7 @@ public class TurretSubsystem extends SubsystemBase {
 
             Angle wrapped = wrapToSafeRange(withOffset, filteredTargetAngle);
 
-            double alpha = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", 1.0);
+            double alpha = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", turretFilterAlpha);
             if (!turretInitialized) {
               filteredTargetAngle = wrapped;
               turretInitialized = true;

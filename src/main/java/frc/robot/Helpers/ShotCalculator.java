@@ -92,8 +92,7 @@ public class ShotCalculator {
         private static final double COUNTER_WHEEL_RECIPROCAL = 1.75;
 
         // Smoothing constants - tune these, higher = more responsive, lower = smoother
-        private static double HOOD_ALPHA = 0.15;
-        private static double TURRET_ALPHA = 0.1; // turret is heavier, smooth it more
+        private static double HOOD_ALPHA = 0.5;
 
         // Previous smoothed values
         private static Angle smoothedHoodAngle = Degrees.of(0.0);
@@ -111,7 +110,7 @@ public class ShotCalculator {
 
         private static void syncTarget(DoubleArraySubscriber sub, FieldTargets target, String name) {
                 double[] pose = sub.get();
-                if (pose.length >= 3) {
+                if (pose.length >= 2) {
                         target.setTargetPosition(new Translation3d(
                                         Meters.of(pose[0]),
                                         Meters.of(pose[1]),
