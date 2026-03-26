@@ -17,6 +17,26 @@ public class OrchestraManager {
 
     }
 
+    public enum OrchestraSong {
+        TITANIUM("Titanium", "titanium.chrp"),
+        CALLMEMAYBE("Call me Maybe", "CallMeMaybe.chrp");
+
+        public final String displayName;
+        public final String filename;
+
+        OrchestraSong(String displayName, String filename) {
+            this.displayName = displayName;
+            this.filename = filename;
+        }
+    }
+
+    public void loadSong(OrchestraSong song) {
+        if (song != null) {
+            loadSong(song.filename);
+        }
+    }
+
+
     public void addInstrument(TalonFX motor, int track) {
         if (motor == null)
             return;
@@ -27,6 +47,8 @@ public class OrchestraManager {
         motor.getConfigurator().apply(audioConfigs);
         m_orchestra.addInstrument(motor, track);
     }
+
+    
 
     /**
      * Load a .chrp file from src/main/deploy.

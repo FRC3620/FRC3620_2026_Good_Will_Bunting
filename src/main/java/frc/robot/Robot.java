@@ -109,6 +109,7 @@ public class Robot extends TimedRobot {
     logCANBusIfNecessary(); // don't do this when enabled; unnecessary overhead
 
     if (RobotContainer.orchestra != null && !RobotContainer.orchestra.isPlaying()) {
+       RobotContainer.updateMusicSelection();
         RobotContainer.orchestra.play();
     }
   }
