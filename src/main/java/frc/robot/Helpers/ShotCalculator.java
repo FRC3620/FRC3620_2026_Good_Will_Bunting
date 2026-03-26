@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.FeetPerSecond;
+import static edu.wpi.first.units.Units.Horsepower;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -22,6 +23,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.networktables.DoubleArraySubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
@@ -30,15 +34,36 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ShotCalculator {
 
-    public enum FieldTargets {
-        // EXACT CENTER OF HUB
+    private static final NetworkTable dashboardTable = NetworkTableInstance.getDefault().getTable("dashboard")
+            .getSubTable("target");
 
+    private static final DoubleArraySubscriber hubSub = dashboardTable.getDoubleArrayTopic("hub")
+            .subscribe(new double[] {
+                    (Inches.of(182.11)).in(Meters),
+                    (Inches.of(158.84)).in(Meters),
+                    (Inches.of(72)).in(Feet) // z is in feet
+            });
+
+    private static final DoubleArraySubscriber opPassSub = dashboardTable.getDoubleArrayTopic("op_pass")
+            .subscribe(new double[] {
+                    (Inches.of(126)).in(Meters),
+                    (Inches.of(98.85)).in(Meters),
+                    0
+            });
+
+    private static final DoubleArraySubscriber depotPassSub = dashboardTable.getDoubleArrayTopic("depot_pass")
+            .subscribe(new double[] {
+                    (Inches.of(126)).in(Meters),
+                    (Inches.of(218.838)).in(Meters),
+                    0
+            });
+
+    public enum FieldTargets {
         BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
-        // TBD
         OP_PASS(new Translation3d(Inches.of(126), Inches.of(98.85), Inches.of(0))),
         DEPOT_PASS(new Translation3d(Inches.of(126), Inches.of(218.838), Inches.of(0)));
 
-        private final Translation3d targetPosition;
+        private Translation3d targetPosition;
 
         FieldTargets(Translation3d targetPosition) {
             this.targetPosition = targetPosition;
@@ -46,6 +71,11 @@ public class ShotCalculator {
 
         public Translation3d getTargetPosition() {
             return targetPosition;
+        }
+
+        // Allow dashboard to override any target
+        public void setTargetPosition(Translation3d position) {
+            this.targetPosition = position;
         }
     }
 
@@ -55,6 +85,44 @@ public class ShotCalculator {
 
     private static AngularVelocity shooterSpeed = RotationsPerSecond.of(0);
     private static double preShooterRatio = 1.0;
+
+    private static final Distance SHOOTER_WHEEL_DIAMETER = Inches.of(4);
+    private static final Distance SHOOTER_WHEEL_CIRCUMFERENCE = SHOOTER_WHEEL_DIAMETER.times(Math.PI);
+    private static final double COUNTER_WHEEL_RECIPROCAL = 1.75;
+
+    // Smoothing constants - tune these, higher = more responsive, lower = smoother
+    private static double HOOD_ALPHA = 0.15;
+    private static double TURRET_ALPHA = 0.1; // turret is heavier, smooth it more
+
+    // Previous smoothed values
+    private static Angle smoothedHoodAngle = Degrees.of(0.0);
+    private static Angle smoothedTurretAngle = Degrees.of(0.0);
+    private static boolean hoodInitialized = false;
+    private static boolean turretInitialized = false;
+
+    private static double smoothEMA(double newValue, double previousSmoothed, double alpha) {
+        return alpha * newValue + (1.0 - alpha) * previousSmoothed;
+    }
+
+    public static void updateFromDashboard() {
+        syncTarget(hubSub, FieldTargets.BLUE_HUB, "Hub");
+        syncTarget(opPassSub, FieldTargets.OP_PASS, "OpPass");
+        syncTarget(depotPassSub, FieldTargets.DEPOT_PASS, "DepotPass");
+    }
+
+    private static void syncTarget(DoubleArraySubscriber sub, FieldTargets target, String name) {
+        double[] pose = sub.get();
+        if (pose.length >= 3) {
+            target.setTargetPosition(new Translation3d(
+                    Meters.of(pose[0]),
+                    Meters.of(pose[1]),
+                    Feet.of(pose[2]) // z comes in as feet
+            ));
+            SmartDashboard.putNumber("frc3620/ShotCalculator/" + name + "X", pose[0]);
+            SmartDashboard.putNumber("frc3620/ShotCalculator/" + name + "Y", pose[1]);
+            SmartDashboard.putNumber("frc3620/ShotCalculator/" + name + "ZFt", pose[2]);
+        }
+    }
 
     public static Distance calculateBaseHDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPose) {
         Translation2d turretPosition = robotPose.get().getTranslation()
@@ -87,32 +155,33 @@ public class ShotCalculator {
     public static LinearVelocity calculateBaseExitVelocity(Translation3d targetPosition, Supplier<Pose2d> robotPose) {
         Distance hDistance = calculateBaseHDistanceToTarget(targetPosition.toTranslation2d(), robotPose);
         Distance deltaZ = targetPosition.getMeasureZ().minus(turretOffset.getMeasureZ());
-        double ratioOverMinVelocity = SmartDashboard.getNumber("frc3620/ShotCalculator/Ratio Over Min Velocity", 1.03); // empirically
-                                                                                                                        // determined
-                                                                                                                        // ratio
-                                                                                                                        // to
-                                                                                                                        // add
-                                                                                                                        // to
-                                                                                                                        // the
-                                                                                                                        // minimum
-                                                                                                                        // velocity
-                                                                                                                        // to
-                                                                                                                        // ensure
-                                                                                                                        // the
-                                                                                                                        // shot
-                                                                                                                        // reaches
-                                                                                                                        // the
-                                                                                                                        // target,
-                                                                                                                        // accounts
-                                                                                                                        // for
-                                                                                                                        // drag
-                                                                                                                        // and
-                                                                                                                        // other
-                                                                                                                        // unmodeled
-                                                                                                                        // factors
+        double ratio = SmartDashboard.getNumber("frc3620/ShotCalculator/Ratio Over Min Velocity",
+                ratioOverMinVelocity); // empirically
+        // determined
+        // ratio
+        // to
+        // add
+        // to
+        // the
+        // minimum
+        // velocity
+        // to
+        // ensure
+        // the
+        // shot
+        // reaches
+        // the
+        // target,
+        // accounts
+        // for
+        // drag
+        // and
+        // other
+        // unmodeled
+        // factors
 
         LinearVelocity exitVelocity = FeetPerSecond.of(
-                ratioOverMinVelocity
+                ratio
                         * Math.sqrt(
                                 (32.2 * (deltaZ.in(Feet) + Math.sqrt(
                                         Math.pow(hDistance.in(Feet), 2) + Math.pow(deltaZ.in(Feet), 2))))));
@@ -236,20 +305,104 @@ public class ShotCalculator {
         Angle robotHeading = robotPose.get().getRotation().getMeasure();
         Angle rotation = fieldAngle.minus(robotHeading);
 
-        SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDeg", rotation.in(Degrees));
-        return rotation;
+        if (!turretInitialized) {
+            smoothedTurretAngle = rotation;
+        }
+
+        TURRET_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", TURRET_ALPHA);
+
+        smoothedTurretAngle = Degrees
+                .of(smoothEMA(rotation.in(Degrees), smoothedTurretAngle.in(Degrees), TURRET_ALPHA));
+        turretInitialized = true;
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegRaw", rotation.in(Degrees));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegSmooth", smoothedTurretAngle.in(Degrees));
+        return smoothedTurretAngle;
     }
 
-    public static Angle calculateExitAngle(Translation3d targetPosition, Supplier<Pose2d> robotPose,
-            Supplier<VelocityVector> robotVelocity) {
-        VelocityVector netHorizontalVelocity = calculateNetHorizontalVelocity(targetPosition, robotPose, robotVelocity);
-        LinearVelocity netVerticalVelocity = calculateNetVerticalVelocity(targetPosition, robotPose, robotVelocity);
+    /*
+     * public static Angle calculateExitAngle(Translation3d targetPosition,
+     * Supplier<Pose2d> robotPose,
+     * Supplier<VelocityVector> robotVelocity) {
+     * VelocityVector netHorizontalVelocity =
+     * calculateNetHorizontalVelocity(targetPosition, robotPose, robotVelocity);
+     * LinearVelocity netVerticalVelocity =
+     * calculateNetVerticalVelocity(targetPosition, robotPose, robotVelocity);
+     * 
+     * Angle angle = Radians.of(
+     * Math.atan2(netVerticalVelocity.in(FeetPerSecond),
+     * netHorizontalVelocity.getNorm().in(FeetPerSecond)));
+     * 
+     * SmartDashboard.putNumber("frc3620/ShotCalculator/FinalExitAngleDeg",
+     * angle.in(Degrees));
+     * return angle;
+     * }
+     */
 
-        Angle angle = Radians.of(
-                Math.atan2(netVerticalVelocity.in(FeetPerSecond), netHorizontalVelocity.getNorm().in(FeetPerSecond)));
+    public static Angle calculateExitAngleFromActualSpeed(
+            Translation3d targetPosition,
+            Supplier<Pose2d> robotPose,
+            Supplier<VelocityVector> robotVelocity,
+            Supplier<AngularVelocity> actualShooterSpeed) {
 
-        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalExitAngleDeg", angle.in(Degrees));
+        // Convert actual shooter wheel speed back to linear exit velocity
+        // (inverse of calculateShooterSpeed)
+
+        // Reverse the shooter gear math from calculateShooterSpeed
+        AngularVelocity rpsBig = RevolutionsPerSecond.of(
+                actualShooterSpeed.get().in(RevolutionsPerSecond) * COUNTER_WHEEL_RECIPROCAL / 2.0);
+        LinearVelocity actualExitVelocity = FeetPerSecond.of(
+                rpsBig.in(RevolutionsPerSecond) * SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitVelocityFtps",
+                actualExitVelocity.in(FeetPerSecond));
+
+        // Recompute net horizontal velocity using actual exit velocity
+        Angle bFieldAngle = calculateBaseFieldAngleToTarget(targetPosition.toTranslation2d(), robotPose);
+        Angle bExitAngle = calculateHighBaseExitAngle(targetPosition, robotPose);
+
+        LinearVelocity actualHorizontalExitVelocity = actualExitVelocity
+                .times(Math.cos(bExitAngle.in(Radians)));
+
+        LinearVelocity hXExitVelocity = actualHorizontalExitVelocity.times(Math.cos(bFieldAngle.in(Radians)));
+        LinearVelocity hYExitVelocity = actualHorizontalExitVelocity.times(Math.sin(bFieldAngle.in(Radians)));
+
+        LinearVelocity netHXV = hXExitVelocity.minus(robotVelocity.get().getX());
+        LinearVelocity netHYV = hYExitVelocity.minus(robotVelocity.get().getY());
+        VelocityVector netHorizontal = new VelocityVector(netHXV, netHYV);
+
+        LinearVelocity actualVerticalExitVelocity = actualExitVelocity
+                .times(Math.sin(bExitAngle.in(Radians)));
+
+        Angle angle = Radians.of(Math.atan2(
+                actualVerticalExitVelocity.in(FeetPerSecond),
+                netHorizontal.getNorm().in(FeetPerSecond)));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitAngleDeg", angle.in(Degrees));
         return angle;
+    }
+
+    public static Angle calculateHoodAngle(
+            Translation3d targetPosition,
+            Supplier<Pose2d> robotPose,
+            Supplier<VelocityVector> robotVelocity,
+            Supplier<AngularVelocity> actualShooterSpeed) {
+
+        Angle rawHoodAngle = Degrees.of(100).minus(
+                calculateExitAngleFromActualSpeed(targetPosition, robotPose, robotVelocity, actualShooterSpeed));
+
+        if (!hoodInitialized) {
+            smoothedHoodAngle = rawHoodAngle;
+        }
+
+        HOOD_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/HoodAlpha", HOOD_ALPHA);
+
+        smoothedHoodAngle = Degrees.of(smoothEMA(rawHoodAngle.in(Degrees), smoothedHoodAngle.in(Degrees), HOOD_ALPHA));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualRaw", rawHoodAngle.in(Degrees));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualSmooth",
+                smoothedHoodAngle.in(Degrees));
+        hoodInitialized = true;
+        return smoothedHoodAngle;
     }
 
     public static VelocityVector calculateNetHorizontalVelocity(Translation3d targetPosition,
@@ -301,13 +454,20 @@ public class ShotCalculator {
         return netShot.getNorm();
     }
 
-    public static Angle calculateHoodAngle(Translation3d targetPosition, Supplier<Pose2d> robotPose,
-            Supplier<VelocityVector> robotVelocity) {
-        Angle hoodAngle = Degrees.of(100).minus(calculateExitAngle(targetPosition, robotPose, robotVelocity));
-
-        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngle", hoodAngle.in(Degrees));
-        return hoodAngle;
-    }
+    /*
+     * public static Angle calculateHoodAngle(Translation3d targetPosition,
+     * Supplier<Pose2d> robotPose,
+     * Supplier<VelocityVector> robotVelocity, Supplier<AngularVelocity>
+     * shooterAngularVelocity) {
+     * Angle hoodAngle =
+     * Degrees.of(100).minus(calculateExitAngleFromActualSpeed(targetPosition,
+     * robotPose, robotVelocity, shooterAngularVelocity));
+     * 
+     * SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngle",
+     * hoodAngle.in(Degrees));
+     * return hoodAngle;
+     * }
+     */
 
     public static AngularVelocity calculateShooterSpeed(
             Translation3d targetPosition,
@@ -316,14 +476,10 @@ public class ShotCalculator {
 
         LinearVelocity shotSpeed = calculateNetShotVelocity(targetPosition, robotPose, robotVelocity);
 
-        Distance wheelDiameter = Inches.of(4);
-        Distance wheelCircumference = wheelDiameter.times(Math.PI);
-
-        double counterWeelRecibrocahl = 1.75;
-
-        AngularVelocity rpsBig = RevolutionsPerSecond.of(shotSpeed.in(FeetPerSecond) / wheelCircumference.in(Feet));
+        AngularVelocity rpsBig = RevolutionsPerSecond
+                .of(shotSpeed.in(FeetPerSecond) / SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
         AngularVelocity shooterRps = RevolutionsPerSecond
-                .of(2 * rpsBig.in(RevolutionsPerSecond) / counterWeelRecibrocahl);
+                .of(2 * rpsBig.in(RevolutionsPerSecond) / COUNTER_WHEEL_RECIPROCAL);
 
         shooterSpeed = shooterRps;
 
@@ -334,5 +490,10 @@ public class ShotCalculator {
     public static AngularVelocity calculatePreshooterSpeed() {
         preShooterRatio = SmartDashboard.getNumber("frc3620/ShotCalculator/PreShooterRatio", preShooterRatio);
         return shooterSpeed.times(preShooterRatio);
+    }
+
+    // In ShotCalculator, add a method to publish all shot data at once
+    public static void publishShotData(){
+        
     }
 }

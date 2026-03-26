@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Power;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -78,11 +79,10 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     private final Angle ZERO_ENCODER_OFFSET = Rotations.of(0.281982); // place holders
 
-    private Angle filteredTargetAngle = Degrees.of(0);
-
     Double requestedCalibrationPos = null;
 
     private boolean atTarget = false;
+    Angle targetAngle = Degrees.of(0.0);
 
     public ShooterHoodSubsystem() {
 
@@ -123,10 +123,9 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             setDefaultCommand(idle().withName("Hood default command"));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
-        SmartDashboard.putNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
+        SmartDashboard.putNumber("frc3620/ShotCalculator/HoodAlpha", 1.0);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
         SmartDashboard.putNumber("frc3620/ShotCalculator/Ratio Over Min Velocity", 1.03);
-        SmartDashboard.putNumber("frc3620/ShooterHood/multiplier", 1);
         SmartDashboard.putData(this);
 
     }
@@ -176,6 +175,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public Command createSetAngleCommand(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
+            targetAngle = angle.get();
             rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(angle));
         } else {
             rv = idle();
@@ -212,18 +212,14 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     public Command createAutoAngleToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
-            Supplier<VelocityVector> robotVelocity) {
+            Supplier<VelocityVector> robotVelocity, Supplier<AngularVelocity> shooterSpeed) {
         if (pivot == null)
             return idle();
 
-        filteredTargetAngle = getAngle(); // Initialize filtered angle to current angle
         return createSetAngleCommandGated(
                 () -> {
-                    Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity);
-                    double alpha = SmartDashboard.getNumber("frc3620/ShooterHood/Filtering Alpha", 1.0);
-                    alpha = MathUtil.clamp(alpha, 0.0, 1.0);
-                    filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
-                    return filteredTargetAngle;
+                    Angle raw = ShotCalculator.calculateHoodAngle(targetPosition, robotPosition, robotVelocity, shooterSpeed);
+                    return raw;
                 }).withName("Shooter Hood Auto Angle To Target");
     }
 
@@ -295,7 +291,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     public BooleanSupplier atTarget() {
 
     Angle current = getAngle();
-    if (current.isNear(filteredTargetAngle, Degrees.of(5))) {
+    if (current.isNear(targetAngle, Degrees.of(5))) {
       atTarget = true;
     } else {
       atTarget = false;
