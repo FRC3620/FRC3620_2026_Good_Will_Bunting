@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -307,13 +308,16 @@ public class ShotCalculator {
 
         if (!turretInitialized) {
             smoothedTurretAngle = rotation;
+            turretInitialized = true;
         }
 
         TURRET_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", TURRET_ALPHA);
 
-        smoothedTurretAngle = Degrees
-                .of(smoothEMA(rotation.in(Degrees), smoothedTurretAngle.in(Degrees), TURRET_ALPHA));
-        turretInitialized = true;
+        Angle newAngle = rotation;
+        Angle lastAngle = smoothedTurretAngle;
+
+        double delta = MathUtil.inputModulus(newAngle.minus(lastAngle).in(Degrees), -180, 180);
+        smoothedTurretAngle = lastAngle.plus(Degrees.of(delta * TURRET_ALPHA));
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegRaw", rotation.in(Degrees));
         SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegSmooth", smoothedTurretAngle.in(Degrees));
@@ -393,6 +397,7 @@ public class ShotCalculator {
 
         if (!hoodInitialized) {
             smoothedHoodAngle = rawHoodAngle;
+            hoodInitialized = true;
         }
 
         HOOD_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/HoodAlpha", HOOD_ALPHA);
@@ -401,7 +406,6 @@ public class ShotCalculator {
         SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualRaw", rawHoodAngle.in(Degrees));
         SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualSmooth",
                 smoothedHoodAngle.in(Degrees));
-        hoodInitialized = true;
         return smoothedHoodAngle;
     }
 
@@ -494,6 +498,6 @@ public class ShotCalculator {
 
     // In ShotCalculator, add a method to publish all shot data at once
     public static void publishShotData(){
-        
+
     }
 }

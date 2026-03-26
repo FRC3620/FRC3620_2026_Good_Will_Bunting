@@ -87,6 +87,8 @@ public class TurretSubsystem extends SubsystemBase {
   private boolean atTarget = false;
 
   private Angle targetAngle = Degrees.of(0);
+  private static final double MIN_ANGLE = -298;
+  private static final double MAX_ANGLE = 135;
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -124,8 +126,8 @@ public class TurretSubsystem extends SubsystemBase {
           .withStartingPosition(Degrees.of(0))
           // .withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-298), Degrees.of(135))
-          .withSoftLimits(Degrees.of(-298), Degrees.of(135))
+          .withHardLimit(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
+          .withSoftLimits(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
           // MOI Calculation
@@ -153,7 +155,7 @@ public class TurretSubsystem extends SubsystemBase {
     } else {
       // setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232,
       // 128));
-      setpt = () -> closestAngle(angle);
+      setpt = () -> wrapToSafeRange(angle.get(), getAngle());
       targetAngle = setpt.get();
       rv = pivot.setAngle(setpt);
     }
@@ -189,8 +191,8 @@ public class TurretSubsystem extends SubsystemBase {
           () -> {
             Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
             Angle targetingOffsetAngle = Degrees.of(SmartDashboard
-              .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
-              
+                .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
+
             Angle finalAngle = raw.plus(targetingOffsetAngle);
             return finalAngle;
           });
@@ -198,16 +200,31 @@ public class TurretSubsystem extends SubsystemBase {
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }
 
-  public static Angle closestAngle(Supplier<Angle> target) {
+  public static Angle wrapToSafeRange(Angle target, Angle current) {
+    double bestOption = Double.NaN;
+    double bestError = Double.POSITIVE_INFINITY;
 
-    Angle targetA = target.get();
+    // Try multiple wraps of the target
+    for (int k = -2; k <= 2; k++) {
+      double candidate = target.in(Degrees) + 360 * k;
 
-    if (targetA.gte(Degrees.of(135))) {
-      return targetA.minus(Degrees.of(360));
-    } else if (targetA.lte(Degrees.of(-298))) {
-      return targetA.plus(Degrees.of(360));
+      // Check if candidate is inside safe range
+      if (candidate >= MIN_ANGLE && candidate <= MAX_ANGLE) {
+        double error = Math.abs(candidate - current.in(Degrees));
+
+        if (error < bestError) {
+          bestError = error;
+          bestOption = candidate;
+        }
+      }
     }
-    return targetA;
+
+    // Fallback: clamp if nothing valid found (shouldn't really happen)
+    if (Double.isNaN(bestOption)) {
+      bestOption = MathUtil.clamp(target.in(Degrees), MIN_ANGLE, MAX_ANGLE);
+    }
+
+    return Degrees.of(bestOption);
   }
 
   @Override
@@ -360,9 +377,9 @@ public class TurretSubsystem extends SubsystemBase {
 
       atTargetTime.start();
 
-      //if (atTargetTime.hasElapsed(.75)) {
-        atTarget = true;
-      //}
+      // if (atTargetTime.hasElapsed(.75)) {
+      atTarget = true;
+      // }
 
     } else {
       atTarget = false;
