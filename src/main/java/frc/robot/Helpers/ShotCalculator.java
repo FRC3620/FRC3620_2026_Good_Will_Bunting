@@ -296,7 +296,8 @@ public class ShotCalculator {
 
         TURRET_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", TURRET_ALPHA);
 
-        smoothedTurretAngle = Degrees.of(smoothEMA(rotation.in(Degrees), smoothedTurretAngle.in(Degrees), TURRET_ALPHA));
+        smoothedTurretAngle = Degrees
+                .of(smoothEMA(rotation.in(Degrees), smoothedTurretAngle.in(Degrees), TURRET_ALPHA));
         turretInitialized = true;
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegRaw", rotation.in(Degrees));
@@ -375,7 +376,7 @@ public class ShotCalculator {
         Angle rawHoodAngle = Degrees.of(100).minus(
                 calculateExitAngleFromActualSpeed(targetPosition, robotPose, robotVelocity, actualShooterSpeed));
 
-        if(!hoodInitialized) {
+        if (!hoodInitialized) {
             smoothedHoodAngle = rawHoodAngle;
         }
 
@@ -383,7 +384,8 @@ public class ShotCalculator {
 
         smoothedHoodAngle = Degrees.of(smoothEMA(rawHoodAngle.in(Degrees), smoothedHoodAngle.in(Degrees), HOOD_ALPHA));
         SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualRaw", rawHoodAngle.in(Degrees));
-        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualSmooth", smoothedHoodAngle.in(Degrees));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualSmooth",
+                smoothedHoodAngle.in(Degrees));
         hoodInitialized = true;
         return smoothedHoodAngle;
     }
@@ -473,5 +475,10 @@ public class ShotCalculator {
     public static AngularVelocity calculatePreshooterSpeed() {
         preShooterRatio = SmartDashboard.getNumber("frc3620/ShotCalculator/PreShooterRatio", preShooterRatio);
         return shooterSpeed.times(preShooterRatio);
+    }
+
+    // In ShotCalculator, add a method to publish all shot data at once
+    public static void publishShotData(){
+        
     }
 }
