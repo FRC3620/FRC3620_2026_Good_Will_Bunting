@@ -42,7 +42,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
   private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
-  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(5);
+  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(20);
 
   private Pose3d lastPose = null;
   private double lastTimestamp = -1;
