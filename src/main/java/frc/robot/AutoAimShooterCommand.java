@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.AllianceFlipUtil;
@@ -28,6 +29,8 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
                 RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()
             ));
 
+        Supplier<AngularVelocity> shooterExitSpeed = 
+            () -> RobotContainer.shooterSubsystem.getVelocity();
         addCommands(
 
             RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
@@ -45,7 +48,8 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
             RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
                 target,
                 robotPose,
-                robotVelocity
+                robotVelocity,
+                shooterExitSpeed
             ),
 
             RobotContainer.preshooterSubsystem.createSetVelocityCommand(

@@ -86,22 +86,22 @@ public class ShooterSubsystem extends SubsystemBase {
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
-    rpmCorrectionMap.put(4, -36.0);
-    rpmCorrectionMap.put(5, -36.0);
-    rpmCorrectionMap.put(6, -25.0);
-    rpmCorrectionMap.put(7, -17.0);
-    rpmCorrectionMap.put(8, -10.0);
-    rpmCorrectionMap.put(9, -10.0);
-    rpmCorrectionMap.put(10, -10.0);
-    rpmCorrectionMap.put(11, -10.0);
+    rpmCorrectionMap.put(4, 6.0);
+    rpmCorrectionMap.put(5, 6.0);
+    rpmCorrectionMap.put(6, 5.0);
+    rpmCorrectionMap.put(7, 7.0);
+    rpmCorrectionMap.put(8, 0.0);
+    rpmCorrectionMap.put(9, 0.0);
+    rpmCorrectionMap.put(10, 0.0);
+    rpmCorrectionMap.put(11, 0.0);
     rpmCorrectionMap.put(12, 0.0);
-    rpmCorrectionMap.put(13, 10.0);
-    rpmCorrectionMap.put(14, 20.0);
-    rpmCorrectionMap.put(15, 30.0);
-    rpmCorrectionMap.put(16, 30.0);
-    rpmCorrectionMap.put(17, 30.0);
-    rpmCorrectionMap.put(18, 40.0);
-    rpmCorrectionMap.put(19,40.0);
+    rpmCorrectionMap.put(13, 0.0);
+    rpmCorrectionMap.put(14, 0.0);
+    rpmCorrectionMap.put(15, 0.0);
+    rpmCorrectionMap.put(16, 0.0);
+    rpmCorrectionMap.put(17, 0.0);
+    rpmCorrectionMap.put(18, 0.0);
+    rpmCorrectionMap.put(19, 0.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -216,7 +216,6 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    filteredRPM = getVelocity(); // Initialize filtered RPM to current RPM
     return flywheel.setSpeed(
         () -> {
           AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
@@ -226,13 +225,10 @@ public class ShooterSubsystem extends SubsystemBase {
           double correctionRPM = getRPMCorrection(distanceFeet);
 
           AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
-          double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 1.0);
-          alpha = MathUtil.clamp(alpha, 0.0, 1.0);
-          filteredRPM = filteredRPM.times(1.0 - alpha).plus(corrected.times(alpha));
 
           SmartDashboard.putNumber("frc3620/Shooter/DistanceFeet", distanceFeet.in(Feet));
           SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
-          return filteredRPM;
+          return corrected;
         });
   }
 
@@ -303,16 +299,20 @@ public class ShooterSubsystem extends SubsystemBase {
       return 0;
     }
 
-    double distBuckets = distance.in(Feet)/bucketSize.in(Feet);
+    double distBuckets = distance.in(Feet) / bucketSize.in(Feet);
 
     Integer lowKey = rpmCorrectionMap.floorKey((int) Math.floor(distBuckets));
     Integer highKey = rpmCorrectionMap.ceilingKey((int) Math.ceil(distBuckets));
 
-    if (highKey == null && lowKey == null) return 0;
-    if (lowKey == null) return rpmCorrectionMap.get(highKey);
-    if (highKey == null) return rpmCorrectionMap.get(lowKey);
+    if (highKey == null && lowKey == null)
+      return 0;
+    if (lowKey == null)
+      return rpmCorrectionMap.get(highKey);
+    if (highKey == null)
+      return rpmCorrectionMap.get(lowKey);
 
-    if (lowKey.equals(highKey)) return rpmCorrectionMap.get(lowKey);
+    if (lowKey.equals(highKey))
+      return rpmCorrectionMap.get(lowKey);
 
     double lowerDist = lowKey * bucketSize.in(Feet);
     double highDist = highKey * bucketSize.in(Feet);
@@ -368,6 +368,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
     return null;
   }
+
   public TalonFX getMotor2() {
     if (motor2 != null) {
       return motor2;

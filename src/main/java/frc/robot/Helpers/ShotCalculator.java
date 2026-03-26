@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Degree;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.FeetPerSecond;
+import static edu.wpi.first.units.Units.Horsepower;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -88,6 +89,20 @@ public class ShotCalculator {
     private static final Distance SHOOTER_WHEEL_DIAMETER = Inches.of(4);
     private static final Distance SHOOTER_WHEEL_CIRCUMFERENCE = SHOOTER_WHEEL_DIAMETER.times(Math.PI);
     private static final double COUNTER_WHEEL_RECIPROCAL = 1.75;
+
+    // Smoothing constants - tune these, higher = more responsive, lower = smoother
+    private static double HOOD_ALPHA = 0.15;
+    private static double TURRET_ALPHA = 0.1; // turret is heavier, smooth it more
+
+    // Previous smoothed values
+    private static Angle smoothedHoodAngle = Degrees.of(0.0);
+    private static Angle smoothedTurretAngle = Degrees.of(0.0);
+    private static boolean hoodInitialized = false;
+    private static boolean turretInitialized = false;
+
+    private static double smoothEMA(double newValue, double previousSmoothed, double alpha) {
+        return alpha * newValue + (1.0 - alpha) * previousSmoothed;
+    }
 
     public static void updateFromDashboard() {
         syncTarget(hubSub, FieldTargets.BLUE_HUB, "Hub");
@@ -275,8 +290,18 @@ public class ShotCalculator {
         Angle robotHeading = robotPose.get().getRotation().getMeasure();
         Angle rotation = fieldAngle.minus(robotHeading);
 
-        SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDeg", rotation.in(Degrees));
-        return rotation;
+        if (!turretInitialized) {
+            smoothedTurretAngle = rotation;
+        }
+
+        TURRET_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", TURRET_ALPHA);
+
+        smoothedTurretAngle = Degrees.of(smoothEMA(rotation.in(Degrees), smoothedTurretAngle.in(Degrees), TURRET_ALPHA));
+        turretInitialized = true;
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegRaw", rotation.in(Degrees));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/NetTurretAngleDegSmooth", smoothedTurretAngle.in(Degrees));
+        return smoothedTurretAngle;
     }
 
     /*
@@ -347,11 +372,20 @@ public class ShotCalculator {
             Supplier<VelocityVector> robotVelocity,
             Supplier<AngularVelocity> actualShooterSpeed) {
 
-        Angle hoodAngle = Degrees.of(100).minus(
+        Angle rawHoodAngle = Degrees.of(100).minus(
                 calculateExitAngleFromActualSpeed(targetPosition, robotPose, robotVelocity, actualShooterSpeed));
 
-        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleActual", hoodAngle.in(Degrees));
-        return hoodAngle;
+        if(!hoodInitialized) {
+            smoothedHoodAngle = rawHoodAngle;
+        }
+
+        HOOD_ALPHA = SmartDashboard.getNumber("frc3620/ShotCalculator/HoodAlpha", HOOD_ALPHA);
+
+        smoothedHoodAngle = Degrees.of(smoothEMA(rawHoodAngle.in(Degrees), smoothedHoodAngle.in(Degrees), HOOD_ALPHA));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualRaw", rawHoodAngle.in(Degrees));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/FinalHoodAngleFromActualSmooth", smoothedHoodAngle.in(Degrees));
+        hoodInitialized = true;
+        return smoothedHoodAngle;
     }
 
     public static VelocityVector calculateNetHorizontalVelocity(Translation3d targetPosition,
@@ -425,7 +459,8 @@ public class ShotCalculator {
 
         LinearVelocity shotSpeed = calculateNetShotVelocity(targetPosition, robotPose, robotVelocity);
 
-        AngularVelocity rpsBig = RevolutionsPerSecond.of(shotSpeed.in(FeetPerSecond) / SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
+        AngularVelocity rpsBig = RevolutionsPerSecond
+                .of(shotSpeed.in(FeetPerSecond) / SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
         AngularVelocity shooterRps = RevolutionsPerSecond
                 .of(2 * rpsBig.in(RevolutionsPerSecond) / COUNTER_WHEEL_RECIPROCAL);
 

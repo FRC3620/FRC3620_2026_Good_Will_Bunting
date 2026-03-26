@@ -838,7 +838,9 @@ public class RobotContainer implements RobotModeChangeListener {
                     FeetPerSecond
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
                     FeetPerSecond
-                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))))
+                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))),
+                () -> shooterSubsystem.getVelocity()
+                      )
                 .in(Degrees));
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM",
@@ -934,9 +936,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
-        new Translation2d(
-            Feet.of(15.17),
-            Feet.of(13.235)),
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
@@ -944,10 +944,7 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getPigeon2().getRotation2d()))));
 
     NamedCommands.registerCommand("Shoot", shooterSubsystem.createSetSpeedToTargetCommand(
-        new Translation3d(
-            Feet.of(15.17),
-            Feet.of(13.235),
-            Feet.of(6)),
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
@@ -955,15 +952,14 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getPigeon2().getRotation2d()))));
 
     NamedCommands.registerCommand("Set Hood Angle", shooterHoodSubsystem.createAutoAngleToTargetCommand(
-        new Translation3d(
-            Feet.of(15.17),
-            Feet.of(13.235),
-            Feet.of(6)),
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
-            swerveSubsystem.getPigeon2().getRotation2d()))));
+            swerveSubsystem.getPigeon2().getRotation2d())),
+        () -> shooterSubsystem.getVelocity()
+          ));
   }
 
   void sendSwerveSubsystemToHealthSubsystem() {
