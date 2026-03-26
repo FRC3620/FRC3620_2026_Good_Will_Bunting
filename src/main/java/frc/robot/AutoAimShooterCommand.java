@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.AllianceFlipUtil;
@@ -38,24 +39,32 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
         }
 
+        Supplier<AngularVelocity> shooterExitSpeed = 
+            () -> RobotContainer.shooterSubsystem.getVelocity();
         addCommands(
 
-                RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                        target.toTranslation2d(),
-                        robotPose,
-                        robotVelocity),
+            RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
+                target.toTranslation2d(),
+                robotPose,
+                robotVelocity
+            ),
 
-                RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
-                        target,
-                        robotPose,
-                        robotVelocity),
+            RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
+                target,
+                robotPose,
+                robotVelocity
+            ),
 
-                RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
-                        target,
-                        robotPose,
-                        robotVelocity),
+            RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
+                target,
+                robotPose,
+                robotVelocity,
+                shooterExitSpeed
+            ),
 
-                RobotContainer.preshooterSubsystem.createSetVelocityCommand(
-                        () -> RPM.of(700)));
+            RobotContainer.preshooterSubsystem.createSetVelocityCommand(
+                () -> RPM.of(700)
+            )
+        );
     }
 }
