@@ -83,6 +83,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
+  private double turretFilterAlpha = 1;
 
   private boolean atTarget = false;
 
@@ -154,6 +155,7 @@ public class TurretSubsystem extends SubsystemBase {
     Supplier<Angle> setpt;
     if (pivot == null) {
       rv = idle();
+      
     } else {
       setpt = () -> {
         targetAngle = angle.get();
@@ -193,12 +195,25 @@ public class TurretSubsystem extends SubsystemBase {
     } else {
       rv = createSetAngleCommand(
           () -> {
+            /*
+             * Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition,
+             * robotPose, robotVelocity);
+             * double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix
+             * +"Filtering Alpha", turretFilterAlpha);
+             * turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
+             * filteredTargetAngle = filteredTargetAngle.times(1.0 -
+             * alpha).plus(raw.times(alpha));
+             * Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/"+
+             * telemetryPrefix+"/Targeting Offset Degrees", turretTargetingOffset));
+             * targetAngle = filteredTargetAngle.plus(targetingOffsetAngle);
+             * return targetAngle;
+             */
             Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
 
             Angle withOffset = raw.plus(Degrees.of(SmartDashboard
                 .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset)));
 
-            Angle wrapped = wrapToSafeRange(withOffset, getAngle());
+            Angle wrapped = wrapToSafeRange(withOffset, filteredTargetAngle);
 
             double alpha = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", 1.0);
             if (!turretInitialized) {
