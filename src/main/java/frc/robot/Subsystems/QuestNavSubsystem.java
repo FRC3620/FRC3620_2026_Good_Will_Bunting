@@ -42,7 +42,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
   private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
-  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(20);
+  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(10);
 
   private Pose3d lastPose = null;
   private double lastTimestamp = -1;
@@ -147,7 +147,7 @@ public class QuestNavSubsystem extends SubsystemBase {
             updateVelocity(roboPose, timestamp);
           }
         } else {
-          updateVelocity(robotPose, timestamp);
+          updateVelocity(rollingAvgPose.getAveragePose(), timestamp);
           swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
           roboPose = robotPose;
         }
@@ -166,22 +166,52 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     double dt = timestamp - lastTimestamp;
 
-    if (dt <= 0)
+    if (dt < 0.01 || dt > 0.1) {
+      lastPose = pose;
+      lastTimestamp = timestamp;
       return;
+    }
 
-    vx = MetersPerSecond.of((pose.getX() - lastPose.getX()) / dt);
-    vy = MetersPerSecond.of((pose.getY() - lastPose.getY()) / dt);
+    // Raw velocity
+    double vxVal = (pose.getX() - lastPose.getX()) / dt;
+    double vyVal = (pose.getY() - lastPose.getY()) / dt;
+
+    double maxVel = 5.5; // m/s (tune for your robot)
+    vxVal = Math.max(-maxVel, Math.min(maxVel, vxVal));
+    vyVal = Math.max(-maxVel, Math.min(maxVel, vyVal));
+
+    double maxAccel = 10.0; // m/s^2 (tune this)
+    double maxDelta = maxAccel * dt;
+
+    double prevVX = vx.in(MetersPerSecond);
+    double prevVY = vy.in(MetersPerSecond);
+
+    vxVal = Math.max(prevVX - maxDelta, Math.min(prevVX + maxDelta, vxVal));
+    vyVal = Math.max(prevVY - maxDelta, Math.min(prevVY + maxDelta, vyVal));
+
+    if (Math.abs(vxVal) < 0.01)
+      vxVal = 0;
+    if (Math.abs(vyVal) < 0.01)
+      vyVal = 0;
+
+    // Store filtered velocity
+    vx = MetersPerSecond.of(vxVal);
+    vy = MetersPerSecond.of(vyVal);
 
     double yawNow = pose.getRotation().getZ();
     double yawPrev = lastPose.getRotation().getZ();
 
-    omega = DegreesPerSecond.of((yawNow - yawPrev) / dt);
+    double deltaYaw = yawNow - yawPrev;
+    deltaYaw = Math.atan2(Math.sin(deltaYaw), Math.cos(deltaYaw));
+
+    omega = DegreesPerSecond.of(deltaYaw / dt);
 
     rollingAvgVelo.addVelocity(new Translation3d(
-        vx.in(MetersPerSecond),
-        vy.in(MetersPerSecond),
+        vxVal,
+        vyVal,
         0.0));
 
+    // Update state
     lastPose = pose;
     lastTimestamp = timestamp;
   }
