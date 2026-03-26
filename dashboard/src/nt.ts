@@ -1,25 +1,61 @@
-import { NetworkTables, NetworkTablesTypeInfos } from "ntcore-ts-client";
+import { NetworkTables, NetworkTablesTopic, NetworkTablesTypeInfos } from "ntcore-ts-client";
+import { type TopicType, TOPIC_CONFIGS, typeInfoMap } from "./topics";
 
-const nt = NetworkTables.getInstanceByTeam(3620);
+let nt: NetworkTables | null = null;
 
-// create topic
-const helloTopic = nt.createTopic<string>(
-  "/dashboard/hello",
-  NetworkTablesTypeInfos.kString,
-  "default"
-);
+export type NTValue = string | number | boolean | number[];
+
+const topicRegistry = new Map<string, NetworkTablesTopic<NTValue>>();
 
 let publisherReady = false;
 
-export async function initNT() {
-  if (!publisherReady) {
-    await helloTopic.publish();
+export function connectToRobot(team: number) {
+  nt = NetworkTables.getInstanceByTeam(team);
+}
+
+export function connectToSimulator(host = "localhost", port = 5810) {
+  nt = NetworkTables.getInstanceByURI(host, port);
+}
+
+export async function initNT(timeoutMs = 5000): Promise<void> {
+  if (!nt) throw new Error("Call connectToRobot or connectToSimulator first");
+
+  const connect = async () => {
+    for (const config of TOPIC_CONFIGS) {
+      const topic = nt!.createTopic(
+        config.key,
+        typeInfoMap[config.type],
+        config.defaultValue
+      );
+      await topic.publish();
+      topicRegistry.set(config.key, topic as NetworkTablesTopic<NTValue>);
+    }
     publisherReady = true;
+  };
+
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Connection timed out")), timeoutMs)
+  );
+
+  try {
+    await Promise.race([connect(), timeout]);
+  } catch (e) {
+    // Reset so the user can retry cleanly
+    publisherReady = false;
+    nt = null;
+    topicRegistry.clear();
+    throw e;
   }
 }
 
-export function sendHello(value: string) {
-  if (publisherReady) {
-    helloTopic.setValue(value);
-  }
+export function setValue(key: string, value: NTValue) {
+  if (!publisherReady) return;
+  topicRegistry.get(key)?.setValue(value);
+}
+
+export function subscribeToValue(
+  key: string, 
+  callback: (value: NTValue | null) => void
+) {
+  topicRegistry.get(key)?.subscribe(callback);
 }
