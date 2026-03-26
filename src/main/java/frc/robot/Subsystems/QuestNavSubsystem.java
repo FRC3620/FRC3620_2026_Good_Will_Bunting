@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.RollingAveragePose3d;
+import frc.robot.Helpers.RollingAverageVelocity;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
@@ -39,7 +41,8 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR = 180;
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
-  private final RollingAveragePose3d rollingAvg = new RollingAveragePose3d(5);
+  private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
+  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(5);
 
   private Pose3d lastPose = null;
   private double lastTimestamp = -1;
@@ -97,11 +100,15 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public void updateAverageRobotPose(Pose3d questPose) {
-    rollingAvg.addPose(questPose);
+    rollingAvgPose.addPose(questPose);
   }
 
   public Pose3d getAverageRobotPose() {
-    return rollingAvg.getAveragePose();
+    return rollingAvgPose.getAveragePose();
+  }
+
+  public Translation3d getAverageRobotVelocity() {
+    return rollingAvgVelo.getAverageVelocity();
   }
 
   public void updateVisionMeasurement() {
@@ -131,11 +138,12 @@ public class QuestNavSubsystem extends SubsystemBase {
         // adds to a queue array of 5 and averages the 5 values
         updateAverageRobotPose(robotPose);
 
-        if (rollingAvg.isFilled()) {
+        if (rollingAvgPose.isFilled()) {
           // Add the mesaurement to the pose Estimator
           if (swerveSubsystem != null) {
-            swerveSubsystem.addVisionMeasurement(rollingAvg.getAveragePose().toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-            roboPose = rollingAvg.getAveragePose();
+            swerveSubsystem.addVisionMeasurement(rollingAvgPose.getAveragePose().toPose2d(), timestamp,
+                QUESTNAV_STD_DEVS);
+            roboPose = rollingAvgPose.getAveragePose();
             updateVelocity(roboPose, timestamp);
           }
         } else {
@@ -169,16 +177,21 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     omega = DegreesPerSecond.of((yawNow - yawPrev) / dt);
 
+    rollingAvgVelo.addVelocity(new Translation3d(
+        vx.in(MetersPerSecond),
+        vy.in(MetersPerSecond),
+        0.0));
+
     lastPose = pose;
     lastTimestamp = timestamp;
   }
 
   public LinearVelocity getQuestNavVX() {
-    return vx;
+    return MetersPerSecond.of(rollingAvgVelo.getAverageVelocity().getX());
   }
 
   public LinearVelocity getQuestNavVY() {
-    return vy;
+    return MetersPerSecond.of(rollingAvgVelo.getAverageVelocity().getY());
   }
 
   public AngularVelocity getQuestNavOmega() {
@@ -194,7 +207,11 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public void resetQuestNavPoseRollingAvg() {
-    rollingAvg.reset();
+    rollingAvgPose.reset();
+  }
+
+  public void resetQuestNavVeloRollingAvg() {
+    rollingAvgVelo.reset();
   }
 
   public void setQuestNavPose(Pose3d pose) {
