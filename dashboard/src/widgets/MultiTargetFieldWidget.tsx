@@ -57,6 +57,7 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
   }, [topics]);
 
   // Redraw whenever any position changes
+  // Inside MultiTargetFieldWidget, replace your canvas useEffect with this:
   useEffect(() => {
     const canvas = canvasRef.current;
     const img = imageRef.current;
@@ -64,25 +65,31 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const W = canvas.width;
-    const H = canvas.height;
+    // Match canvas internal resolution to its actual display size
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);  // scale all drawing to match
+
+    const W = rect.width;   // now use rect dimensions for all math
+    const H = rect.height;
+
     ctx.drawImage(img, 0, 0, W, H);
 
-    // Draw all targets
     topics.forEach(topic => {
       const pos = positions[topic.key];
       const px = (pos.x / FIELD_WIDTH_M) * W;
       const py = H - (pos.y / FIELD_HEIGHT_M) * H;
       const color = TARGET_COLORS[topic.key] ?? "rgba(255,255,255,0.85)";
       const isSelected = topic.key === selectedKey;
-      const size = isSelected ? 24 : 18; // selected target is bigger
+      const size = isSelected ? 16 : 10;
 
       ctx.save();
       ctx.translate(px, py);
 
-      // Highlight ring for selected target
       if (isSelected) {
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = "rgba(119, 117, 255, 1)";
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(0, 0, size, 0, Math.PI * 2);
@@ -90,16 +97,15 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
       }
 
       ctx.fillStyle = color;
-      ctx.strokeStyle = "white";
+      ctx.strokeStyle = "rgba(119, 117, 255, 1)";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(0, 0, size / 2, 0, Math.PI * 2); // circle instead of square for targets
+      ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // Label
-      ctx.fillStyle = isSelected ? "#00274C" : "#00274C";
-      ctx.font = `bold ${isSelected ? 13 : 11}px 'Share Tech Mono', monospace`;
+      ctx.fillStyle = "#00274C";
+      ctx.font = `bold ${isSelected ? 14 : 11}px 'Share Tech Mono', monospace`;
       ctx.fillText(topic.label, size / 2 + 4, 4);
 
       ctx.restore();
@@ -216,11 +222,10 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
       {/* Canvas */}
       <canvas
         ref={canvasRef}
-        width={800}
-        height={400}
         onClick={handleCanvasClick}
         style={{
           width: "100%",
+          aspectRatio: `${FIELD_WIDTH_M} / ${FIELD_HEIGHT_M}`, //locks to field proportions
           border: "1px solid var(--border-bright)",
           borderRadius: "2px",
           cursor: "crosshair",
