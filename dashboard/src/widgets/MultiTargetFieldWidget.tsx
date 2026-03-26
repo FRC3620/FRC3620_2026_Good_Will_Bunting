@@ -127,22 +127,85 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
   const selectedPos = positions[selectedKey];
 
   return (
-    <div>
-      <label style={{ fontWeight: "bold" }}>Field Targets</label>
+    <div style={{
+      background: "var(--bg-panel)",
+      border: "1px solid var(--border)",
+      borderRadius: "4px",
+      padding: "1.25rem",
+      boxShadow: "0 0 30px rgba(255,203,5,0.03)",
+    }}>
+      {/* Header */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "1rem",
+      }}>
+        <label style={{
+          fontFamily: "var(--font-display)",
+          fontWeight: 700,
+          fontSize: "1rem",
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          color: "var(--maize)",
+        }}>
+          Field Targets
+        </label>
+
+        {/* Z input */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span style={{
+            fontFamily: "var(--text-mono)",
+            fontSize: "0.7rem",
+            color: "var(--text-secondary)",
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+          }}>
+            Z ({topics.find(t => t.key === selectedKey)?.label}):
+          </span>
+          <input
+            type="number"
+            value={zValues[selectedKey]}
+            onChange={(e) => setZValues(prev => ({
+              ...prev,
+              [selectedKey]: parseFloat(e.target.value) || 0
+            }))}
+            style={{
+              width: "70px",
+              background: "var(--bg)",
+              border: "1px solid var(--border)",
+              borderRadius: "2px",
+              padding: "0.3rem 0.5rem",
+              color: "var(--maize)",
+              fontFamily: "var(--text-mono)",
+              fontSize: "0.85rem",
+              outline: "none",
+              textAlign: "center",
+            }}
+          />
+          <span style={{ fontFamily: "var(--text-mono)", fontSize: "0.7rem", color: "var(--text-secondary)" }}>ft</span>
+        </div>
+      </div>
 
       {/* Target selector tabs */}
-      <div style={{ display: "flex", gap: "0.5rem", margin: "0.5rem 0" }}>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
         {topics.map(t => (
           <button
             key={t.key}
             onClick={() => setSelectedKey(t.key)}
             style={{
-              background: selectedKey === t.key ? TARGET_COLORS[t.key] : "#333",
-              color: "white",
-              border: "none",
-              padding: "4px 12px",
-              borderRadius: "4px",
+              background: selectedKey === t.key ? TARGET_COLORS[t.key] : "var(--bg-card)",
+              color: selectedKey === t.key ? "#00274C" : "var(--text-secondary)",
+              border: `1px solid ${selectedKey === t.key ? TARGET_COLORS[t.key] : "var(--border)"}`,
+              padding: "0.35rem 1rem",
+              borderRadius: "2px",
               cursor: "pointer",
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              transition: "all 0.15s ease",
             }}
           >
             {t.label}
@@ -150,31 +213,41 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
         ))}
       </div>
 
-      {/* Z input for the currently selected target */}
-      <div style={{ marginBottom: "0.5rem" }}>
-        <label>Z for {topics.find(t => t.key === selectedKey)?.label} (ft): </label>
-        <input
-          type="number"
-          value={zValues[selectedKey]}
-          onChange={(e) => setZValues(prev => ({
-            ...prev,
-            [selectedKey]: parseFloat(e.target.value) || 0
-          }))}
-          style={{ width: "80px" }}
-        />
-      </div>
-
+      {/* Canvas */}
       <canvas
         ref={canvasRef}
         width={800}
         height={400}
         onClick={handleCanvasClick}
-        style={{ width: "100%", border: "2px solid #444", cursor: "crosshair", borderRadius: "4px" }}
+        style={{
+          width: "100%",
+          border: "1px solid var(--border-bright)",
+          borderRadius: "2px",
+          cursor: "crosshair",
+          display: "block",
+          boxShadow: "0 0 20px rgba(255,203,5,0.08)",
+        }}
       />
 
-      <p style={{ fontFamily: "monospace", marginTop: "0.25rem" }}>
-        {topics.find(t => t.key === selectedKey)?.label} → x: {selectedPos.x.toFixed(3)}m, y: {selectedPos.y.toFixed(3)}m, z: {selectedPos.z.toFixed(2)}ft
-      </p>
+      {/* Readout */}
+      <div style={{
+        marginTop: "0.75rem",
+        padding: "0.5rem 0.75rem",
+        background: "var(--bg)",
+        border: "1px solid var(--border)",
+        borderRadius: "2px",
+        fontFamily: "var(--text-mono)",
+        fontSize: "0.75rem",
+        color: "var(--maize)",
+        letterSpacing: "0.05em",
+      }}>
+        <span style={{ color: "var(--text-secondary)", marginRight: "0.5rem" }}>
+          {topics.find(t => t.key === selectedKey)?.label.toUpperCase()} →
+        </span>
+        X: {selectedPos.x.toFixed(3)}m &nbsp;|&nbsp;
+        Y: {selectedPos.y.toFixed(3)}m &nbsp;|&nbsp;
+        Z: {selectedPos.z.toFixed(2)}ft
+      </div>
     </div>
   );
 }

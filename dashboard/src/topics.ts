@@ -24,17 +24,10 @@ export const typeInfoMap = {
 
 // ✏️ Add or remove topics here to change your dashboard
 export const TOPIC_CONFIGS: TopicConfig[] = [
-  {
-    key: "/dashboard/hello",
-    type: "string",
-    defaultValue: "",
-    label: "Hello Message",
-    widget: "text",
-  },
  {
     key: "/dashboard/target/hub",
     type: "number[]",
-    defaultValue: [4.627, 4.034, 0.584], // BLUE_HUB converted to meters
+    defaultValue: [4.627, 4.034, 6], // BLUE_HUB converted to meters
     label: "Blue Hub",
     widget: "field",
   },
