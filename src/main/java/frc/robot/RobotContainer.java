@@ -541,6 +541,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     CommandScheduler.getInstance().schedule(
         new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true));
+    CommandScheduler.getInstance().schedule(
+        new SetQuestNavPoseFromMegaTag1Command().withName("Reset Quest from MegaTag1").ignoringDisable(true));
 
     /*
      * SWERVE SYSID
@@ -686,8 +688,8 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem.setDutyCycleGated(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive())
-          );
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
+                  ).onlyIf(() -> !stateMachine.isActive()));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -791,6 +793,8 @@ public class RobotContainer implements RobotModeChangeListener {
     if (conveyerSubsystem != null) {
       SmartDashboard.putData("frc3620/Conveyer/DashboardControl",
           conveyerSubsystem.setSpeedDashboardCommand().ignoringDisable(true));
+      SmartDashboard.putData("frc3620/Conveyer/ConveyerOn", conveyerSubsystem.setDutyCycle(0.6));
+      SmartDashboard.putData("frc3620/Conveyer/ConveyerOff", conveyerSubsystem.setDutyCycle(0.0));
     }
 
     if (preshooterSubsystem != null) {

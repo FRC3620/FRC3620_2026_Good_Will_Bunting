@@ -1,5 +1,9 @@
 package frc.robot.Subsystems;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -11,6 +15,9 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,9 +44,9 @@ public class QuestNavSubsystem extends SubsystemBase {
   private Pose3d lastPose = null;
   private double lastTimestamp = -1;
 
-  private double vx = 0;
-  private double vy = 0;
-  private double omega = 0;
+  private LinearVelocity vx = MetersPerSecond.of(0.0);
+  private LinearVelocity vy = MetersPerSecond.of(0.0);
+  private AngularVelocity omega = RotationsPerSecond.of(0.0);
 
   // private Transform2d QUEST_TO_ROBOT2D = new
   // Transform2d(Units.inchesToMeters(15.0), Units.inchesToMeters(0), new
@@ -154,27 +161,27 @@ public class QuestNavSubsystem extends SubsystemBase {
     if (dt <= 0)
       return;
 
-    vx = (pose.getX() - lastPose.getX()) / dt;
-    vy = (pose.getY() - lastPose.getY()) / dt;
+    vx = MetersPerSecond.of((pose.getX() - lastPose.getX()) / dt);
+    vy = MetersPerSecond.of((pose.getY() - lastPose.getY()) / dt);
 
     double yawNow = pose.getRotation().getZ();
     double yawPrev = lastPose.getRotation().getZ();
 
-    omega = (yawNow - yawPrev) / dt;
+    omega = DegreesPerSecond.of((yawNow - yawPrev) / dt);
 
     lastPose = pose;
     lastTimestamp = timestamp;
   }
 
-  public double getQuestNavVX() {
+  public LinearVelocity getQuestNavVX() {
     return vx;
   }
 
-  public double getQuestNavVY() {
+  public LinearVelocity getQuestNavVY() {
     return vy;
   }
 
-  public double getQuestNavOmega() {
+  public AngularVelocity getQuestNavOmega() {
     return omega;
   }
 
@@ -220,8 +227,8 @@ public class QuestNavSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
 
     if (questNav.isConnected() && questNav.isTracking()) {
-      SmartDashboard.putNumber("QuestNav.XVelocity", getQuestNavVX());
-      SmartDashboard.putNumber("QuestNav.YVelocity", getQuestNavVY());
+      SmartDashboard.putNumber("QuestNav.XVelocity", getQuestNavVX().in(MetersPerSecond));
+      SmartDashboard.putNumber("QuestNav.YVelocity", getQuestNavVY().in(MetersPerSecond));
     }
 
     questNav.commandPeriodic();

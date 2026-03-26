@@ -271,6 +271,21 @@ public class ShotCalculator {
         return velocity;
     }
 
+    public static VelocityVector calculateQuestVelocity(LinearVelocity questVX, LinearVelocity questVY,
+            Rotation2d questYaw) {
+
+        double xMultiplier = SmartDashboard.getNumber("frc3620/ShotCalculator/XVelocityMultipler", 1);
+        double yMultiplier = SmartDashboard.getNumber("frc3620/ShotCalculator/YVelocityMultipler", 1);
+
+        VelocityVector velocity = new VelocityVector(questVX.times(xMultiplier), questVY.times(yMultiplier));
+
+        SmartDashboard.putNumber("frc3620/ShotCalculator/RobotVelocityFtps", velocity.getNorm().in(FeetPerSecond));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/RobotVelocityXFtps", velocity.getX().in(FeetPerSecond));
+        SmartDashboard.putNumber("frc3620/ShotCalculator/RobotVelocityYFtps", velocity.getY().in(FeetPerSecond));
+
+        return velocity;
+    }
+
     public static Angle calculateFieldAngle(Translation3d targetPosition,
             Supplier<Pose2d> robotPose, Supplier<VelocityVector> robotVelocity) {
 
