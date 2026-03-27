@@ -503,7 +503,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
           // Supplier for dynamic speed multiplier based on FSM state
 
-          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed)
+          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed || !stateMachine.isActive() && driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean() && !overrideReducedSpeed)
               ? 0.5 // reduced speed in scoring
               : 1.0; // full speed otherwise
 
@@ -691,6 +691,7 @@ public class RobotContainer implements RobotModeChangeListener {
                   .alongWith(intakeAgitatorSubsystem.agitatorOn())
                   ).onlyIf(() -> !stateMachine.isActive()));
     }
+    
 
     if (intakeShoulderSubsystem != null) {
       driverLeftTriggerFlySky

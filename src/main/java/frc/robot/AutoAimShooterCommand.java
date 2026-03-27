@@ -24,14 +24,14 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
         Supplier<Pose2d> robotPose = () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
 
-        /* if (RobotContainer.questNavSubsystem.getQuestNavConnected()
+         /* if (RobotContainer.questNavSubsystem.getQuestNavConnected()
                 && RobotContainer.questNavSubsystem.getQuestNavIsTracking()) {
 
             robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateQuestVelocity(
                     RobotContainer.questNavSubsystem.getQuestNavVX(), RobotContainer.questNavSubsystem.getQuestNavVY(),
                     RobotContainer.questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d()));
 
-        } else { */  
+        } else {  */ 
             robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                     RobotContainer.swerveSubsystem.getKinematics(),
                     RobotContainer.swerveSubsystem.getState(),

@@ -13,6 +13,7 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.nio.file.ClosedWatchServiceException;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -88,7 +89,7 @@ public class TurretSubsystem extends SubsystemBase {
   private boolean atTarget = false;
 
   private Angle targetAngle = Degrees.of(0);
-  private static final double MIN_ANGLE = -298;
+  private static final double MIN_ANGLE = -280;
   private static final double MAX_ANGLE = 135;
 
   private static boolean turretInitialized = false;
@@ -152,7 +153,7 @@ public class TurretSubsystem extends SubsystemBase {
 
   public Command createSetAngleCommand(Supplier<Angle> angle) {
     Command rv;
-    Supplier<Angle> setpt;
+    Supplier<Angle> setpt = angle;
     if (pivot == null) {
       rv = idle();
       
@@ -160,8 +161,10 @@ public class TurretSubsystem extends SubsystemBase {
       setpt = () -> {
         targetAngle = angle.get();
         return targetAngle;
-      };
-      rv = pivot.setAngle(setpt);
+      }; 
+      /* closestAngle(angle);
+      targetAngle = setpt.get();*/
+      rv = pivot.setAngle(setpt); 
     }
     return rv.withName(telemetryPrefix + " setAngle");
   }
@@ -187,6 +190,16 @@ public class TurretSubsystem extends SubsystemBase {
     return rv.withName(telemetryPrefix + " setAngleDashboard");
   }
 
+  /* public static Angle closestAngle(Supplier<Angle> target){
+    Angle targetA = target.get();
+    if(targetA.gte(Degrees.of(MAX_ANGLE))){
+      return targetA.minus(Degrees.of(360));
+    }else if(targetA.gte(Degrees.of(MIN_ANGLE))){
+      return targetA.plus(Degrees.of(360));
+    }
+    return targetA;
+  } */
+
   public Command createSetAngleToTargetCommand(Translation2d targetPosition, Supplier<Pose2d> robotPose,
       Supplier<VelocityVector> robotVelocity) {
     Command rv;
@@ -195,20 +208,20 @@ public class TurretSubsystem extends SubsystemBase {
     } else {
       rv = createSetAngleCommand(
           () -> {
-            /*
-             * Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition,
-             * robotPose, robotVelocity);
-             * double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix
-             * +"Filtering Alpha", turretFilterAlpha);
-             * turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
-             * filteredTargetAngle = filteredTargetAngle.times(1.0 -
-             * alpha).plus(raw.times(alpha));
-             * Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/"+
-             * telemetryPrefix+"/Targeting Offset Degrees", turretTargetingOffset));
-             * targetAngle = filteredTargetAngle.plus(targetingOffsetAngle);
-             * return targetAngle;
-             */
-            Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
+            
+             /* Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition,
+             robotPose, robotVelocity);
+             double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix
+             +"Filtering Alpha", turretFilterAlpha);
+             turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
+             filteredTargetAngle = filteredTargetAngle.times(1.0 -
+             alpha).plus(raw.times(alpha));
+             Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/"+
+             telemetryPrefix+"/Targeting Offset Degrees", turretTargetingOffset));
+             targetAngle = filteredTargetAngle.plus(targetingOffsetAngle);
+             return targetAngle; */
+             
+             Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
 
             Angle withOffset = raw.plus(Degrees.of(SmartDashboard
                 .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset)));
@@ -227,7 +240,7 @@ public class TurretSubsystem extends SubsystemBase {
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RawTargetDeg", withOffset.in(Degrees));
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/SmoothedTargetDeg",
                 filteredTargetAngle.in(Degrees));
-            return filteredTargetAngle;
+            return filteredTargetAngle;  
           });
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");

@@ -42,7 +42,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
   private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
-  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(10);
+  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(3);
 
   private Pose3d lastPose = null;
   private double lastTimestamp = -1;
@@ -166,7 +166,7 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     double dt = timestamp - lastTimestamp;
 
-    if (dt < 0.01 || dt > 0.1) {
+    if (dt < 0.005 || dt > 0.25) {
       lastPose = pose;
       lastTimestamp = timestamp;
       return;
@@ -189,9 +189,9 @@ public class QuestNavSubsystem extends SubsystemBase {
     vxVal = Math.max(prevVX - maxDelta, Math.min(prevVX + maxDelta, vxVal));
     vyVal = Math.max(prevVY - maxDelta, Math.min(prevVY + maxDelta, vyVal));
 
-    if (Math.abs(vxVal) < 0.01)
+    if (Math.abs(vxVal) < 0.005)
       vxVal = 0;
-    if (Math.abs(vyVal) < 0.01)
+    if (Math.abs(vyVal) < 0.005)
       vyVal = 0;
 
     // Store filtered velocity
