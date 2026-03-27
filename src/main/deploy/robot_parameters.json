@@ -3,7 +3,7 @@
     "name": "Raptor",
     "serialNumber": "0327BA54",
     "makeAllCANDevices": false,
-    "competitionRobot": false,
+    "competitionRobot": true,
     "variant": "Raptor"
   },
   {
@@ -20,7 +20,7 @@
     "serialNumber": "(simulation)",
     "makeAllCANDevices": true,
     "ignoreHealth": [
-      "limelight-left",
+      "limelight",
       "questnav"
     ]
   },
