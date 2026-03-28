@@ -60,12 +60,15 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
   int motorId1 = Constants.MOTORID_SHOOTER1;
   int motorId2 = Constants.MOTORID_SHOOTER2;
   String telemetryPrefix = "Shooter";
+
+  private DigitalInput beamBreak;
 
   private SysIdRoutine sysIdRoutine;
 
@@ -82,6 +85,11 @@ public class ShooterSubsystem extends SubsystemBase {
   private Distance bucketSize = Feet.of(1); // ft range for each bucket in the correction map
 
   private boolean atRPM = false;
+
+  private static int shotsFiredCounter = 0;
+  private boolean lastBeamBreakState = false;
+  private boolean currentBeamBreakState = false;
+  private boolean shotJustFired = false;
 
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
@@ -101,7 +109,7 @@ public class ShooterSubsystem extends SubsystemBase {
     rpmCorrectionMap.put(16, 30.0);
     rpmCorrectionMap.put(17, 30.0);
     rpmCorrectionMap.put(18, 40.0);
-    rpmCorrectionMap.put(19,40.0);
+    rpmCorrectionMap.put(19, 40.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -172,6 +180,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
       setDefaultCommand(idle());
     }
+
+    beamBreak = new DigitalInput(8);
+
     SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
     SmartDashboard.putNumber("frc3620/Shooter/Filtering Alpha", 1.0);
 
@@ -254,6 +265,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+
+    
     // This method will be called once per scheduler run
     if (flywheel != null) {
       flywheel.updateTelemetry();
@@ -271,6 +284,21 @@ public class ShooterSubsystem extends SubsystemBase {
               Feet.of(15.17),
               Feet.of(13.235)),
           () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose))));
+    }
+
+    if (beamBreak != null) {
+
+      currentBeamBreakState = !beamBreak.get();
+
+      shotJustFired = lastBeamBreakState && !currentBeamBreakState;
+
+      if (shotJustFired) {
+        shotsFiredCounter++;
+      }
+      lastBeamBreakState = currentBeamBreakState;
+
+      SmartDashboard.putBoolean("frc3620/Shooter/BeamBreakBroken", currentBeamBreakState);
+      SmartDashboard.putNumber("frc3620/Shooter/ShotsFiredCounter", shotsFiredCounter);
     }
   }
 
@@ -303,16 +331,20 @@ public class ShooterSubsystem extends SubsystemBase {
       return 0;
     }
 
-    double distBuckets = distance.in(Feet)/bucketSize.in(Feet);
+    double distBuckets = distance.in(Feet) / bucketSize.in(Feet);
 
     Integer lowKey = rpmCorrectionMap.floorKey((int) Math.floor(distBuckets));
     Integer highKey = rpmCorrectionMap.ceilingKey((int) Math.ceil(distBuckets));
 
-    if (highKey == null && lowKey == null) return 0;
-    if (lowKey == null) return rpmCorrectionMap.get(highKey);
-    if (highKey == null) return rpmCorrectionMap.get(lowKey);
+    if (highKey == null && lowKey == null)
+      return 0;
+    if (lowKey == null)
+      return rpmCorrectionMap.get(highKey);
+    if (highKey == null)
+      return rpmCorrectionMap.get(lowKey);
 
-    if (lowKey.equals(highKey)) return rpmCorrectionMap.get(lowKey);
+    if (lowKey.equals(highKey))
+      return rpmCorrectionMap.get(lowKey);
 
     double lowerDist = lowKey * bucketSize.in(Feet);
     double highDist = highKey * bucketSize.in(Feet);
@@ -368,10 +400,16 @@ public class ShooterSubsystem extends SubsystemBase {
     }
     return null;
   }
+
   public TalonFX getMotor2() {
     if (motor2 != null) {
       return motor2;
     }
     return null;
+  }
+
+  public BooleanSupplier shotFired() {
+    
+    return ()-> shotJustFired;
   }
 }
