@@ -695,8 +695,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem.setDutyCycleGated(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive())
-          );
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
     }
 
     if (intakeShoulderSubsystem != null) {
@@ -735,7 +734,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   boolean weSawFlySky = false;
 
-  void setupDriverOdo (boolean doLog) {
+  void setupDriverOdo(boolean doLog) {
     Joystick realDriverJoystick = driverJoystick.getRealJoystick();
     String driveControllerName = realDriverJoystick.getName();
     int n_axes = realDriverJoystick.getAxisCount();
@@ -760,6 +759,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   class FlySkyWatcherSubsystem extends SubsystemBase {
     Timer timer = new Timer();
+
     public FlySkyWatcherSubsystem() {
       timer.reset();
       timer.start();
@@ -767,14 +767,15 @@ public class RobotContainer implements RobotModeChangeListener {
 
     @Override
     public void periodic() {
-      if (! weSawFlySky) {
+      if (!weSawFlySky) {
         if (Robot.getCurrentRobotMode() == RobotMode.DISABLED) {
           if (timer.advanceIfElapsed(1.0)) {
             setupDriverOdo(false);
           }
         }
       }
-      SmartDashboard.putString("frc3620/joystick_type", driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
+      SmartDashboard.putString("frc3620/joystick_type",
+          driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
     }
   }
 
@@ -907,7 +908,8 @@ public class RobotContainer implements RobotModeChangeListener {
       }
     }.withName("Calculate Test Shot").ignoringDisable(true));
 
-    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+    SmartDashboard
+        .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
@@ -966,6 +968,9 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Initialize Shot",
         new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+
+    NamedCommands.registerCommand("Initialize Pass",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),

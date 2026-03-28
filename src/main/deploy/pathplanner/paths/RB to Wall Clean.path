@@ -8,11 +8,27 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.3958487874465044,
-        "y": 1.5960627674750354
+        "x": 3.1230481927710843,
+        "y": 1.9368795180722884
       },
       "isLocked": false,
       "linkedName": "Right Bump Start"
+    },
+    {
+      "anchor": {
+        "x": 3.155831325301205,
+        "y": 0.6583373493975899
+      },
+      "prevControl": {
+        "x": 3.340315288821557,
+        "y": 0.827055063950098
+      },
+      "nextControl": {
+        "x": 2.9713473617808543,
+        "y": 0.48961963484508275
+      },
+      "isLocked": false,
+      "linkedName": null
     },
     {
       "anchor": {
@@ -20,49 +36,44 @@
         "y": 0.505349397590362
       },
       "prevControl": {
-        "x": 1.0587708780915386,
-        "y": 0.49241073853187567
+        "x": 1.3855421686746987,
+        "y": 0.7239036144578312
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": "Outpost Collect"
     }
   ],
-  "rotationTargets": [],
-  "constraintZones": [
+  "rotationTargets": [
     {
-      "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.6640198511166333,
-      "maxWaypointRelativePos": 1.0,
-      "constraints": {
-        "maxVelocity": 1.5,
-        "maxAcceleration": 1.5,
-        "maxAngularVelocity": 180.0,
-        "maxAngularAcceleration": 360.0,
-        "nominalVoltage": 12.0,
-        "unlimited": false
-      }
+      "waypointRelativePos": 0.7850622406638856,
+      "rotationDegrees": -135.0
+    },
+    {
+      "waypointRelativePos": 1.5319502074688711,
+      "rotationDegrees": -155.0
     }
   ],
+  "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Intake Down",
-      "waypointRelativePos": 0.42943956785955384,
+      "name": "Feed Shot",
+      "waypointRelativePos": 0.21240694789081352,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
-          "name": "Intake Down"
+          "name": "Feed Shot"
         }
       }
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
-    "maxAngularVelocity": 180.0,
-    "maxAngularAcceleration": 360.0,
+    "maxVelocity": 1.0,
+    "maxAcceleration": 1.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },

@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.20530670470756,
-        "y": 0.6127246790299576
+        "x": 8.051445783132529,
+        "y": 1.3139999999999998
       },
       "isLocked": false,
       "linkedName": "Center Neutral Collect"
     },
     {
       "anchor": {
-        "x": 0.694,
-        "y": 0.6256633380884444
+        "x": 0.4894698795180723,
+        "y": 0.505349397590362
       },
       "prevControl": {
-        "x": 1.3797489300998578,
-        "y": 3.912082738944365
+        "x": 1.1591566265060238,
+        "y": 4.176951119742881
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,11 +30,11 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.3027718550106628,
+      "waypointRelativePos": 0.3825726141078814,
       "rotationDegrees": 135.0
     },
     {
-      "waypointRelativePos": 0.5714285714285706,
+      "waypointRelativePos": 0.6049792531120364,
       "rotationDegrees": 135.0
     }
   ],
