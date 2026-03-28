@@ -48,12 +48,14 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 // frc.robot.FSM.States;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -152,6 +154,7 @@ public class RobotContainer implements RobotModeChangeListener {
   public static OdoJoystick operatorJoystick;
   public static Joystick operatorKeyboard;
 
+  FlySkyWatcherSubsystem flySkyWatcherSubsystem;
   public static TurretSubsystem turretSubsystem;
   public static ClimberSubsystem climberSubsystem;
   public static ShooterSubsystem shooterSubsystem;
@@ -234,6 +237,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void makeSubsystems() {
     healthSubsystem = new HealthSubsystem();
+
+    flySkyWatcherSubsystem = new FlySkyWatcherSubsystem();
 
     swerveSubsystem = configureSwerveDrive();
     if (swerveSubsystem != null) {
@@ -351,7 +356,11 @@ public class RobotContainer implements RobotModeChangeListener {
     final Trigger fmsTriggersOff;
     final Trigger fmsTriggersOn;
 
-    fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
+    if (swerveSubsystem != null) {
+      fieldTriggers = new FieldTriggers(() -> swerveSubsystem.getState().Pose);
+    } else {
+      fieldTriggers = new FieldTriggers(() -> Pose2d.kZero);
+    }
     fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
@@ -723,17 +732,52 @@ public class RobotContainer implements RobotModeChangeListener {
   public void processRobotModeChange(RobotMode currentRobotMode, RobotMode previousRobotMode) {
     alliance = DriverStation.getAlliance();
     if (currentRobotMode == RobotMode.TELEOP) {
-      Joystick realDriverJoystick = driverJoystick.getRealJoystick();
-      String driveControllerName = realDriverJoystick.getName();
-      int n_axes = realDriverJoystick.getAxisCount();
-      int n_buttons = realDriverJoystick.getButtonCount();
+      setupDriverOdo(true);
+    }
+  }
+
+  boolean weSawFlySky = false;
+
+  void setupDriverOdo (boolean doLog) {
+    Joystick realDriverJoystick = driverJoystick.getRealJoystick();
+    String driveControllerName = realDriverJoystick.getName();
+    int n_axes = realDriverJoystick.getAxisCount();
+    int n_buttons = realDriverJoystick.getButtonCount();
+
+    boolean isFlySky = driveControllerName.startsWith("FlySky") || (n_axes == 8 && n_buttons == 24);
+    if (isFlySky) {
+      weSawFlySky = true;
+    }
+    JoystickType newJoystickType = isFlySky ? JoystickType.A : JoystickType.B;
+    boolean changed = newJoystickType != driverJoystick.getCurrentJoystickType();
+
+    if (doLog || changed) {
       logger.info("Drive Controller '{}', {}connected, {} axes, {} buttons", driveControllerName,
           realDriverJoystick.isConnected() ? "" : "not ", n_axes, n_buttons);
-      if (driveControllerName.startsWith("FlySky")) {
-        driverJoystick.setJoystickType(JoystickType.A);
-      } else {
-        driverJoystick.setJoystickType(JoystickType.B);
+    }
+
+    if (changed) {
+      driverJoystick.setJoystickType(newJoystickType);
+    }
+  }
+
+  class FlySkyWatcherSubsystem extends SubsystemBase {
+    Timer timer = new Timer();
+    public FlySkyWatcherSubsystem() {
+      timer.reset();
+      timer.start();
+    }
+
+    @Override
+    public void periodic() {
+      if (! weSawFlySky) {
+        if (Robot.getCurrentRobotMode() == RobotMode.DISABLED) {
+          if (timer.advanceIfElapsed(1.0)) {
+            setupDriverOdo(false);
+          }
+        }
       }
+      SmartDashboard.putString("frc3620/joystick_type", driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
     }
   }
 
@@ -869,6 +913,8 @@ public class RobotContainer implements RobotModeChangeListener {
                 .in(RPM));
       }
     }.withName("Calculate Test Shot").ignoringDisable(true));
+
+    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {

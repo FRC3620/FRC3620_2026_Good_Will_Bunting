@@ -61,9 +61,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     private Pivot pivot = null;
     private SmartMotorController motorController = null;
 
-    CANcoder shooterHoodEncoder;
-    CANcoderConfiguration encoderConfiguration;
-
     Timer calibrationTimer;
 
     boolean isCalibrated = false;
@@ -91,8 +88,6 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 RobotContainer.shouldMakeAllCANDevices();
 
         if (makeDevices) {
-            RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.CANCODER_PHOENIX6, Constants.ENCODERID_HOOD,
-                    telemetryPrefix);
             motor = new TalonFX(Constants.MOTORID_HOOD);
             // shooterHoodEncoder = new CANcoder(Constants.ENCODERID_HOOD);
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
