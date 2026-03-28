@@ -54,10 +54,16 @@ public class QuestNavSubsystem extends SubsystemBase {
   Pose3d roboPose = new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0));
 
   // Define the publisher as a class-level variable to keep it active
-  private StructLogEntry<Pose3d> posePub = StructLogEntry.create(
+  private StructLogEntry<Pose3d> posePub3d = StructLogEntry.create(
       DataLogManager.getLog(),
       "QuestNav/Pose3d",
       Pose3d.struct);
+
+  private StructLogEntry<Pose2d> posePub2d = StructLogEntry.create(
+      DataLogManager.getLog(),
+      "QuestNav/Pose2d",
+      Pose2d.struct);
+
 
   /** Creates a new QuestNav. */
   public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
@@ -132,9 +138,10 @@ public class QuestNavSubsystem extends SubsystemBase {
             updateVelocity(robotPose, timestamp);
             swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
             roboPose = robotPose;
+            
           }
         }
-        posePub.append(roboPose);
+      
       }
     }
   }
@@ -220,6 +227,9 @@ public class QuestNavSubsystem extends SubsystemBase {
     if (questNav.isConnected() && questNav.isTracking()) {
       SmartDashboard.putNumber("QuestNav/XVelocity", getQuestNavVX());
       SmartDashboard.putNumber("QuestNav/YVelocity", getQuestNavVY());
+      
+      posePub3d.append(roboPose);
+      posePub2d.append(roboPose.toPose2d());
     }
     questNav.commandPeriodic();
     updateVisionMeasurement();
