@@ -74,8 +74,12 @@ public class HealthSubsystem extends SubsystemBase {
   Health booleanSupplierHealth = Health.GOOD;
   Health circuitBreakerHealth = Health.GOOD;
 
-  //@Override
-  public void dont_periodic() {
+  boolean didInfoNotification = false;
+  boolean didWarningNotification = false;
+  boolean didErrorNotification = false;
+
+  @Override
+  public void periodic() {
     Health newHealth = Health.GOOD;
 
     // only need to do this once
@@ -104,20 +108,29 @@ public class HealthSubsystem extends SubsystemBase {
 
     if (newHealth != currentHealth) {
       if (newHealth == Health.GOOD) {
-        Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO,
-            "Info",
-            "The current health of the robot has changed. The new health is " + newHealth);
-        Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+        if (! didInfoNotification) {
+          Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.INFO,
+              "Info",
+              "The current health of the robot has changed. The new health is " + newHealth);
+          Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+          didInfoNotification = true;
+        }
       } else if (newHealth == Health.MEDIOCRE) {
-        Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.WARNING,
-            "Warning",
-            "The current health of the robot has changed. The new health is " + newHealth);
-        Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+        if (! didWarningNotification) {
+          Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.WARNING,
+              "Warning",
+              "The current health of the robot has changed. The new health is " + newHealth);
+          Elastic.sendNotification(notification.withNoAutoDismiss());
+          didWarningNotification = true;
+        }
       } else {
-        Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.ERROR,
-            "ERRORCODE:404",
-            "The current health of the robot has changed. The new health is " + newHealth);
-        Elastic.sendNotification(notification.withDisplaySeconds(10.0));
+        if (! didErrorNotification) {
+          Elastic.Notification notification = new Elastic.Notification(Elastic.NotificationLevel.ERROR,
+              "ERRORCODE:404",
+              "The current health of the robot has changed. The new health is " + newHealth);
+          Elastic.sendNotification(notification.withNoAutoDismiss());
+          didErrorNotification = true;
+        }
       }
     }
     currentHealth = newHealth;
