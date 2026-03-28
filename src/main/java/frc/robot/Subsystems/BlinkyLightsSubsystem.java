@@ -43,12 +43,21 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
   LEDPattern good = LEDPattern.solid(Color.kGreen);
   LEDPattern mediocre = LEDPattern.solid(Color.kYellow);
   LEDPattern bad = LEDPattern.solid(Color.kRed);
-  LEDPattern deathrow = base.blink(Seconds.of(0.5));
+  LEDPattern deathrow = base.blink(Seconds.of(0.5));//will also be used for turret wrapping point as well as health subsystem.
+
+  LEDPattern reallyCloseToWrapping = base.blink(Seconds.of(0.1));
+  
 
   AddressableLEDBufferView m_healthLeft = m_buffer.createView(0, 4);
   AddressableLEDBufferView m_healthRight = m_buffer.createView(34, length - 1);
 
-  AddressableLEDBufferView m_driver = m_buffer.createView(5, 33);
+  AddressableLEDBufferView m_wrappingLeft = m_buffer.createView(5, 9);
+  AddressableLEDBufferView m_wrappingRight = m_buffer.createView(29, 33);
+
+  AddressableLEDBufferView m_driver = m_buffer.createView(10, 28);
+
+  
+
 
   /** Creates a new BlinkyLightsSubsystem. */
   public BlinkyLightsSubsystem() {
@@ -63,6 +72,11 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
     Health currentHealth = RobotContainer.healthSubsystem.getCurrentHealth();
     LEDPattern healthCurrentPattern = good;
     LEDPattern driverCurrentPattern = good;
+
+    LEDPattern leftWrapping = good;
+    LEDPattern rightWrapping = good;
+
+    TurretSubsystem turret = RobotContainer.turretSubsystem;
 
     if (currentHealth == Health.MEDIOCRE) {
       healthCurrentPattern = mediocre;
@@ -83,6 +97,28 @@ public class BlinkyLightsSubsystem extends SubsystemBase {
     } else {
       driverCurrentPattern = currentState.getLEDPattern();
     }
+
+    if(turret.isNearLeftWrapping()){
+      leftWrapping = deathrow;
+      rightWrapping = bad;
+    }else if (turret.isReallyCloseToLeftWrapping()){
+      leftWrapping = reallyCloseToWrapping;
+      rightWrapping = bad;
+    }else if (turret.isNearRightWrapping()){
+      rightWrapping = deathrow;
+      leftWrapping = bad;
+    }else if (turret.isReallyCloseToRightWrapping()){
+      rightWrapping = reallyCloseToWrapping;
+      leftWrapping = bad;
+    }else{
+      rightWrapping = good;
+      leftWrapping = good;
+    }
+
+    leftWrapping.applyTo(m_wrappingLeft);
+    rightWrapping.applyTo(m_wrappingRight);
+
+
     double matchTime = Timer.getMatchTime();
     SmartDashboard.putNumber("Match Time", matchTime);
     if (RobotContainer.useFMSTriggers.getAsBoolean() == true) {
