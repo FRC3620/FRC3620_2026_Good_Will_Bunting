@@ -88,10 +88,10 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean atTarget = false;
 
-  private Angle nearRightWrappingAngle = Degrees.of(-293 + 15);
-  private Angle reallyCloseToRightWrappingAngle = Degrees.of(-293 + 7);
-  private Angle nearLeftWrappingAngle = Degrees.of(135 - 15);
-  private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(135 - 7);
+  private Angle nearRightWrappingAngle = Degrees.of(-220 + 30);
+  private Angle reallyCloseToRightWrappingAngle = Degrees.of(-220 + 15);
+  private Angle nearLeftWrappingAngle = Degrees.of(135 - 30);
+  private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(135 - 15);
 
   private Angle targetAngle = Degrees.of(0);
 
@@ -363,20 +363,22 @@ public class TurretSubsystem extends SubsystemBase {
   }
 
   public boolean isNearRightWrapping() {
-  return getAngle().isNear(nearRightWrappingAngle, 5);
+  return getAngle().isNear(nearRightWrappingAngle, Degrees.of(8));
 }
 
 public boolean isReallyCloseToRightWrapping() {
-  return getAngle().isNear(reallyCloseToRightWrappingAngle, 3);
+  return getAngle().isNear(reallyCloseToRightWrappingAngle, Degrees.of(7));
 }
 
 public boolean isNearLeftWrapping() {
-  return getAngle().isNear(nearLeftWrappingAngle, 5);
+  return getAngle().isNear(nearLeftWrappingAngle, Degrees.of(8));
 }
 
 public boolean isReallyCloseToLeftWrapping() {
-  return getAngle().isNear(reallyCloseTOLeftWrappingAngle, 3);
+  return getAngle().isNear(reallyCloseTOLeftWrappingAngle, Degrees.of(7));
 }
+
+
 
   /*public BooleanSupplier reallyCloseToRightWrapping() {
     Angle currentAngle = getAngle();
