@@ -431,7 +431,7 @@ for (int k = -1; k <= 1; k++) {
 
     atTargetTime.reset();
     Angle current = getAngle();
-    if (current.isNear(targetAngle, Degrees.of(5))) {
+    if (current.isNear(targetAngle, Degrees.of(10))) {
 
       atTargetTime.start();
 

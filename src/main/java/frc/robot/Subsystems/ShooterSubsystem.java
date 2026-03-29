@@ -353,7 +353,7 @@ public class ShooterSubsystem extends SubsystemBase {
   public boolean atRPM() {
 
     AngularVelocity current = getVelocity();
-    if (current.isNear(filteredRPM, RPM.of(100))) {
+    if (current.isNear(filteredRPM, RPM.of(500))) {
       atRPM = true;
     } else {
       atRPM = false;

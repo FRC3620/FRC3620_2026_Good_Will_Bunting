@@ -17,6 +17,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
@@ -115,18 +116,21 @@ public class ConveyerSubsystem extends SubsystemBase {
     }
 
     public Command setDutyCycle(double dutyCycle) {
-        
-            if (flyWheel != null) {
-                return flyWheel.set(dutyCycle);
-            }
+
+        if (flyWheel != null) {
+            return flyWheel.set(dutyCycle);
+        }
         return idle();
     }
 
-    public Command setDutyCycleGated(double dutyCycle, BooleanSupplier shooterAtRPM, BooleanSupplier turretAtTarget, BooleanSupplier shooterHoodAtTarget){
-       if (flyWheel != null) {
+    public Command setDutyCycleGated(double dutyCycle, BooleanSupplier shooterAtRPM, BooleanSupplier turretAtTarget,
+            BooleanSupplier shooterHoodAtTarget) {
+        if (flyWheel != null) {
 
-            return flyWheel.set(dutyCycle).onlyWhile(turretAtTarget);
-                
+            BooleanSupplier readyToFeed = ()-> shooterHoodAtTarget.getAsBoolean() && turretAtTarget.getAsBoolean();
+            
+            return Commands.waitUntil(readyToFeed).andThen(flyWheel.set(dutyCycle).onlyWhile(turretAtTarget));
+
         }
         return idle();
     }
