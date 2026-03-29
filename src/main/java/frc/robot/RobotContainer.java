@@ -461,6 +461,13 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOff.and(fieldTriggers.enterDeadZone),
         hoardingState));
 
+      outpostPassingState.addTransition(new StateTransition(
+        fmsTriggersOff.and(fieldTriggers.enterDepotPass),
+        depotPassingState));
+      depotPassingState.addTransition(new StateTransition(
+        fmsTriggersOff.and(fieldTriggers.enterOutpostPass),
+        outpostPassingState));
+
     outpostPassingState.addTransition(new StateTransition(
         useFMSTriggers.and(fmsTriggers.aboutToBecomeActive), hoardingState));
     depotPassingState.addTransition(new StateTransition(
