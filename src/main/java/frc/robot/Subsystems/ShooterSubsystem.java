@@ -261,7 +261,7 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/Shooter/CorrectionMap/" + entry.getKey(),
             entry.getValue());
       }
-      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM().getAsBoolean());
+      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM());
       SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
           new Translation2d(
               Feet.of(15.17),
@@ -350,7 +350,7 @@ public class ShooterSubsystem extends SubsystemBase {
     return (int) Math.floor(distance.in(Feet) / bucketSize.in(Feet));
   }
 
-  public BooleanSupplier atRPM() {
+  public boolean atRPM() {
 
     AngularVelocity current = getVelocity();
     if (current.isNear(filteredRPM, RPM.of(100))) {
@@ -359,7 +359,7 @@ public class ShooterSubsystem extends SubsystemBase {
       atRPM = false;
     }
 
-    return () -> atRPM;
+    return atRPM;
   }
 
   public TalonFX getMotor1() {

@@ -512,9 +512,12 @@ public class RobotContainer implements RobotModeChangeListener {
 
           // Supplier for dynamic speed multiplier based on FSM state
 
-          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed || !stateMachine.isActive() && driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean() && !overrideReducedSpeed)
-              ? 0.5 // reduced speed in scoring
-              : 1.0; // full speed otherwise
+          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed
+              || !stateMachine.isActive()
+                  && driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean()
+                  && !overrideReducedSpeed)
+                      ? 0.5 // reduced speed in scoring
+                      : 1.0; // full speed otherwise
 
           SmartDashboard.putBoolean("frc3620/Override Reduced Speed", overrideReducedSpeed);
 
@@ -696,11 +699,11 @@ public class RobotContainer implements RobotModeChangeListener {
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
       driverRightTriggerFlySky
           .whileTrue(
-              (conveyerSubsystem.setDutyCycleGated(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
-                  ).onlyIf(() -> !stateMachine.isActive()));
+              (conveyerSubsystem
+                  .setDutyCycleGated(0.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+                      () -> shooterHoodSubsystem.atTarget())
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())).onlyIf(() -> !stateMachine.isActive()));
     }
-    
 
     if (intakeShoulderSubsystem != null) {
       driverLeftTriggerFlySky
@@ -738,7 +741,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   boolean weSawFlySky = false;
 
-  void setupDriverOdo (boolean doLog) {
+  void setupDriverOdo(boolean doLog) {
     Joystick realDriverJoystick = driverJoystick.getRealJoystick();
     String driveControllerName = realDriverJoystick.getName();
     int n_axes = realDriverJoystick.getAxisCount();
@@ -763,6 +766,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   class FlySkyWatcherSubsystem extends SubsystemBase {
     Timer timer = new Timer();
+
     public FlySkyWatcherSubsystem() {
       timer.reset();
       timer.start();
@@ -770,14 +774,15 @@ public class RobotContainer implements RobotModeChangeListener {
 
     @Override
     public void periodic() {
-      if (! weSawFlySky) {
+      if (!weSawFlySky) {
         if (Robot.getCurrentRobotMode() == RobotMode.DISABLED) {
           if (timer.advanceIfElapsed(1.0)) {
             setupDriverOdo(false);
           }
         }
       }
-      SmartDashboard.putString("frc3620/joystick_type", driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
+      SmartDashboard.putString("frc3620/joystick_type",
+          driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
     }
   }
 
@@ -888,8 +893,7 @@ public class RobotContainer implements RobotModeChangeListener {
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
                     FeetPerSecond
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))),
-                () -> shooterSubsystem.getVelocity()
-                      )
+                () -> shooterSubsystem.getVelocity())
                 .in(Degrees));
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM",
@@ -914,7 +918,8 @@ public class RobotContainer implements RobotModeChangeListener {
       }
     }.withName("Calculate Test Shot").ignoringDisable(true));
 
-    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+    SmartDashboard
+        .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
@@ -967,7 +972,8 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
-        .alongWith(conveyerSubsystem.setDutyCycleGated(0.8)));
+        .alongWith(conveyerSubsystem.setDutyCycleGated(0.8, () -> shooterSubsystem.atRPM(),
+            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())));
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
@@ -1009,8 +1015,7 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())),
-        () -> shooterSubsystem.getVelocity()
-          ));
+        () -> shooterSubsystem.getVelocity()));
   }
 
   void sendSwerveSubsystemToHealthSubsystem() {

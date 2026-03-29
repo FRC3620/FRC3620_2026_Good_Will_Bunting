@@ -31,8 +31,9 @@ import frc.robot.fsm.SuperState;
 
 public class ScoringState extends SuperState {
 
-    Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
-    Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8,
+            () -> RobotContainer.shooterSubsystem.atRPM(), () -> RobotContainer.turretSubsystem.atTarget(),
+            () -> RobotContainer.shooterHoodSubsystem.atTarget());    Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
     Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
 
         Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())

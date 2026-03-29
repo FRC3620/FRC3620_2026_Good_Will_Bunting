@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -121,12 +122,11 @@ public class ConveyerSubsystem extends SubsystemBase {
         return idle();
     }
 
-    public Command setDutyCycleGated(double dutyCycle){
-        if (flyWheel != null) {
-            return flyWheel.set(dutyCycle)
-                .onlyWhile(RobotContainer.shooterSubsystem.atRPM())
-                .onlyWhile(RobotContainer.turretSubsystem.atTarget())
-                .onlyWhile(RobotContainer.shooterHoodSubsystem.atTarget());
+    public Command setDutyCycleGated(double dutyCycle, BooleanSupplier shooterAtRPM, BooleanSupplier turretAtTarget, BooleanSupplier shooterHoodAtTarget){
+       if (flyWheel != null) {
+
+            return flyWheel.set(dutyCycle).onlyWhile(turretAtTarget);
+                
         }
         return idle();
     }

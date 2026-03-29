@@ -23,14 +23,17 @@ import frc.robot.fsm.SuperState;
 
 public class DepotPassingState extends SuperState {
 
-    Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8);
+    Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8,
+            () -> RobotContainer.shooterSubsystem.atRPM(), () -> RobotContainer.turretSubsystem.atTarget(),
+            () -> RobotContainer.shooterHoodSubsystem.atTarget());
     Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
     Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
 
-        Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition())
+    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition())
             .alongWith(
                     conveyerOn,
                     agitatorOn);
+
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
@@ -50,7 +53,7 @@ public class DepotPassingState extends SuperState {
 
     }
 
-        @Override
+    @Override
     public LEDPattern getLEDPattern() {
         return LEDPattern.solid(Color.kPurple);
     }
