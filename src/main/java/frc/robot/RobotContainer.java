@@ -362,10 +362,10 @@ public class RobotContainer implements RobotModeChangeListener {
     fmsTriggersOn = new Trigger(useFMSTriggers);
 
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralDepot)),
+        fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterDepotPass)),
         hoardingState));
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterNeutralOutpost)),
+        fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterOutpostPass)),
         hoardingState));
     scoringState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterDeadZone)),
@@ -375,10 +375,10 @@ public class RobotContainer implements RobotModeChangeListener {
         hoardingState));
 
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterNeutralOutpost)),
+        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterOutpostPass)),
         outpostPassingState));
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterNeutralDepot)),
+        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterDepotPass)),
         depotPassingState));
 
     hoardingState.addTransition(new StateTransition(
@@ -386,10 +386,10 @@ public class RobotContainer implements RobotModeChangeListener {
         scoringState));
 
     hoardingState.addTransition(new StateTransition(
-        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterNeutralDepot)),
+        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterDepotPass)),
         depotPassingState));
     hoardingState.addTransition(new StateTransition(
-        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterNeutralOutpost)),
+        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterOutpostPass)),
         outpostPassingState));
 
     outpostPassingState.addTransition(new StateTransition(
@@ -407,6 +407,9 @@ public class RobotContainer implements RobotModeChangeListener {
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone)),
         scoringState));
+    outpostPassingState.addTransition(new StateTransition(
+        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterDepotPass)),
+        depotPassingState));
 
     depotPassingState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterOurAllianceZone)),
@@ -423,6 +426,9 @@ public class RobotContainer implements RobotModeChangeListener {
     depotPassingState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterOurAllianceZone)),
         scoringState));
+    depotPassingState.addTransition(new StateTransition(
+        fmsTriggersOn.and(fmsTriggers.startOfInactivePeriod.and(fieldTriggers.enterOutpostPass)),
+        outpostPassingState));
 
     hoardingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterOurAllianceZone),
@@ -435,17 +441,17 @@ public class RobotContainer implements RobotModeChangeListener {
         scoringState));
 
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralDepot),
+        fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
     hoardingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralDepot),
+        fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
 
     scoringState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralOutpost),
+        fmsTriggersOff.and(fieldTriggers.enterOutpostPass),
         outpostPassingState));
     hoardingState.addTransition(new StateTransition(
-        fmsTriggersOff.and(fieldTriggers.enterNeutralOutpost),
+        fmsTriggersOff.and(fieldTriggers.enterOutpostPass),
         outpostPassingState));
 
     depotPassingState.addTransition(new StateTransition(
