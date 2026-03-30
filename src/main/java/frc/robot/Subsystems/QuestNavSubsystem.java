@@ -279,9 +279,10 @@ public class QuestNavSubsystem extends SubsystemBase {
     // This method will be called once per scheduler run
 
     if (questNav.isConnected() && questNav.isTracking()) {
-      SmartDashboard.putNumber("QuestNav/XVelocity", getQuestNavVX());
-      SmartDashboard.putNumber("QuestNav/YVelocity", getQuestNavVY());
-      
+      SmartDashboard.putNumber("QuestNav/XVelocity", getQuestNavVX().in(MetersPerSecond));
+      SmartDashboard.putNumber("QuestNav/YVelocity", getQuestNavVY().in(MetersPerSecond));
+      SmartDashboard.putNumber("QuestNav/Omega", getQuestNavOmega().in(RotationsPerSecond));
+
       posePub3d.append(roboPose);
       posePub2d.append(roboPose.toPose2d());
     }
