@@ -12,10 +12,12 @@ public class FieldTriggers {
         // field halves
         public final Trigger enterOpponentAlliance;
         public final Trigger enterOurAlliance;
+        public final Trigger enterDepotHalf;
+        public final Trigger enterOutpostHalf;
 
         public final Trigger enterOurAllianceZone;
-        public final Trigger enterNeutralDepot;
-        public final Trigger enterNeutralOutpost;
+        public final Trigger enterDepotPass;
+        public final Trigger enterOutpostPass;
       //  public final Trigger enterOpponentDepot;
        // public final Trigger enterOpponentOutpost;
         public final Trigger enterDeadZone;
@@ -34,48 +36,51 @@ public class FieldTriggers {
                 enterOurAlliance = new Trigger(
                                 () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 8);
 
+                enterDepotHalf = new Trigger(
+                        ()-> AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 4.034536
+                );
+                enterOutpostHalf = new Trigger(
+                        ()-> AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) <= 4.034536
+                );
+
                 // field areas
                 enterOurAllianceZone = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4);
+                                () -> (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4 
+                                && AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 1.1)
 
-                enterNeutralDepot = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
-                                                && AllianceFlipUtil.applyX(
-                                                                safePose.get().getMeasureX().in(Meters)) < 15
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) > 4.763135);
-                enterNeutralOutpost = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
-                                                && AllianceFlipUtil.applyX(
-                                                                safePose.get().getMeasureX().in(Meters)) < 15
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) < 3.266821);
-              /*   enterOpponentDepot = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.887454
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) > 4.763135);
-                enterOpponentOutpost = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.887454
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) < 3.266821);*/
+                                || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 4.064)
+
+                                || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 4
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 2.891536));
+
                 enterDeadZone = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.625594
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) > 3.266821
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY()
-                                                                                .in(Meters)) < 4.763135);
-                /*enterClimbZone = new Trigger(
-                                () -> AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 2.5
-                                                && AllianceFlipUtil
-                                                                .applyY(safePose.get().getMeasureY().in(Meters)) > 7.1
-                                                && AllianceFlipUtil
-                                                                .applyX(safePose.get().getMeasureY().in(Meters)) < 9.3);*/
+                                () -> (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 1.1
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 2.891536
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 4.064)
+
+                                || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 4.0132
+                                && AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 5.842
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 3.292729
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 4.776343)
+
+                                || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 5.842
+                                && AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 7.03496582
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 3.292729+0.3709035
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 4.776343-0.3709035)
+                                
+                                || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 7.03496582
+                                && AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) < 8.270494
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 3.292729+0.3709035+0.3
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 4.776343-0.3709035-0.3)
+                                
+                                || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.435334
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 4.763135
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 3.266821));
+        
+
+                enterDepotPass = enterOurAllianceZone.negate().and(enterDeadZone.negate()).and(enterDepotHalf);
+                enterOutpostPass = enterOurAllianceZone.negate().and(enterDeadZone.negate()).and(enterOutpostHalf).and(enterDepotPass.negate());
 
         }
 
