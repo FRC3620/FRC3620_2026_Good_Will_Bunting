@@ -28,6 +28,9 @@ import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.util.datalog.StructLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -40,6 +43,20 @@ import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import frc.robot.Subsystems.LimelightSubsystem.CameraData.MegaTagData;
 
 public class LimelightSubsystem extends SubsystemBase {
+
+  private StructLogEntry<Pose2d> posePub1 = StructLogEntry.create(
+      DataLogManager.getLog(),
+      "frc3620/vision/limelight/megaTag1PoseEstimate",
+      Pose2d.struct);
+
+  private StructLogEntry<Pose2d> posePub2 = StructLogEntry.create(
+      DataLogManager.getLog(),
+      "frc3620/vision/limelight/megaTag2PoseEstimate",
+      Pose2d.struct);
+
+  StringLogEntry errorLog = new StringLogEntry(
+      DataLogManager.getLog(),
+      "frc3620/vision/limelight/rejectionReason");
 
   NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
@@ -321,22 +338,25 @@ public class LimelightSubsystem extends SubsystemBase {
               cameraData.megaTag2.poseEstimate.timestampSeconds);
         }
 
-        
-          NTStructs.publish(sdPrefix + "megaTag2PoseEstimate", cameraData.megaTag2.poseEstimate.pose);
-          //megatag2 will skip publish until megatag1 has has data
+        NTStructs.publish(sdPrefix + "megaTag2PoseEstimate", cameraData.megaTag2.poseEstimate.pose);
+        posePub2.append(cameraData.megaTag2.poseEstimate.pose);
+        // megatag2 will skip publish until megatag1 has has data
         if (cameraData.megaTag1.poseEstimate != null) {
           NTStructs.publish(sdPrefix + "megaTag1PoseEstimate", cameraData.megaTag1.poseEstimate.pose);
+          posePub1.append(cameraData.megaTag1.poseEstimate.pose);
+
         }
         int updateCount = cameraData.bumpCountOfSwerveUpdatesFromThisCamera();
         SmartDashboard.putNumber(sdPrefix + "swervePoseUpdates", updateCount);
 
       }
-      if (error != lastLoggedError) {
+      if (!error.equals(lastLoggedError)) {
         // log if it changed
 
         // and remember!
         lastLoggedError = error;
       }
+      errorLog.append(error);
       SmartDashboard.putString(sdPrefix + "rejectionMessage", error);
     }
 
