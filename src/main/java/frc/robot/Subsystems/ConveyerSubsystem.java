@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.ShotCalculator;
@@ -123,14 +124,23 @@ public class ConveyerSubsystem extends SubsystemBase {
         return idle();
     }
 
-    public Command setDutyCycleGated(double dutyCycle, BooleanSupplier shooterAtRPM, BooleanSupplier turretAtTarget,
+    public Command setDutyCycleGated(
+            double dutyCycle,
+            BooleanSupplier shooterAtRPM,
+            BooleanSupplier turretAtTarget,
             BooleanSupplier shooterHoodAtTarget) {
         if (flyWheel != null) {
 
-            BooleanSupplier readyToFeed = ()-> shooterHoodAtTarget.getAsBoolean() && turretAtTarget.getAsBoolean();
+            BooleanSupplier readyToFeed = () -> turretAtTarget.getAsBoolean()
+                    && shooterHoodAtTarget.getAsBoolean();
             
-            return Commands.waitUntil(readyToFeed).andThen(flyWheel.set(dutyCycle).onlyWhile(turretAtTarget));
+            BooleanSupplier notReadyToFeed = () -> !turretAtTarget.getAsBoolean()
+                    || !shooterHoodAtTarget.getAsBoolean();
 
+            return Commands.either(
+                    flyWheel.set(dutyCycle),
+                    flyWheel.set(0),
+                    readyToFeed).repeatedly().withName("Conveyor Gated");
         }
         return idle();
     }
