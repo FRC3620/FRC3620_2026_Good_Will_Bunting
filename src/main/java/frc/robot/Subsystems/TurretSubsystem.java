@@ -230,7 +230,7 @@ public class TurretSubsystem extends SubsystemBase {
             Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
 
             Angle wrapped = wrapToSafeRange(raw, filteredTargetAngle);
-            
+
             Angle withOffset = wrapped.plus(Degrees.of(SmartDashboard
                 .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset)));
 
@@ -239,14 +239,13 @@ public class TurretSubsystem extends SubsystemBase {
               filteredTargetAngle = wrapped;
               turretInitialized = true;
             }
-            double delta =
-            wrapped.minus(filteredTargetAngle).in(Degrees);
+            double delta = wrapped.minus(filteredTargetAngle).in(Degrees);
 
             if (Math.abs(delta) > 120) {
               filteredTargetAngle = wrapped; // snap instead of smoothing
-            } else if (RobotContainer.questNavSubsystem.getQuestNavOmega().gte(DegreesPerSecond.of(20))){
+            } else if (RobotContainer.questNavSubsystem.getQuestNavOmega().gte(DegreesPerSecond.of(20))) {
               filteredTargetAngle = wrapped;
-            }else {
+            } else {
               filteredTargetAngle = filteredTargetAngle.plus(Degrees.of(delta * alpha));
             }
 
@@ -261,28 +260,29 @@ public class TurretSubsystem extends SubsystemBase {
 
   public static Angle wrapToSafeRange(Angle target, Angle current) {
 
-   double curr = current.in(Degrees);
-double base = target.in(Degrees);
+    double curr = current.in(Degrees);
+    double base = target.in(Degrees);
 
-double best = base;
-double bestError = Math.abs(base - curr);
+    double best = base;
+    double bestError = Double.POSITIVE_INFINITY;
 
-// Try wrapped versions
-for (int k = -1; k <= 1; k++) {
-    double candidate = base + 360 * k;
+    // Try wrapped versions
+    for (int k = -1; k <= 1; k++) {
+      double candidate = base + 360 * k;
 
-    // Must be within turret range
-    if (candidate < MIN_ANGLE || candidate > MAX_ANGLE) continue;
+      // Must be within turret range
+      if (candidate < MIN_ANGLE || candidate > MAX_ANGLE)
+        continue;
 
-    double error = Math.abs(candidate - curr);
+      double error = Math.abs(candidate - curr);
 
-    if (error < bestError) {
+      if (error < bestError) {
         bestError = error;
         best = candidate;
+      }
     }
-}
 
-     return Degrees.of(best);
+    return Degrees.of(best);
   }
 
   @Override
