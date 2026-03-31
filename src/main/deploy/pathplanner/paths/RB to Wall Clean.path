@@ -12,54 +12,64 @@
         "y": 1.9368795180722884
       },
       "isLocked": false,
-      "linkedName": "Right Bump Start"
+      "linkedName": "Wall Clean Right Bump Setup"
     },
     {
       "anchor": {
-        "x": 3.068659058487874,
-        "y": 0.7679885877318122
+        "x": 0.8043937232524963,
+        "y": 0.7809272467902997
       },
       "prevControl": {
-        "x": 3.313804227410603,
-        "y": 0.8170176215163588
+        "x": 0.8347406677471318,
+        "y": 0.4243506489783296
       },
       "nextControl": {
-        "x": 2.809885877318117,
-        "y": 0.71623395149786
+        "x": 0.7526390870185449,
+        "y": 1.3890442225392303
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.4894698795180723,
-        "y": 0.505349397590362
+        "x": 0.8043937232524963,
+        "y": 2.320627674750357
       },
       "prevControl": {
-        "x": 1.4642653352353778,
-        "y": 0.9750071326676174
+        "x": 0.8820256776034237,
+        "y": 1.8030813124108418
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Outpost Collect"
+      "linkedName": "Wall Clean Right End"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7850622406638856,
-      "rotationDegrees": -135.0
-    },
-    {
-      "waypointRelativePos": 1.5319502074688711,
-      "rotationDegrees": -155.0
+      "waypointRelativePos": 0.8,
+      "rotationDegrees": 150.0
     }
   ],
-  "constraintZones": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.8156650911546515,
+      "maxWaypointRelativePos": 2.0,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
   "pointTowardsZones": [],
   "eventMarkers": [
     {
       "name": "Feed Shot",
-      "waypointRelativePos": 0.21240694789081352,
+      "waypointRelativePos": 0.2,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
@@ -70,8 +80,8 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 1.0,
-    "maxAcceleration": 1.5,
+    "maxVelocity": 2.5,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -79,13 +89,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 150.0
   },
   "reversed": false,
   "folder": "Right Bump Start General",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -47.0
+    "rotation": 135.0
   },
   "useDefaultConstraints": false
 }

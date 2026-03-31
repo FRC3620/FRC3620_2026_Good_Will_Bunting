@@ -470,10 +470,10 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOff.and(fieldTriggers.enterDeadZone),
         hoardingState));
 
-      outpostPassingState.addTransition(new StateTransition(
+    outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
-      depotPassingState.addTransition(new StateTransition(
+    depotPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterOutpostPass),
         outpostPassingState));
 
@@ -715,7 +715,8 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(
               (conveyerSubsystem
                   .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
-                      () -> shooterHoodSubsystem.atTarget()).until(() -> !turretSubsystem.atTarget()).until(
+                      () -> shooterHoodSubsystem.atTarget())
+                  .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
                   .repeatedly()
                   .alongWith(intakeAgitatorSubsystem.agitatorOn()).onlyIf(() -> !stateMachine.isActive())));
@@ -990,15 +991,23 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycleGated(0.8, () -> shooterSubsystem.atRPM(),
-            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())));
+            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())
+            .until(() -> !turretSubsystem.atTarget()).until(
+                () -> !shooterHoodSubsystem.atTarget())));
+
+    NamedCommands.registerCommand("No More Feed", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0)));
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
     NamedCommands.registerCommand("Initialize Shot",
         new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
 
-    NamedCommands.registerCommand("Initialize Pass",
-        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition()));
+    NamedCommands.registerCommand("Initialize Pass Right",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_CORNER.getTargetPosition()));
+
+    NamedCommands.registerCommand("Initialize Pass Left",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),

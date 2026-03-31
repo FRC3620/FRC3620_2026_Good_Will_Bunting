@@ -62,7 +62,10 @@ public class ShotCalculator {
         public enum FieldTargets {
                 BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
                 OP_PASS(new Translation3d(Inches.of(126), Inches.of(98.85), Inches.of(0))),
-                DEPOT_PASS(new Translation3d(Inches.of(126), Inches.of(218.838), Inches.of(0)));
+                DEPOT_PASS(new Translation3d(Inches.of(126), Inches.of(218.838), Inches.of(0))),
+                OP_CORNER(new Translation3d(Inches.of(12), Inches.of(40), Inches.of(0))),
+                DEPOT_CORNER(new Translation3d(Inches.of(12), Inches.of(320), Inches.of(0)));
+                
 
                 private Translation3d targetPosition;
 

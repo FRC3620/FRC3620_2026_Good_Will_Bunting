@@ -25,13 +25,13 @@
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Bump Start"
+      "linkedName": "Wall Clean Right Bump Setup"
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5775401069518719,
-      "rotationDegrees": -45.0
+      "rotationDegrees": 135.0
     }
   ],
   "constraintZones": [],
@@ -46,8 +46,8 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": -45.0
+    "velocity": 2.0,
+    "rotation": 135.0
   },
   "reversed": false,
   "folder": "Right Bump Start General",
