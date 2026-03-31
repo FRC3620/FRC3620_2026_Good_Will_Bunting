@@ -1,19 +1,30 @@
 package frc.robot.Subsystems;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.util.datalog.StructLogEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.RollingAveragePose3d;
+import frc.robot.Helpers.RollingAverageVelocity;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
@@ -31,14 +42,15 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR = 180;
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
-  private final RollingAveragePose3d rollingAvg = new RollingAveragePose3d(5);
+  private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
+  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(3);
 
   private Pose3d lastPose = null;
   private double lastTimestamp = -1;
 
-  private double vx = 0;
-  private double vy = 0;
-  private double omega = 0;
+  private LinearVelocity vx = MetersPerSecond.of(0.0);
+  private LinearVelocity vy = MetersPerSecond.of(0.0);
+  private AngularVelocity omega = RotationsPerSecond.of(0.0);
 
   private Transform3d QUEST_TO_ROBOT_CHUD = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_CHUD),
       0,
@@ -92,11 +104,15 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public void updateAverageRobotPose(Pose3d questPose) {
-    rollingAvg.addPose(questPose);
+    rollingAvgPose.addPose(questPose);
   }
 
   public Pose3d getAverageRobotPose() {
-    return rollingAvg.getAveragePose();
+    return rollingAvgPose.getAveragePose();
+  }
+
+  public Translation3d getAverageRobotVelocity() {
+    return rollingAvgVelo.getAverageVelocity();
   }
 
   public void updateVisionMeasurement() {
@@ -126,20 +142,18 @@ public class QuestNavSubsystem extends SubsystemBase {
         // adds to a queue array of 5 and averages the 5 values
         updateAverageRobotPose(robotPose);
 
-        if (rollingAvg.isFilled()) {
+        if (rollingAvgPose.isFilled()) {
           // Add the mesaurement to the pose Estimator
           if (swerveSubsystem != null) {
-            swerveSubsystem.addVisionMeasurement(rollingAvg.getAveragePose().toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-            roboPose = rollingAvg.getAveragePose();
+            swerveSubsystem.addVisionMeasurement(rollingAvgPose.getAveragePose().toPose2d(), timestamp,
+                QUESTNAV_STD_DEVS);
+            roboPose = rollingAvgPose.getAveragePose();
             updateVelocity(roboPose, timestamp);
           }
         } else {
-          if (swerveSubsystem != null) {
-            updateVelocity(robotPose, timestamp);
-            swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-            roboPose = robotPose;
-            
-          }
+          updateVelocity(rollingAvgPose.getAveragePose(), timestamp);
+          swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+          roboPose = robotPose;
         }
       
       }
@@ -156,30 +170,65 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     double dt = timestamp - lastTimestamp;
 
-    if (dt <= 0)
+    if (dt < 0.005 || dt > 0.25) {
+      lastPose = pose;
+      lastTimestamp = timestamp;
       return;
+    }
 
-    vx = (pose.getX() - lastPose.getX()) / dt;
-    vy = (pose.getY() - lastPose.getY()) / dt;
+    // Raw velocity
+    double vxVal = (pose.getX() - lastPose.getX()) / dt;
+    double vyVal = (pose.getY() - lastPose.getY()) / dt;
+
+    double maxVel = 5.5; // m/s (tune for your robot)
+    vxVal = Math.max(-maxVel, Math.min(maxVel, vxVal));
+    vyVal = Math.max(-maxVel, Math.min(maxVel, vyVal));
+
+    double maxAccel = 10.0; // m/s^2 (tune this)
+    double maxDelta = maxAccel * dt;
+
+    double prevVX = vx.in(MetersPerSecond);
+    double prevVY = vy.in(MetersPerSecond);
+
+    vxVal = Math.max(prevVX - maxDelta, Math.min(prevVX + maxDelta, vxVal));
+    vyVal = Math.max(prevVY - maxDelta, Math.min(prevVY + maxDelta, vyVal));
+
+    if (Math.abs(vxVal) < 0.005)
+      vxVal = 0;
+    if (Math.abs(vyVal) < 0.005)
+      vyVal = 0;
+
+    // Store filtered velocity
+    vx = MetersPerSecond.of(vxVal);
+    vy = MetersPerSecond.of(vyVal);
 
     double yawNow = pose.getRotation().getZ();
     double yawPrev = lastPose.getRotation().getZ();
 
-    omega = (yawNow - yawPrev) / dt;
+    double deltaYaw = yawNow - yawPrev;
+    deltaYaw = Math.atan2(Math.sin(deltaYaw), Math.cos(deltaYaw));
 
+    omega = DegreesPerSecond.of(deltaYaw / dt);
+
+    rollingAvgVelo.addVelocity(new Translation3d(
+        vxVal,
+        vyVal,
+        0.0));
+
+    // Update state
     lastPose = pose;
     lastTimestamp = timestamp;
   }
 
-  public double getQuestNavVX() {
-    return vx;
+  public LinearVelocity getQuestNavVX() {
+    return MetersPerSecond.of(rollingAvgVelo.getAverageVelocity().getX());
   }
 
-  public double getQuestNavVY() {
-    return vy;
+  public LinearVelocity getQuestNavVY() {
+    return MetersPerSecond.of(rollingAvgVelo.getAverageVelocity().getY());
   }
 
-  public double getQuestNavOmega() {
+  public AngularVelocity getQuestNavOmega() {
     return omega;
   }
 
@@ -192,7 +241,11 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public void resetQuestNavPoseRollingAvg() {
-    rollingAvg.reset();
+    rollingAvgPose.reset();
+  }
+
+  public void resetQuestNavVeloRollingAvg() {
+    rollingAvgVelo.reset();
   }
 
   public void setQuestNavPose(Pose3d pose) {

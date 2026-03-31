@@ -13,6 +13,7 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.nio.file.ClosedWatchServiceException;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -78,13 +79,12 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.771728515625);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.065673828125);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.727294921875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.017333984375);
 
-  private SlewRateLimiter turretLimiter = new SlewRateLimiter(180.0);
   private Angle filteredTargetAngle = Degrees.of(0);
-  private double turretFilterAlpha = 1; // smoothing factor
   private double turretTargetingOffset = 0;
+  private double turretFilterAlpha = 0.8;
 
   private boolean atTarget = false;
 
@@ -94,6 +94,10 @@ public class TurretSubsystem extends SubsystemBase {
   private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(135 - 15);
 
   private Angle targetAngle = Degrees.of(0);
+  private static final double MIN_ANGLE = -290;
+  private static final double MAX_ANGLE = 90;
+
+  private static boolean turretInitialized = false;
 
   /** Creates a new TurretSubsystem. */
   public TurretSubsystem() {
@@ -109,10 +113,10 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(2500), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(80, 0, 0, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
-          // .withContinuousWrapping(Degrees.of(0), Degrees.of(360))
+          // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
           .withIdleMode(MotorMode.BRAKE)
           .withMotorInverted(true)
           // Setup Telemetry
@@ -131,8 +135,8 @@ public class TurretSubsystem extends SubsystemBase {
           .withStartingPosition(Degrees.of(0))
           // .withWrapping(Degrees.of(0), Degrees.of(360))
           // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(-298), Degrees.of(135))
-          .withSoftLimits(Degrees.of(-298), Degrees.of(135))
+          .withHardLimit(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
+          .withSoftLimits(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
           // MOI Calculation
@@ -146,7 +150,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean(RERUN_SEED, false);
 
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
-    SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha", turretFilterAlpha);
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TurretAlpha", 1.0);
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset);
     SmartDashboard.putNumber("frc3620/ShotCalculator/XVelocityMultipler", 1);
     SmartDashboard.putNumber("frc3620/ShotCalculator/YVelocityMultipler", 1);
@@ -157,10 +161,16 @@ public class TurretSubsystem extends SubsystemBase {
     Supplier<Angle> setpt = angle;
     if (pivot == null) {
       rv = idle();
+
     } else {
-      // setpt = () -> Degrees.of(MathUtil.inputModulus(angle.get().in(Degrees), -232,
-      // 128));
-      setpt = () -> closestAngle(angle);
+      setpt = () -> {
+        targetAngle = angle.get();
+        return targetAngle;
+      };
+      /*
+       * closestAngle(angle);
+       * targetAngle = setpt.get();
+       */
       rv = pivot.setAngle(setpt);
     }
     return rv.withName(telemetryPrefix + " setAngle");
@@ -180,10 +190,24 @@ public class TurretSubsystem extends SubsystemBase {
       rv = idle();
     } else {
       rv = createSetAngleCommand(
-          () -> Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180)));
+          () -> wrapToSafeRange(
+              Degrees.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180)),
+              getAngle()));
     }
     return rv.withName(telemetryPrefix + " setAngleDashboard");
   }
+
+  /*
+   * public static Angle closestAngle(Supplier<Angle> target){
+   * Angle targetA = target.get();
+   * if(targetA.gte(Degrees.of(MAX_ANGLE))){
+   * return targetA.minus(Degrees.of(360));
+   * }else if(targetA.gte(Degrees.of(MIN_ANGLE))){
+   * return targetA.plus(Degrees.of(360));
+   * }
+   * return targetA;
+   * }
+   */
 
   public Command createSetAngleToTargetCommand(Translation2d targetPosition, Supplier<Pose2d> robotPose,
       Supplier<VelocityVector> robotVelocity) {
@@ -191,33 +215,79 @@ public class TurretSubsystem extends SubsystemBase {
     if (pivot == null) {
       rv = idle();
     } else {
-      filteredTargetAngle = getAngle(); // Initialize filtered angle to current angle
       rv = createSetAngleCommand(
           () -> {
+
+            /*
+             * Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition,
+             * robotPose, robotVelocity);
+             * double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix
+             * +"Filtering Alpha", turretFilterAlpha);
+             * turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
+             * filteredTargetAngle = filteredTargetAngle.times(1.0 -
+             * alpha).plus(raw.times(alpha));
+             * Angle targetingOffsetAngle = Degrees.of(SmartDashboard.getNumber("frc3620/"+
+             * telemetryPrefix+"/Targeting Offset Degrees", turretTargetingOffset));
+             * targetAngle = filteredTargetAngle.plus(targetingOffsetAngle);
+             * return targetAngle;
+             */
+
             Angle raw = ShotCalculator.calculateNetTurretAngleToTarget(targetPosition, robotPose, robotVelocity);
-            double alpha = SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/Filtering Alpha",
-                turretFilterAlpha);
-            turretFilterAlpha = MathUtil.clamp(alpha, 0.0, 1.0);
-            filteredTargetAngle = filteredTargetAngle.times(1.0 - alpha).plus(raw.times(alpha));
-            Angle targetingOffsetAngle = Degrees.of(SmartDashboard
-                .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset));
-            targetAngle = filteredTargetAngle.plus(targetingOffsetAngle);
-            return targetAngle;
+
+            Angle wrapped = wrapToSafeRange(raw, filteredTargetAngle);
+
+            Angle withOffset = wrapped.plus(Degrees.of(SmartDashboard
+                .getNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset)));
+
+            double alpha = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", turretFilterAlpha);
+            if (!turretInitialized) {
+              filteredTargetAngle = wrapped;
+              turretInitialized = true;
+            }
+            double delta = wrapped.minus(filteredTargetAngle).in(Degrees);
+
+            if (Math.abs(delta) > 120) {
+              filteredTargetAngle = wrapped; // snap instead of smoothing
+            } else if (RobotContainer.questNavSubsystem.getQuestNavOmega().gte(DegreesPerSecond.of(20))) {
+              filteredTargetAngle = wrapped;
+            } else {
+              filteredTargetAngle = filteredTargetAngle.plus(Degrees.of(delta * alpha));
+            }
+
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RawTargetDeg", withOffset.in(Degrees));
+            SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/SmoothedTargetDeg",
+                filteredTargetAngle.in(Degrees));
+            return filteredTargetAngle;
           });
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }
 
-  public static Angle closestAngle(Supplier<Angle> target) {
+  public static Angle wrapToSafeRange(Angle target, Angle current) {
 
-    Angle targetA = target.get();
+    double curr = current.in(Degrees);
+    double base = target.in(Degrees);
 
-    if (targetA.gte(Degrees.of(135))) {
-      return targetA.minus(Degrees.of(360));
-    } else if (targetA.lte(Degrees.of(-298))) {
-      return targetA.plus(Degrees.of(360));
+    double best = base;
+    double bestError = Double.POSITIVE_INFINITY;
+
+    // Try wrapped versions
+    for (int k = -1; k <= 1; k++) {
+      double candidate = base + 360 * k;
+
+      // Must be within turret range
+      if (candidate < MIN_ANGLE || candidate > MAX_ANGLE)
+        continue;
+
+      double error = Math.abs(candidate - curr);
+
+      if (error < bestError) {
+        bestError = error;
+        best = candidate;
+      }
     }
-    return targetA;
+
+    return Degrees.of(best);
   }
 
   @Override
@@ -246,7 +316,7 @@ public class TurretSubsystem extends SubsystemBase {
         attemptRotorSeedFromCANCoders();
       }
       pivot.updateTelemetry();
-      SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/AtTarget", atTarget().getAsBoolean());
+      SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/AtTarget", atTarget());
       SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Degrees", getAngle().in(Degrees));
       SmartDashboard.putNumber("Turret/CRT/CurrentPositionDeg",
           smartMotorController.getMechanismPosition().in(Degrees));
@@ -362,72 +432,11 @@ public class TurretSubsystem extends SubsystemBase {
     }
   }
 
-  public boolean isNearRightWrapping() {
-  return getAngle().isNear(nearRightWrappingAngle, Degrees.of(8));
-}
-
-public boolean isReallyCloseToRightWrapping() {
-  return getAngle().isNear(reallyCloseToRightWrappingAngle, Degrees.of(7));
-}
-
-public boolean isNearLeftWrapping() {
-  return getAngle().isNear(nearLeftWrappingAngle, Degrees.of(8));
-}
-
-public boolean isReallyCloseToLeftWrapping() {
-  return getAngle().isNear(reallyCloseTOLeftWrappingAngle, Degrees.of(7));
-}
-
-
-
-  /*public BooleanSupplier reallyCloseToRightWrapping() {
-    Angle currentAngle = getAngle();
-
-    if (currentAngle.isNear(reallyCloseToRightWrappingAngle, 3)) {
-      reallyCloseToRightWrapping = true;
-    } else {
-      reallyCloseToRightWrapping = false;
-    }
-    return () -> reallyCloseToRightWrapping;
-  }
-
-  public BooleanSupplier nearRightWrapping() {
-    Angle currentAngle = getAngle();
-
-    if (currentAngle.isNear(nearRightWrappingAngle, 5)) {
-      nearRightWrapping = true;
-    } else {
-      nearRightWrapping = false;
-    }
-    return () -> nearRightWrapping;
-  }
-
-  public BooleanSupplier nearLeftWrapping(){
-    Angle currentAngle = getAngle();
-
-    if(currentAngle.isNear(nearLeftWrappingAngle, 5)){
-      nearLeftWrapping=true;
-    }else{
-      nearLeftWrapping = false;
-    }
-    return ()-> nearLeftWrapping;
-  }
-  public BooleanSupplier reallyCloseToLeftWrapping(){
-    Angle currentAngle = getAngle();
-
-    if(currentAngle.isNear(reallyCloseTOLeftWrappingAngle, 3)){
-      reallyCloseToLeftWrapping=true;
-    }else{
-      reallyCloseToLeftWrapping = false;
-    }
-    return ()-> reallyCloseToLeftWrapping;
-  }*/
-
-  public BooleanSupplier atTarget() {
+  public boolean atTarget() {
 
     atTargetTime.reset();
     Angle current = getAngle();
-    if (current.isNear(targetAngle, Degrees.of(10))) {
+    if (current.isNear(targetAngle, Degrees.of(6.5))) {
 
       atTargetTime.start();
 
@@ -439,7 +448,7 @@ public boolean isReallyCloseToLeftWrapping() {
       atTarget = false;
     }
 
-    return () -> atTarget;
+    return atTarget;
   }
 
   private static record AbsSensorRead(boolean ok, double absA, double absB, String status) {
