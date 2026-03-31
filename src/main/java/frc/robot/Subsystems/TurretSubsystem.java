@@ -454,6 +454,23 @@ public class TurretSubsystem extends SubsystemBase {
   private static record AbsSensorRead(boolean ok, double absA, double absB, String status) {
   }
 
+   public boolean isNearRightWrapping() {
+  return getAngle().isNear(nearRightWrappingAngle, Degrees.of(8));
+}
+
+public boolean isReallyCloseToRightWrapping() {
+  return getAngle().isNear(reallyCloseToRightWrappingAngle, Degrees.of(7));
+}
+
+public boolean isNearLeftWrapping() {
+  return getAngle().isNear(nearLeftWrappingAngle, Degrees.of(8));
+}
+
+public boolean isReallyCloseToLeftWrapping() {
+  return getAngle().isNear(reallyCloseTOLeftWrappingAngle, Degrees.of(7));
+}
+
+
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
     if (pivot != null) {
