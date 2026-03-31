@@ -108,7 +108,7 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(80, 0, 0, DegreesPerSecond.of(2500), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(80, 0, 0, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
@@ -431,7 +431,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     atTargetTime.reset();
     Angle current = getAngle();
-    if (current.isNear(targetAngle, Degrees.of(10))) {
+    if (current.isNear(targetAngle, Degrees.of(6.5))) {
 
       atTargetTime.start();
 
