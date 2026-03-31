@@ -20,18 +20,18 @@
         "y": 5.529415121255349
       },
       "prevControl": {
-        "x": 6.730299572039942,
-        "y": 6.1245934379457925
+        "x": 6.756130952380952,
+        "y": 6.514613095238095
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Bump Start"
+      "linkedName": "Wall Clean Left Bump"
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 0.7313432835820857,
-      "rotationDegrees": -45.0
+      "rotationDegrees": 135.0
     }
   ],
   "constraintZones": [],
@@ -46,8 +46,8 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": -46.90915243299639
+    "velocity": 3.0,
+    "rotation": 128.35411237882582
   },
   "reversed": false,
   "folder": "Left Bump Start General",

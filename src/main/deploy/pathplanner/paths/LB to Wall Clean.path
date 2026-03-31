@@ -3,52 +3,60 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 4.274365192582025
+        "x": 3.4697574893009984,
+        "y": 5.529415121255349
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.355078459343795,
-        "y": 3.6144935805991443
+        "x": 2.6125669642857146,
+        "y": 5.522767857142858
       },
       "isLocked": false,
-      "linkedName": "Left Center Neutral Collect"
+      "linkedName": "Wall Clean Left Bump"
     },
     {
       "anchor": {
-        "x": 1.8686830357142856,
-        "y": 5.594546130952381
+        "x": 0.9877678571428572,
+        "y": 5.418363095238096
       },
       "prevControl": {
-        "x": 8.282938659058484,
-        "y": 5.801126961483595
+        "x": 1.3501538427419635,
+        "y": 5.088921290148
+      },
+      "nextControl": {
+        "x": 0.6288764880952381,
+        "y": 5.744627976190476
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.6680282738036463,
+        "y": 7.2911235119094
+      },
+      "prevControl": {
+        "x": 0.6158258928512652,
+        "y": 6.344955357147497
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Depot Init"
+      "linkedName": "Wall Clean Left End"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.6609808102345464,
-      "rotationDegrees": -135.0
-    },
-    {
-      "waypointRelativePos": 0.891257995735609,
-      "rotationDegrees": -135.0
-    },
-    {
-      "waypointRelativePos": 0.9402985074626847,
-      "rotationDegrees": 180.0
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 135.0
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8804861580013458,
-      "maxWaypointRelativePos": 1.0,
+      "minWaypointRelativePos": 0.9835616438356092,
+      "maxWaypointRelativePos": 2.0,
       "constraints": {
-        "maxVelocity": 2.0,
+        "maxVelocity": 1.5,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -61,8 +69,8 @@
   "eventMarkers": [
     {
       "name": "Feed Shot",
-      "waypointRelativePos": 0.9777177582714361,
-      "endWaypointRelativePos": 1.0,
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
@@ -81,13 +89,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 143.4269690214807
   },
   "reversed": false,
   "folder": "Left Bump Start General",
   "idealStartingState": {
-    "velocity": 1.0,
-    "rotation": 180.0
+    "velocity": 3.0,
+    "rotation": 128.35411237882582
   },
   "useDefaultConstraints": false
 }

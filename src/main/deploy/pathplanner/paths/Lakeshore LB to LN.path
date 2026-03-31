@@ -38,17 +38,6 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "No More Feed",
-      "waypointRelativePos": 0.07832545577312902,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "No More Feed"
-        }
-      }
-    },
-    {
       "name": "Intake Down",
       "waypointRelativePos": 0.4753544902093181,
       "endWaypointRelativePos": null,
