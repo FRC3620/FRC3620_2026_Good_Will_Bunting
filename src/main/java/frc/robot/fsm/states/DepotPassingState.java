@@ -23,9 +23,12 @@ import frc.robot.fsm.SuperState;
 
 public class DepotPassingState extends SuperState {
 
-    Command conveyerOn = RobotContainer.conveyerSubsystem.setDutyCycleGated(0.8,
-            () -> RobotContainer.shooterSubsystem.atRPM(), () -> RobotContainer.turretSubsystem.atTarget(),
-            () -> RobotContainer.shooterHoodSubsystem.atTarget());
+    Command conveyerOn = RobotContainer.conveyerSubsystem
+            .setDutyCycleGated(.8, () -> RobotContainer.shooterSubsystem.atRPM(),
+                    () -> RobotContainer.turretSubsystem.atTarget(),
+                    () -> RobotContainer.shooterHoodSubsystem.atTarget())
+            .until(() -> !RobotContainer.turretSubsystem.atTarget()).until(
+                    () -> !RobotContainer.shooterHoodSubsystem.atTarget());
     Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
     Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
 
