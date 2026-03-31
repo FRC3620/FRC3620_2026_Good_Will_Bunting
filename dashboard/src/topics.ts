@@ -12,7 +12,7 @@ export interface TopicConfig {
   widget: WidgetType;    // What kind of widget to render
 }
 
-export type WidgetType = "text" | "gauge" | "toggle" | "indicator" | "field";
+export type WidgetType = "text" | "gauge" | "toggle" | "indicator" | "field" | "trajectory";
 
 // Map our simple type names to ntcore's type system
 export const typeInfoMap = {
@@ -24,7 +24,7 @@ export const typeInfoMap = {
 
 // ✏️ Add or remove topics here to change your dashboard
 export const TOPIC_CONFIGS: TopicConfig[] = [
- {
+  {
     key: "/dashboard/target/hub",
     type: "number[]",
     defaultValue: [4.627, 4.034, 6], // BLUE_HUB converted to meters
@@ -44,5 +44,19 @@ export const TOPIC_CONFIGS: TopicConfig[] = [
     defaultValue: [3.2, 5.559, 0],
     label: "Depot Pass",
     widget: "field",
+  },
+  {
+    key: "/dashboard/shotCalculated",
+    type: "number[]",
+    defaultValue: [0, 0, 0, 4.627, 4.034, 0.584, 45, 30, 10, 0],
+    label: "Calculated Shot",
+    widget: "trajectory",
+  },
+  {
+    key: "/dashboard/shotActual",
+    type: "number[]",
+    defaultValue: [0, 0, 0, 4.627, 4.034, 0.584, 45, 30, 10, 0],
+    label: "Actual Shot",
+    widget: "trajectory",
   },
 ];

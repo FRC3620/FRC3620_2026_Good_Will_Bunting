@@ -355,19 +355,8 @@ public class ShotCalculator {
                         Supplier<VelocityVector> robotVelocity,
                         Supplier<AngularVelocity> actualShooterSpeed) {
 
-                // Convert actual shooter wheel speed back to linear exit velocity
-                // (inverse of calculateShooterSpeed)
+                LinearVelocity actualExitVelocity = calculateActualExitVelocity(actualShooterSpeed);
 
-                // Reverse the shooter gear math from calculateShooterSpeed
-                AngularVelocity rpsBig = RevolutionsPerSecond.of(
-                                actualShooterSpeed.get().in(RevolutionsPerSecond) * COUNTER_WHEEL_RECIPROCAL / 2.0);
-                LinearVelocity actualExitVelocity = FeetPerSecond.of(
-                                rpsBig.in(RevolutionsPerSecond) * SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
-
-                SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitVelocityFtps",
-                                actualExitVelocity.in(FeetPerSecond));
-
-                // Recompute net horizontal velocity using actual exit velocity
                 Angle bFieldAngle = calculateBaseFieldAngleToTarget(targetPosition.toTranslation2d(), robotPose);
                 Angle bExitAngle = calculateHighBaseExitAngle(targetPosition, robotPose);
 
@@ -390,6 +379,17 @@ public class ShotCalculator {
 
                 SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitAngleDeg", angle.in(Degrees));
                 return angle;
+        }
+
+        public static LinearVelocity calculateActualExitVelocity(Supplier<AngularVelocity> actualShooterSpeed) {
+                AngularVelocity rpsBig = RevolutionsPerSecond.of(
+                                actualShooterSpeed.get().in(RevolutionsPerSecond) * COUNTER_WHEEL_RECIPROCAL / 2.0);
+                LinearVelocity actualExitVelocity = FeetPerSecond.of(
+                                rpsBig.in(RevolutionsPerSecond) * SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
+
+                SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitVelocityFtps",
+                                actualExitVelocity.in(FeetPerSecond));
+                return actualExitVelocity;
         }
 
         public static Angle calculateHoodAngle(
@@ -520,8 +520,56 @@ public class ShotCalculator {
                 return shooterSpeed.times(preShooterRatio);
         }
 
-        // In ShotCalculator, add a method to publish all shot data at once
-        public static void publishShotData() {
+        public static void publishShotData(
+                        Supplier<Pose2d> robotPose,
+                        Supplier<VelocityVector> robotVelocity,
+                        FieldTargets currentTarget,
+                        Supplier<AngularVelocity> currentShooterSpeed) {
+                Translation3d target = currentTarget.getTargetPosition();
+                NetworkTable dashTable = NetworkTableInstance.getDefault().getTable("dashboard");
 
+                Distance robotX = robotPose.get().getMeasureX();
+                Distance robotY = robotPose.get().getMeasureY();
+                double robotHeading = robotPose.get().getRotation().getDegrees();
+                Distance targetXM = target.getMeasureX();
+                Distance targetYM = target.getMeasureY();
+                Distance targetZFt = target.getMeasureZ();
+                Distance hDistanceFt = calculateBaseHDistanceToTarget(target.toTranslation2d(), robotPose);
+                Angle fieldAngleDeg = calculateBaseFieldAngleToTarget(target.toTranslation2d(), robotPose);
+
+                // --- Calculated (predicted) shot --- //
+                LinearVelocity calcExitVelocity = calculateBaseExitVelocity(target, robotPose);
+                Angle calcExitAngle = calculateHighBaseExitAngle(target, robotPose);
+
+                dashTable.getDoubleArrayTopic("shotCalculated").publish().set(new double[] {
+                                robotX.in(Meters), // [0]
+                                robotY.in(Meters), // [1]
+                                robotHeading, // [2]
+                                targetXM.in(Meters), // [3]
+                                targetYM.in(Meters), // [4]
+                                targetZFt.in(Feet), // [5]
+                                calcExitAngle.in(Degrees), // [6]
+                                calcExitVelocity.in(FeetPerSecond), // [7]
+                                hDistanceFt.in(Feet), // [8]
+                                fieldAngleDeg.in(Degrees), // [9]
+                });
+
+                LinearVelocity actualExitVelocity = calculateActualExitVelocity(currentShooterSpeed);
+                Angle actualExitAngle = calculateExitAngleFromActualSpeed(
+                                target, robotPose, robotVelocity, currentShooterSpeed);
+
+                dashTable.getDoubleArrayTopic("shotActual").publish().set(new double[] {
+                                robotX.in(Meters), // [0] same robot/target position
+                                robotY.in(Meters), // [1]
+                                robotHeading, // [2]
+                                targetXM.in(Meters), // [3]
+                                targetYM.in(Meters), // [4]
+                                targetZFt.in(Feet), // [5]
+                                actualExitAngle.in(Degrees), // [6]
+                                actualExitVelocity.in(FeetPerSecond), // [7]
+                                hDistanceFt.in(Feet), // [8]
+                                fieldAngleDeg.in(Degrees), // [9]
+                });
         }
+
 }
