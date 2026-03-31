@@ -88,6 +88,11 @@ public class TurretSubsystem extends SubsystemBase {
 
   private boolean atTarget = false;
 
+  private Angle nearRightWrappingAngle = Degrees.of(-220 + 30);
+  private Angle reallyCloseToRightWrappingAngle = Degrees.of(-220 + 15);
+  private Angle nearLeftWrappingAngle = Degrees.of(135 - 30);
+  private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(135 - 15);
+
   private Angle targetAngle = Degrees.of(0);
   private static final double MIN_ANGLE = -290;
   private static final double MAX_ANGLE = 90;
