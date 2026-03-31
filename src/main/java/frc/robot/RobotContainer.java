@@ -996,7 +996,7 @@ public class RobotContainer implements RobotModeChangeListener {
                 () -> !shooterHoodSubsystem.atTarget())));
 
     NamedCommands.registerCommand("No More Feed", intakeAgitatorSubsystem.agitatorOn()
-        .alongWith(conveyerSubsystem.setDutyCycle(0)));
+        .alongWith(conveyerSubsystem.setDutyCycle(0)).withTimeout(5));
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 

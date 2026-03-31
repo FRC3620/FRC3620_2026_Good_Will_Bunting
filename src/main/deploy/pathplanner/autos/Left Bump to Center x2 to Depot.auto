@@ -37,7 +37,7 @@
                           {
                             "type": "wait",
                             "data": {
-                              "waitTime": 4.0
+                              "waitTime": 3.0
                             }
                           },
                           {
@@ -71,6 +71,12 @@
                       "type": "path",
                       "data": {
                         "pathName": "DP Init to DP"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Feed Shot"
                       }
                     }
                   ]

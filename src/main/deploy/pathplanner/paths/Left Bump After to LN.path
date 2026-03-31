@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 8.244122681883024,
-        "y": 6.810342368045649
+        "x": 7.571312410841653,
+        "y": 6.642139800285308
       },
       "prevControl": {
-        "x": 7.648576985343539,
-        "y": 7.824379635126394
+        "x": 6.975766714302168,
+        "y": 7.656177067366052
       },
       "nextControl": null,
       "isLocked": false,
@@ -54,7 +54,7 @@
   },
   "goalEndState": {
     "velocity": 1.5,
-    "rotation": -90.0
+    "rotation": -70.0
   },
   "reversed": false,
   "folder": "Before and After Left Bump",

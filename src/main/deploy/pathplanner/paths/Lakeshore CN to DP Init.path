@@ -48,7 +48,7 @@
     {
       "name": "Feed Shot",
       "waypointRelativePos": 0.95,
-      "endWaypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
