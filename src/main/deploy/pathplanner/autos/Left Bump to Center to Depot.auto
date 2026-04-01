@@ -25,15 +25,60 @@
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "deadline",
                       "data": {
-                        "pathName": "CN to DP Init"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "CN to DP Init"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Feed Shot"
+                            }
+                          }
+                        ]
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "deadline",
                       "data": {
-                        "pathName": "DP Init to DP"
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "DP Init to DP"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Feed Shot"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "parallel",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Feed Shot"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Jostle"
+                            }
+                          }
+                        ]
                       }
                     }
                   ]

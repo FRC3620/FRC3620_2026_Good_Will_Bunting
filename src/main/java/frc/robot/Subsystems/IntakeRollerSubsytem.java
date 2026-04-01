@@ -108,6 +108,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         if (motor1 != null) {
             SmartDashboard.putNumber("frc3620/IntakeRollers/Rotor Velocity RPS (about 2x drum speed)", motor1.getVelocity().getValueAsDouble());
             SmartDashboard.putNumber("frc3620/IntakeRollers/Supply Current Amps", motor1.getSupplyCurrent().getValueAsDouble());
+            SmartDashboard.putNumber("frc3620/IntakeRollers/Supply Current Amps", motor2.getSupplyCurrent().getValueAsDouble());
         }
     }
 
