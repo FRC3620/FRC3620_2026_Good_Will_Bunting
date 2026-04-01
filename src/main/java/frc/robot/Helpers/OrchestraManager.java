@@ -19,7 +19,10 @@ public class OrchestraManager {
 
     public enum OrchestraSong {
         TITANIUM("Titanium", "titanium.chrp"),
-        CALLMEMAYBE("Call me Maybe", "CallMeMaybe.chrp");
+        CALLMEMAYBE("Call me Maybe", "CallMeMaybe.chrp"),
+        SANDSTORM("Sandstorm", "Sandstorm.chrp" ),
+        IGOTAFEELING("I Got a Feeling", "IGOTAFEELING.chrp"),
+        PIRATE("Pirates of the Caribbean", "Pirate.chrp");
 
         public final String displayName;
         public final String filename;
