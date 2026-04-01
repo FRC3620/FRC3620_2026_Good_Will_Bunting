@@ -12,7 +12,7 @@ export interface TopicConfig {
   widget: WidgetType;    // What kind of widget to render
 }
 
-export type WidgetType = "text" | "gauge" | "toggle" | "indicator" | "field" | "trajectory";
+export type WidgetType = "text" | "gauge" | "toggle" | "indicator" | "field" | "trajectory" | "none";
 
 // Map our simple type names to ntcore's type system
 export const typeInfoMap = {
@@ -58,5 +58,12 @@ export const TOPIC_CONFIGS: TopicConfig[] = [
     defaultValue: [0, 0, 0, 4.627, 4.034, 0.584, 45, 30, 10, 0],
     label: "Actual Shot",
     widget: "trajectory",
+  },
+  {
+    key: "/dashboard/turretLimits",
+    type: "number[]",
+    defaultValue: [-298.0, 135.0],
+    label: "Turret Limits",
+    widget: "none",  // internal data
   },
 ];

@@ -524,7 +524,8 @@ public class ShotCalculator {
                         Supplier<Pose2d> robotPose,
                         Supplier<VelocityVector> robotVelocity,
                         FieldTargets currentTarget,
-                        Supplier<AngularVelocity> currentShooterSpeed) {
+                        Supplier<AngularVelocity> currentShooterSpeed,
+                        Supplier<Angle> currentTurretAngle) {
                 Translation3d target = currentTarget.getTargetPosition();
                 NetworkTable dashTable = NetworkTableInstance.getDefault().getTable("dashboard");
 
@@ -536,6 +537,10 @@ public class ShotCalculator {
                 Distance targetZFt = target.getMeasureZ();
                 Distance hDistanceFt = calculateBaseHDistanceToTarget(target.toTranslation2d(), robotPose);
                 Angle fieldAngleDeg = calculateBaseFieldAngleToTarget(target.toTranslation2d(), robotPose);
+
+                Angle calcTurretAngle = calculateNetTurretAngleToTarget(
+                                target.toTranslation2d(), robotPose, robotVelocity);
+                Angle actualTurret = currentTurretAngle.get();
 
                 // --- Calculated (predicted) shot --- //
                 LinearVelocity calcExitVelocity = calculateBaseExitVelocity(target, robotPose);
@@ -552,6 +557,7 @@ public class ShotCalculator {
                                 calcExitVelocity.in(FeetPerSecond), // [7]
                                 hDistanceFt.in(Feet), // [8]
                                 fieldAngleDeg.in(Degrees), // [9]
+                                calcTurretAngle.in(Degrees), // [10]
                 });
 
                 LinearVelocity actualExitVelocity = calculateActualExitVelocity(currentShooterSpeed);
@@ -569,7 +575,15 @@ public class ShotCalculator {
                                 actualExitVelocity.in(FeetPerSecond), // [7]
                                 hDistanceFt.in(Feet), // [8]
                                 fieldAngleDeg.in(Degrees), // [9]
+                                actualTurret.in(Degrees), // [10]
                 });
+
+                // Publish turret limits separately so custom dashboard can show a deadspot
+                dashTable.getDoubleArrayTopic("turretLimits").publish().set(new double[] {
+                                -298.0, // [0] min degrees
+                                135.0, // [1] max degrees
+                });
+
         }
 
 }

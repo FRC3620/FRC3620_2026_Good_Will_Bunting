@@ -6,6 +6,7 @@ import fieldImage from "../assets/field_image.png";
 const FIELD_WIDTH_M = 16.54;
 const FIELD_HEIGHT_M = 8.07;
 const G = 32.2; // ft/s²
+const TURRET_LINE_LENGTH = 40; // pixels, length of turret aim lines on top-down view
 
 interface ShotData {
   robotX: number;
@@ -18,52 +19,154 @@ interface ShotData {
   exitVelocityFtps: number;
   hDistanceFt: number;
   fieldAngleDeg: number;
+  turretAngleDeg: number;
 }
 
-// Compute parabolic arc points in the vertical (side) plane
-// Returns array of {t, x, y} where x is horizontal distance and y is height
+interface TurretLimits {
+  min: number;
+  max: number;
+}
+
 function computeArcPoints(
   exitVelocityFtps: number,
   exitAngleDeg: number,
   targetHeightFt: number,
-  steps = 60
+  steps = 80
 ): { x: number; y: number }[] {
   const angleRad = (exitAngleDeg * Math.PI) / 180;
   const vx = exitVelocityFtps * Math.cos(angleRad);
   const vy = exitVelocityFtps * Math.sin(angleRad);
 
-  // Time to reach target height (quadratic formula)
-  // y = vy*t - 0.5*G*t^2 = targetHeight
-  // 0.5G*t^2 - vy*t + targetHeight = 0
   const disc = vy * vy - 2 * G * targetHeightFt;
   const tFlight = disc >= 0
     ? (vy + Math.sqrt(disc)) / G
-    : (vy * 2) / G; // fallback: full parabola if target unreachable
+    : (vy * 2) / G;
 
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * tFlight;
-    const x = vx * t;
-    const y = vy * t - 0.5 * G * t * t;
-    points.push({ x, y });
+    points.push({
+      x: vx * t,
+      y: vy * t - 0.5 * G * t * t,
+    });
   }
   return points;
 }
 
-export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
+function parseShotData(arr: number[]): ShotData {
+  return {
+    robotX:        arr[0] ?? 0,
+    robotY:        arr[1] ?? 0,
+    robotHeading:  arr[2] ?? 0,
+    targetX:       arr[3] ?? 0,
+    targetY:       arr[4] ?? 0,
+    targetZ:       arr[5] ?? 0,
+    exitAngleDeg:  arr[6] ?? 0,
+    exitVelocityFtps: arr[7] ?? 0,
+    hDistanceFt:   arr[8] ?? 0,
+    fieldAngleDeg: arr[9] ?? 0,
+    turretAngleDeg: arr[10] ?? 0,
+  };
+}
+
+// Draws a turret aim line from robot center in a given direction
+function drawTurretLine(
+  ctx: CanvasRenderingContext2D,
+  rx: number,
+  ry: number,
+  robotHeadingDeg: number,
+  turretAngleDeg: number,
+  color: string,
+  label: string,
+  W: number,
+  H: number,
+) {
+  // Turret angle is relative to robot, robot heading is field-relative
+  const absoluteAngleRad = ((robotHeadingDeg + turretAngleDeg) * Math.PI) / 180;
+
+  // Project a long line to the edge of canvas to show aim direction
+  const reach = Math.max(W, H);
+  const ex = rx + Math.cos(absoluteAngleRad) * reach;
+  const ey = ry - Math.sin(absoluteAngleRad) * reach;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  ctx.globalAlpha = 0.7;
+  ctx.beginPath();
+  ctx.moveTo(rx, ry);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // Dot at tip of short line for clarity
+  const tipX = rx + Math.cos(absoluteAngleRad) * TURRET_LINE_LENGTH;
+  const tipY = ry - Math.sin(absoluteAngleRad) * TURRET_LINE_LENGTH;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(tipX, tipY, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Label
+  ctx.font = "bold 10px 'Share Tech Mono', monospace";
+  ctx.fillStyle = color;
+  ctx.fillText(label, tipX + 5, tipY - 3);
+  ctx.restore();
+}
+
+// Draws the turret range-of-motion arc around the robot
+function drawTurretLimitArc(
+  ctx: CanvasRenderingContext2D,
+  rx: number,
+  ry: number,
+  robotHeadingDeg: number,
+  limits: TurretLimits,
+) {
+  const radius = TURRET_LINE_LENGTH + 8;
+  const headingRad = (robotHeadingDeg * Math.PI) / 180;
+
+  // Canvas angles: subtract because canvas Y is flipped
+  // Also canvas arc goes clockwise, field angles go counterclockwise
+  const startRad = -(headingRad + (limits.max * Math.PI) / 180);
+  const endRad   = -(headingRad + (limits.min * Math.PI) / 180);
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(180, 180, 180, 0.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(rx, ry, radius, startRad, endRad, false);
+  ctx.stroke();
+
+  // Hard stop tick marks
+  [limits.min, limits.max].forEach(limitDeg => {
+    const angleRad = headingRad + (limitDeg * Math.PI) / 180;
+    const ix = rx + Math.cos(angleRad) * (radius - 5);
+    const iy = ry - Math.sin(angleRad) * (radius - 5);
+    const ox = rx + Math.cos(angleRad) * (radius + 5);
+    const oy = ry - Math.sin(angleRad) * (radius + 5);
+    ctx.strokeStyle = "rgba(255, 80, 80, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ix, iy);
+    ctx.lineTo(ox, oy);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) {
   const topDownRef = useRef<HTMLCanvasElement>(null);
-  const sideRef = useRef<HTMLCanvasElement>(null);
+  const sideRef    = useRef<HTMLCanvasElement>(null);
   const fieldImgRef = useRef<HTMLImageElement | null>(null);
   const [fieldLoaded, setFieldLoaded] = useState(false);
-  const [shot, setShot] = useState<ShotData>(() => {
-    const d = topic.defaultValue as number[];
-    return {
-      robotX: d[0], robotY: d[1], robotHeading: d[2],
-      targetX: d[3], targetY: d[4], targetZ: d[5],
-      exitAngleDeg: d[6], exitVelocityFtps: d[7],
-      hDistanceFt: d[8], fieldAngleDeg: d[9],
-    };
-  });
+
+  const defaultData = parseShotData(topics[0]?.defaultValue as number[] ?? []);
+  const [calcShot, setCalcShot] = useState<ShotData>(defaultData);
+  const [actualShot, setActualShot] = useState<ShotData>(defaultData);
+  const [turretLimits, setTurretLimits] = useState<TurretLimits>({ min: -298, max: 135 });
 
   useEffect(() => {
     const img = new Image();
@@ -71,20 +174,27 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
     img.onload = () => { fieldImgRef.current = img; setFieldLoaded(true); };
   }, []);
 
+  // Subscribe to both shot topics and turret limits
   useEffect(() => {
-    subscribeToValue(topic.key, (value) => {
-      if (Array.isArray(value) && value.length >= 10) {
-        setShot({
-          robotX: value[0], robotY: value[1], robotHeading: value[2],
-          targetX: value[3], targetY: value[4], targetZ: value[5],
-          exitAngleDeg: value[6], exitVelocityFtps: value[7],
-          hDistanceFt: value[8], fieldAngleDeg: value[9],
-        });
+    topics.forEach(topic => {
+      subscribeToValue(topic.key, (value) => {
+        if (!Array.isArray(value) || value.length < 10) return;
+        if (topic.key.includes("Calculated") || topic.key.includes("calculated")) {
+          setCalcShot(parseShotData(value));
+        } else {
+          setActualShot(parseShotData(value));
+        }
+      });
+    });
+
+    subscribeToValue("/dashboard/turretLimits", (value) => {
+      if (Array.isArray(value) && value.length >= 2) {
+        setTurretLimits({ min: value[0], max: value[1] });
       }
     });
-  }, [topic.key]);
+  }, [topics]);
 
-  // Draw top-down view
+  // ── Top-down view ────────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = topDownRef.current;
     const img = fieldImgRef.current;
@@ -94,7 +204,7 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
+    canvas.width  = rect.width  * dpr;
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
     const W = rect.width;
@@ -102,49 +212,62 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
 
     ctx.drawImage(img, 0, 0, W, H);
 
-    const toCanvasX = (mx: number) => (mx / FIELD_WIDTH_M) * W;
-    const toCanvasY = (my: number) => H - (my / FIELD_HEIGHT_M) * H;
+    const toX = (mx: number) => (mx / FIELD_WIDTH_M)  * W;
+    const toY = (my: number) => H - (my / FIELD_HEIGHT_M) * H;
 
-    const rx = toCanvasX(shot.robotX);
-    const ry = toCanvasY(shot.robotY);
-    const tx = toCanvasX(shot.targetX);
-    const ty = toCanvasY(shot.targetY);
+    const rx = toX(calcShot.robotX);
+    const ry = toY(calcShot.robotY);
+    const tx = toX(calcShot.targetX);
+    const ty = toY(calcShot.targetY);
 
-    // Trajectory line (projected onto field top-down)
-    const arcPoints = computeArcPoints(
-      shot.exitVelocityFtps,
-      shot.exitAngleDeg,
-      shot.targetZ * 3.281, // meters to feet
-    );
-    const totalArcDist = arcPoints[arcPoints.length - 1].x; // ft
-    const totalArcDistM = totalArcDist / 3.281;
-    const angleRad = (shot.fieldAngleDeg * Math.PI) / 180;
+    // Helper: draw projected arc onto field top-down plane
+    const drawTopDownArc = (shot: ShotData, color: string) => {
+      const arcPoints = computeArcPoints(
+        shot.exitVelocityFtps,
+        shot.exitAngleDeg,
+        shot.targetZ * 3.281,
+      );
+      const totalDistFt = arcPoints[arcPoints.length - 1].x || 1;
+      const totalDistM  = totalDistFt / 3.281;
+      const angleRad    = (shot.fieldAngleDeg * Math.PI) / 180;
 
-    ctx.beginPath();
-    arcPoints.forEach((pt, i) => {
-      const frac = pt.x / (totalArcDist || 1);
-      const cx = rx + Math.cos(angleRad) * frac * totalArcDistM * (W / FIELD_WIDTH_M);
-      const cy = ry - Math.sin(angleRad) * frac * totalArcDistM * (H / FIELD_HEIGHT_M);
-      i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
-    });
-    ctx.strokeStyle = "rgba(255, 203, 5, 0.8)";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 3]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+      ctx.beginPath();
+      arcPoints.forEach((pt, i) => {
+        const frac = pt.x / totalDistFt;
+        const cx = rx + Math.cos(angleRad) * frac * totalDistM * (W / FIELD_WIDTH_M);
+        const cy = ry - Math.sin(angleRad) * frac * totalDistM * (H / FIELD_HEIGHT_M);
+        i === 0 ? ctx.moveTo(cx, cy) : ctx.lineTo(cx, cy);
+      });
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
 
-    // Robot
+    // Draw arcs — actual first so calculated renders on top
+    drawTopDownArc(actualShot, "rgba(0, 210, 255, 0.75)");  // cyan = actual
+    drawTopDownArc(calcShot,   "rgba(255, 203, 5, 0.85)");  // maize = calculated
+
+    // Turret limit arc
+    drawTurretLimitArc(ctx, rx, ry, calcShot.robotHeading, turretLimits);
+
+    // Turret aim lines
+    drawTurretLine(ctx, rx, ry, calcShot.robotHeading,   calcShot.turretAngleDeg,   "rgba(255, 203, 5, 0.9)",  "CALC", W, H);
+    drawTurretLine(ctx, rx, ry, actualShot.robotHeading, actualShot.turretAngleDeg, "rgba(0, 210, 255, 0.9)",  "ACTL", W, H);
+
+    // Robot body
     ctx.save();
     ctx.translate(rx, ry);
-    ctx.rotate(-(shot.robotHeading * Math.PI) / 180);
-    ctx.fillStyle = "rgba(0, 120, 255, 0.9)";
+    ctx.rotate(-(calcShot.robotHeading * Math.PI) / 180);
+    ctx.fillStyle = "rgba(30, 80, 160, 0.9)";
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.rect(-10, -10, 20, 20);
     ctx.fill();
     ctx.stroke();
-    // heading arrow
+    // Heading arrow
     ctx.fillStyle = "white";
     ctx.beginPath();
     ctx.moveTo(0, -18);
@@ -154,28 +277,44 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
     ctx.fill();
     ctx.restore();
 
-    // Target
+    // Target dot
     ctx.save();
     ctx.translate(tx, ty);
-    ctx.fillStyle = "rgba(255, 203, 5, 0.9)";
+    ctx.fillStyle = "rgba(255, 203, 5, 0.95)";
     ctx.strokeStyle = "#00274C";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    ctx.arc(0, 0, 7, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
 
     // Labels
-    ctx.font = "bold 11px 'Share Tech Mono', monospace";
+    ctx.font = "bold 10px 'Share Tech Mono', monospace";
     ctx.fillStyle = "#00274C";
-    ctx.fillText("ROBOT", rx + 12, ry + 4);
-    ctx.fillStyle = "#00274C";
+    ctx.fillText("ROBOT",  rx + 13, ry + 4);
     ctx.fillText("TARGET", tx + 10, ty + 4);
 
-  }, [shot, fieldLoaded]);
+    // Legend
+    const legendX = 8;
+    let legendY = 16;
+    [
+      { color: "rgba(255, 203, 5, 0.9)",  label: "Calculated" },
+      { color: "rgba(0, 210, 255, 0.9)",  label: "Actual" },
+      { color: "rgba(180,180,180,0.5)",   label: "Turret range" },
+      { color: "rgba(255, 80, 80, 0.7)",  label: "Hard stops" },
+    ].forEach(({ color, label }) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(legendX, legendY - 8, 14, 3);
+      ctx.fillStyle = "white";
+      ctx.font = "9px 'Share Tech Mono', monospace";
+      ctx.fillText(label, legendX + 18, legendY);
+      legendY += 14;
+    });
 
-  // Draw side view
+  }, [calcShot, actualShot, turretLimits, fieldLoaded]);
+
+  // ── Side profile view ────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = sideRef.current;
     if (!canvas) return;
@@ -184,52 +323,44 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
+    canvas.width  = rect.width  * dpr;
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
     const W = rect.width;
     const H = rect.height;
 
-    const PAD = { top: 20, right: 20, bottom: 30, left: 40 };
+    const PAD = { top: 24, right: 20, bottom: 30, left: 44 };
     const plotW = W - PAD.left - PAD.right;
-    const plotH = H - PAD.top - PAD.bottom;
+    const plotH = H - PAD.top  - PAD.bottom;
 
     // Background
     ctx.fillStyle = "#040d1a";
     ctx.fillRect(0, 0, W, H);
 
-    // Grid lines
-    ctx.strokeStyle = "rgba(255,203,5,0.07)";
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 5; i++) {
-      const y = PAD.top + (i / 5) * plotH;
-      ctx.beginPath();
-      ctx.moveTo(PAD.left, y);
-      ctx.lineTo(PAD.left + plotW, y);
-      ctx.stroke();
-    }
-    for (let i = 0; i <= 6; i++) {
-      const x = PAD.left + (i / 6) * plotW;
-      ctx.beginPath();
-      ctx.moveTo(x, PAD.top);
-      ctx.lineTo(x, PAD.top + plotH);
-      ctx.stroke();
-    }
+    const targetZFt = calcShot.targetZ * 3.281;
+    const calcArc   = computeArcPoints(calcShot.exitVelocityFtps,   calcShot.exitAngleDeg,   targetZFt);
+    const actualArc = computeArcPoints(actualShot.exitVelocityFtps, actualShot.exitAngleDeg, targetZFt);
 
-    const targetZFt = shot.targetZ * 3.281;
-    const arcPoints = computeArcPoints(
-      shot.exitVelocityFtps,
-      shot.exitAngleDeg,
-      targetZFt,
-    );
-
-    const maxX = arcPoints[arcPoints.length - 1].x || 1;
-    const maxY = Math.max(...arcPoints.map(p => p.y), targetZFt, 1) * 1.2;
+    const allPoints = [...calcArc, ...actualArc];
+    const maxX = Math.max(...allPoints.map(p => p.x), 1);
+    const maxY = Math.max(...allPoints.map(p => p.y), targetZFt, 1) * 1.2;
 
     const toPlotX = (ft: number) => PAD.left + (ft / maxX) * plotW;
     const toPlotY = (ft: number) => PAD.top + plotH - (ft / maxY) * plotH;
 
-    // Floor line
+    // Grid
+    ctx.strokeStyle = "rgba(255,203,5,0.06)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const y = PAD.top + (i / 5) * plotH;
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + plotW, y); ctx.stroke();
+    }
+    for (let i = 0; i <= 6; i++) {
+      const x = PAD.left + (i / 6) * plotW;
+      ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + plotH); ctx.stroke();
+    }
+
+    // Floor
     ctx.strokeStyle = "rgba(255,203,5,0.2)";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -237,73 +368,83 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
     ctx.lineTo(PAD.left + plotW, toPlotY(0));
     ctx.stroke();
 
-    // Arc fill gradient
-    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + plotH);
-    grad.addColorStop(0, "rgba(255,203,5,0.2)");
-    grad.addColorStop(1, "rgba(255,203,5,0)");
+    // Draw one arc with fill + stroke
+    const drawSideArc = (
+      points: { x: number; y: number }[],
+      strokeColor: string,
+      fillColor: string,
+    ) => {
+      // Gradient fill
+      const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + plotH);
+      grad.addColorStop(0, fillColor);
+      grad.addColorStop(1, "rgba(0,0,0,0)");
 
-    ctx.beginPath();
-    arcPoints.forEach((pt, i) => {
-      i === 0
-        ? ctx.moveTo(toPlotX(pt.x), toPlotY(pt.y))
-        : ctx.lineTo(toPlotX(pt.x), toPlotY(pt.y));
-    });
-    ctx.lineTo(toPlotX(maxX), toPlotY(0));
-    ctx.lineTo(toPlotX(0), toPlotY(0));
-    ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
+      ctx.beginPath();
+      points.forEach((pt, i) => {
+        i === 0
+          ? ctx.moveTo(toPlotX(pt.x), toPlotY(pt.y))
+          : ctx.lineTo(toPlotX(pt.x), toPlotY(pt.y));
+      });
+      ctx.lineTo(toPlotX(points[points.length - 1].x), toPlotY(0));
+      ctx.lineTo(toPlotX(0), toPlotY(0));
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
 
-    // Arc line
-    ctx.beginPath();
-    arcPoints.forEach((pt, i) => {
-      i === 0
-        ? ctx.moveTo(toPlotX(pt.x), toPlotY(pt.y))
-        : ctx.lineTo(toPlotX(pt.x), toPlotY(pt.y));
-    });
-    ctx.strokeStyle = "var(--maize)";
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
+      // Arc line
+      ctx.beginPath();
+      points.forEach((pt, i) => {
+        i === 0
+          ? ctx.moveTo(toPlotX(pt.x), toPlotY(pt.y))
+          : ctx.lineTo(toPlotX(pt.x), toPlotY(pt.y));
+      });
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    };
 
-    // Target height line
-    ctx.strokeStyle = "rgba(255,80,80,0.7)";
+    // Actual arc behind calculated
+    drawSideArc(actualArc, "rgba(0, 210, 255, 0.9)",  "rgba(0, 210, 255, 0.12)");
+    drawSideArc(calcArc,   "rgba(255, 203, 5, 0.9)",  "rgba(255, 203, 5, 0.12)");
+
+    // Target height marker
+    ctx.strokeStyle = "rgba(255, 80, 80, 0.7)";
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
-    ctx.moveTo(toPlotX(maxX) - 4, toPlotY(targetZFt));
-    ctx.lineTo(toPlotX(maxX) + 4, toPlotY(targetZFt));
     ctx.moveTo(toPlotX(maxX), toPlotY(0));
     ctx.lineTo(toPlotX(maxX), toPlotY(targetZFt));
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Target dot
     ctx.fillStyle = "#ff5050";
     ctx.beginPath();
     ctx.arc(toPlotX(maxX), toPlotY(targetZFt), 5, 0, Math.PI * 2);
     ctx.fill();
 
     // Launch dot
-    ctx.fillStyle = "rgba(0,120,255,0.9)";
+    ctx.fillStyle = "rgba(0, 120, 255, 0.9)";
     ctx.beginPath();
     ctx.arc(toPlotX(0), toPlotY(0), 5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Axes labels
-    ctx.fillStyle = "rgba(255,203,5,0.5)";
+    // Axis labels
+    ctx.fillStyle = "rgba(255,203,5,0.45)";
     ctx.font = "10px 'Share Tech Mono', monospace";
-    ctx.fillText(`${maxX.toFixed(0)}ft`, PAD.left + plotW - 20, PAD.top + plotH + 20);
-    ctx.fillText(`${maxY.toFixed(0)}ft`, PAD.left - 36, PAD.top + 8);
+    ctx.fillText(`${maxX.toFixed(0)}ft`, PAD.left + plotW - 22, PAD.top + plotH + 20);
+    ctx.fillText(`${maxY.toFixed(0)}ft`, PAD.left - 40, PAD.top + 8);
     ctx.fillText("0", PAD.left - 12, toPlotY(0) + 4);
 
-    // Angle label
-    ctx.fillStyle = "rgba(255,203,5,0.7)";
-    ctx.font = "bold 11px 'Share Tech Mono', monospace";
-    ctx.fillText(`θ: ${shot.exitAngleDeg.toFixed(1)}°`, PAD.left + 6, PAD.top + 14);
-    ctx.fillText(`v: ${shot.exitVelocityFtps.toFixed(1)} ft/s`, PAD.left + 6, PAD.top + 26);
+    // Stats overlay — calculated vs actual
+    ctx.font = "bold 10px 'Share Tech Mono', monospace";
+    ctx.fillStyle = "rgba(255, 203, 5, 0.8)";
+    ctx.fillText(`CALC  θ:${calcShot.exitAngleDeg.toFixed(1)}°  v:${calcShot.exitVelocityFtps.toFixed(1)}fps`, PAD.left + 6, PAD.top + 13);
+    ctx.fillStyle = "rgba(0, 210, 255, 0.8)";
+    ctx.fillText(`ACTL  θ:${actualShot.exitAngleDeg.toFixed(1)}°  v:${actualShot.exitVelocityFtps.toFixed(1)}fps`, PAD.left + 6, PAD.top + 25);
 
-  }, [shot]);
+  }, [calcShot, actualShot]);
 
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div style={{
       background: "var(--bg-panel)",
@@ -335,7 +476,7 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
           textTransform: "uppercase",
           marginBottom: "0.4rem",
         }}>
-          Top Down
+          Top Down · Turret Aim
         </div>
         <canvas
           ref={topDownRef}
@@ -359,7 +500,7 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
           textTransform: "uppercase",
           marginBottom: "0.4rem",
         }}>
-          Side Profile
+          Side Profile · Height
         </div>
         <canvas
           ref={sideRef}
@@ -373,35 +514,60 @@ export default function TrajectoryWidget({ topic }: { topic: TopicConfig }) {
         />
       </div>
 
-      {/* Data readout */}
+      {/* Data readout grid */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: "0.5rem",
+        gap: "0.4rem",
         fontFamily: "var(--text-mono)",
         fontSize: "0.72rem",
       }}>
         {[
-          ["EXIT ANGLE", `${shot.exitAngleDeg.toFixed(1)}°`],
-          ["EXIT VEL", `${shot.exitVelocityFtps.toFixed(1)} ft/s`],
-          ["H DISTANCE", `${shot.hDistanceFt.toFixed(1)} ft`],
-          ["FIELD ANGLE", `${shot.fieldAngleDeg.toFixed(1)}°`],
-        ].map(([label, value]) => (
+          ["EXIT ANGLE",    `${calcShot.exitAngleDeg.toFixed(1)}°`,      `${actualShot.exitAngleDeg.toFixed(1)}°`],
+          ["EXIT VEL",      `${calcShot.exitVelocityFtps.toFixed(1)} fps`, `${actualShot.exitVelocityFtps.toFixed(1)} fps`],
+          ["TURRET ANGLE",  `${calcShot.turretAngleDeg.toFixed(1)}°`,    `${actualShot.turretAngleDeg.toFixed(1)}°`],
+          ["H DISTANCE",    `${calcShot.hDistanceFt.toFixed(1)} ft`,     "—"],
+        ].map(([label, calc, actual]) => (
           <div key={label} style={{
             padding: "0.4rem 0.6rem",
             background: "var(--bg)",
             border: "1px solid var(--border)",
             borderRadius: "2px",
           }}>
-            <div style={{ color: "var(--text-secondary)", fontSize: "0.6rem", letterSpacing: "0.15em" }}>
+            <div style={{ color: "var(--text-secondary)", fontSize: "0.6rem", letterSpacing: "0.15em", marginBottom: "0.25rem" }}>
               {label}
             </div>
-            <div style={{ color: "var(--maize)", marginTop: "0.15rem" }}>
-              {value}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--maize)" }}>{calc}</span>
+              <span style={{ color: "rgba(0, 210, 255, 0.9)" }}>{actual}</span>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Turret error indicator */}
+      {(() => {
+        const err = Math.abs(calcShot.turretAngleDeg - actualShot.turretAngleDeg);
+        const isClose = err < 2;
+        return (
+          <div style={{
+            padding: "0.4rem 0.75rem",
+            background: isClose ? "rgba(0,255,120,0.06)" : "rgba(255,80,80,0.06)",
+            border: `1px solid ${isClose ? "rgba(0,255,120,0.25)" : "rgba(255,80,80,0.3)"}`,
+            borderRadius: "2px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontFamily: "var(--text-mono)",
+            fontSize: "0.72rem",
+          }}>
+            <span style={{ color: "var(--text-secondary)", letterSpacing: "0.1em" }}>TURRET ERROR</span>
+            <span style={{ color: isClose ? "rgba(0,255,120,0.9)" : "#ff5050", fontWeight: "bold" }}>
+              {err.toFixed(2)}° {isClose ? "✓ ON TARGET" : "⚠ TRACKING"}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }
