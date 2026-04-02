@@ -36,6 +36,9 @@ public class DepotPassingState extends SuperState {
         // Code to run when entering the Passing state
 
         CommandScheduler.getInstance().schedule(doEverythingCommand);
+        
+        RobotContainer.setActiveTarget(ShotCalculator.FieldTargets.DEPOT_PASS);
+
     }
 
     @Override

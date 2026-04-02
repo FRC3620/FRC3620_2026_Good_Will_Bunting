@@ -173,7 +173,7 @@ public class RobotContainer implements RobotModeChangeListener {
   public static PowerDistribution powerDistribution;
   public static Trigger useFMSTriggers = new Trigger(() -> false);
 
-  private ShotCalculator.FieldTargets activeTarget = ShotCalculator.FieldTargets.BLUE_HUB;
+  private static ShotCalculator.FieldTargets activeTarget = ShotCalculator.FieldTargets.BLUE_HUB;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -1124,11 +1124,11 @@ public class RobotContainer implements RobotModeChangeListener {
     orchestra.stop();
   }
 
-  public ShotCalculator.FieldTargets getActiveTarget() {
+  public static ShotCalculator.FieldTargets getActiveTarget() {
     return activeTarget;
   }
 
-  public void setActiveTarget(ShotCalculator.FieldTargets target) {
+  public static void setActiveTarget(ShotCalculator.FieldTargets target) {
     activeTarget = target;
   }
 }
