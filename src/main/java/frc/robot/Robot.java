@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Helpers.AllianceFlipUtil;
 import frc.robot.Helpers.ShotCalculator;
 
 /**
@@ -97,6 +98,16 @@ public class Robot extends TimedRobot {
     m_robotContainer.getStateMachine().update();
 
     ShotCalculator.updateFromDashboard();
+    ShotCalculator.publishShotData(
+      () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose),
+      () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                    RobotContainer.swerveSubsystem.getKinematics(),
+                    RobotContainer.swerveSubsystem.getState(),
+                    RobotContainer.swerveSubsystem.getState().Pose.getRotation())),
+      RobotContainer.getActiveTarget(),
+      () -> RobotContainer.shooterSubsystem.get,
+      () -> RobotContainer.turretSubsystem.get
+    );
   }
 
   /** This function is called once each time the robot enters Disabled mode. */

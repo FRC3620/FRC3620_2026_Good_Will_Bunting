@@ -22,7 +22,7 @@ export const typeInfoMap = {
   "number[]": NetworkTablesTypeInfos.kDoubleArray
 };
 
-// ✏️ Add or remove topics here to change your dashboard
+// Add or remove topics here to change dashboard
 export const TOPIC_CONFIGS: TopicConfig[] = [
   {
     key: "/dashboard/target/hub",

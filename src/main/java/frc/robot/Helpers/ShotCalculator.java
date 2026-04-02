@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -58,6 +59,21 @@ public class ShotCalculator {
                                         (Inches.of(218.838)).in(Meters),
                                         0
                         });
+
+        private static final DoubleArrayPublisher shotCalculatedPub = NetworkTableInstance.getDefault()
+                        .getTable("dashboard")
+                        .getDoubleArrayTopic("shotCalculated")
+                        .publish();
+
+        private static final DoubleArrayPublisher shotActualPub = NetworkTableInstance.getDefault()
+                        .getTable("dashboard")
+                        .getDoubleArrayTopic("shotActual")
+                        .publish();
+
+        private static final DoubleArrayPublisher turretLimitsPub = NetworkTableInstance.getDefault()
+                        .getTable("dashboard")
+                        .getDoubleArrayTopic("turretLimits")
+                        .publish();
 
         public enum FieldTargets {
                 BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
@@ -546,43 +562,27 @@ public class ShotCalculator {
                 LinearVelocity calcExitVelocity = calculateBaseExitVelocity(target, robotPose);
                 Angle calcExitAngle = calculateHighBaseExitAngle(target, robotPose);
 
-                dashTable.getDoubleArrayTopic("shotCalculated").publish().set(new double[] {
-                                robotX.in(Meters), // [0]
-                                robotY.in(Meters), // [1]
-                                robotHeading, // [2]
-                                targetXM.in(Meters), // [3]
-                                targetYM.in(Meters), // [4]
-                                targetZFt.in(Feet), // [5]
-                                calcExitAngle.in(Degrees), // [6]
-                                calcExitVelocity.in(FeetPerSecond), // [7]
-                                hDistanceFt.in(Feet), // [8]
-                                fieldAngleDeg.in(Degrees), // [9]
-                                calcTurretAngle.in(Degrees), // [10]
-                });
-
                 LinearVelocity actualExitVelocity = calculateActualExitVelocity(currentShooterSpeed);
                 Angle actualExitAngle = calculateExitAngleFromActualSpeed(
                                 target, robotPose, robotVelocity, currentShooterSpeed);
 
-                dashTable.getDoubleArrayTopic("shotActual").publish().set(new double[] {
-                                robotX.in(Meters), // [0] same robot/target position
-                                robotY.in(Meters), // [1]
-                                robotHeading, // [2]
-                                targetXM.in(Meters), // [3]
-                                targetYM.in(Meters), // [4]
-                                targetZFt.in(Feet), // [5]
-                                actualExitAngle.in(Degrees), // [6]
-                                actualExitVelocity.in(FeetPerSecond), // [7]
-                                hDistanceFt.in(Feet), // [8]
-                                fieldAngleDeg.in(Degrees), // [9]
-                                actualTurret.in(Degrees), // [10]
+                shotCalculatedPub.set(new double[] {
+                                robotX.in(Meters), robotY.in(Meters), robotHeading,
+                                targetXM.in(Meters), targetYM.in(Meters), targetZFt.in(Feet),
+                                calcExitAngle.in(Degrees), calcExitVelocity.in(FeetPerSecond),
+                                hDistanceFt.in(Feet), fieldAngleDeg.in(Degrees),
+                                calcTurretAngle.in(Degrees),
                 });
 
-                // Publish turret limits separately so custom dashboard can show a deadspot
-                dashTable.getDoubleArrayTopic("turretLimits").publish().set(new double[] {
-                                -298.0, // [0] min degrees
-                                135.0, // [1] max degrees
+                shotActualPub.set(new double[] {
+                                robotX.in(Meters), robotY.in(Meters), robotHeading,
+                                targetXM.in(Meters), targetYM.in(Meters), targetZFt.in(Feet),
+                                actualExitAngle.in(Degrees), actualExitVelocity.in(FeetPerSecond),
+                                hDistanceFt.in(Feet), fieldAngleDeg.in(Degrees),
+                                actualTurret.in(Degrees),
                 });
+
+                turretLimitsPub.set(new double[] { -298.0, 135.0 });
 
         }
 
