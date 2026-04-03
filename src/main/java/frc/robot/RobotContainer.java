@@ -995,6 +995,9 @@ public class RobotContainer implements RobotModeChangeListener {
             .until(() -> !turretSubsystem.atTarget()).until(
                 () -> !shooterHoodSubsystem.atTarget())));
 
+    NamedCommands.registerCommand("Feed Pass", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8)));
+
     NamedCommands.registerCommand("No More Feed", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycle(0)).withTimeout(5));
 
@@ -1017,8 +1020,8 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())))
         .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
-            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
+            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1300))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(700))))));
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(

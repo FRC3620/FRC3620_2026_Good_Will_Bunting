@@ -15,7 +15,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "LB to LN"
+                        "pathName": "LB to CN"
                       }
                     },
                     {
@@ -25,7 +25,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "LN to CN"
+                              "pathName": "CN to LN"
                             }
                           },
                           {
@@ -35,7 +35,7 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 5.0
+                                    "waitTime": 2.5
                                   }
                                 },
                                 {
@@ -84,7 +84,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CN to LB Prep Wall Clean"
+            "pathName": "LN to Wall Clean Prep"
           }
         },
         {
@@ -106,22 +106,9 @@
                             }
                           },
                           {
-                            "type": "sequential",
+                            "type": "named",
                             "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 1.5
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Feed Shot"
-                                  }
-                                }
-                              ]
+                              "name": "Feed Shot"
                             }
                           }
                         ]
@@ -143,12 +130,6 @@
                       "type": "path",
                       "data": {
                         "pathName": "Lakeshore LN to CN"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Lakeshore CN to DP Init"
                       }
                     }
                   ]
