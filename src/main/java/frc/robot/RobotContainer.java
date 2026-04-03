@@ -287,7 +287,7 @@ public class RobotContainer implements RobotModeChangeListener {
       orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
       orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
       orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
-      orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
+      //orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
       orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
       orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
       orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
