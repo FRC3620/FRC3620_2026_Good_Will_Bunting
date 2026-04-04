@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.244122681883024,
-        "y": 6.810342368045649
+        "x": 7.974951807228916,
+        "y": 6.719771754636234
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.218553254767777,
-        "y": 6.471702953687235
+        "x": 7.9493823801136685,
+        "y": 6.381132340277819
       },
       "isLocked": false,
       "linkedName": "Left Neutral Collect"
@@ -60,7 +60,7 @@
   "folder": "Left Bump Start General",
   "idealStartingState": {
     "velocity": 1.5,
-    "rotation": -90.0
+    "rotation": -70.0
   },
   "useDefaultConstraints": false
 }

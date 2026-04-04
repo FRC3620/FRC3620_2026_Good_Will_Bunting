@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 0.694,
-        "y": 0.6256633380884444
+        "x": 0.4894698795180723,
+        "y": 0.505349397590362
       },
       "prevControl": {
-        "x": 2.105297249334516,
-        "y": 1.0291038154392185
+        "x": 1.9007671288525883,
+        "y": 0.908789874941136
       },
       "nextControl": null,
       "isLocked": false,
@@ -62,7 +62,7 @@
   "folder": "Before and After Right Bump",
   "idealStartingState": {
     "velocity": 2.5,
-    "rotation": -47.0
+    "rotation": -45.0
   },
   "useDefaultConstraints": true
 }

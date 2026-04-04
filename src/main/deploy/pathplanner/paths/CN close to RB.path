@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.1855900621118005,
-        "y": 4.167790594498668
+        "x": 5.734771084337349,
+        "y": 3.6634578313253012
       },
       "isLocked": false,
       "linkedName": "CN close"
@@ -20,18 +20,18 @@
         "y": 2.5
       },
       "prevControl": {
-        "x": 6.4189795918367345,
-        "y": 1.7051286601597155
+        "x": 6.849397590361446,
+        "y": 1.9478072289156638
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Right Bump Start"
+      "linkedName": "Straight RB Start"
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5775401069518719,
-      "rotationDegrees": -45.0
+      "rotationDegrees": 0.6789233823886232
     }
   ],
   "constraintZones": [],
@@ -39,7 +39,7 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 2.5,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -47,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 0.0,
-    "rotation": -47.0
+    "rotation": 0.7223416938649584
   },
   "reversed": false,
   "folder": "Right Bump Start General",
   "idealStartingState": {
     "velocity": 1.5,
-    "rotation": 180.0
+    "rotation": 90.0
   },
   "useDefaultConstraints": false
 }

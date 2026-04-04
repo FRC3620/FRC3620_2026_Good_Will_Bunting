@@ -1,0 +1,63 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.4697574893009984,
+        "y": 5.529415121255349
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.4678031383737515,
+        "y": 6.370427960057061
+      },
+      "isLocked": false,
+      "linkedName": "Left Bump Start"
+    },
+    {
+      "anchor": {
+        "x": 8.088858773181169,
+        "y": 4.300242510699002
+      },
+      "prevControl": {
+        "x": 6.264507845934378,
+        "y": 1.9971611982881607
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.23240938166311464,
+      "rotationDegrees": -45.0
+    },
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 45.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.5,
+    "maxAcceleration": 3.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 1.0,
+    "rotation": 86.42366562500266
+  },
+  "reversed": false,
+  "folder": "Left Bump Start General",
+  "idealStartingState": {
+    "velocity": 0.0,
+    "rotation": -46.90915243299639
+  },
+  "useDefaultConstraints": false
+}
