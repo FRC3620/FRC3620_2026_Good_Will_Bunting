@@ -31,19 +31,19 @@ import frc.robot.fsm.SuperState;
 
 public class ScoringState extends SuperState {
 
-    Command conveyerOn = RobotContainer.conveyerSubsystem
-            .setDutyCycleGated(.8, () -> RobotContainer.shooterSubsystem.atRPM(),
-                    () -> RobotContainer.turretSubsystem.atTarget(),
-                    () -> RobotContainer.shooterHoodSubsystem.atTarget())
-            .until(() -> !RobotContainer.turretSubsystem.atTarget()).until(
-                    () -> !RobotContainer.shooterHoodSubsystem.atTarget());
-    Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
-    Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
+    /*
+     * Command conveyerOn = RobotContainer.conveyerSubsystem
+     * .setDutyCycleGated(.8, () -> RobotContainer.shooterSubsystem.atRPM(),
+     * () -> RobotContainer.turretSubsystem.atTarget(),
+     * () -> RobotContainer.shooterHoodSubsystem.atTarget())
+     * .until(() -> !RobotContainer.turretSubsystem.atTarget()).until(
+     * () -> !RobotContainer.shooterHoodSubsystem.atTarget());
+     * Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+     * Command agitatorBack =
+     * RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
+     */
 
-    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition())
-            .alongWith(
-                    conveyerOn,
-                    agitatorOn);
+    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition());
 
     @Override
     public void onEnter() {
