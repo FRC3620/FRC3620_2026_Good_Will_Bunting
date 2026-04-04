@@ -287,7 +287,7 @@ public class RobotContainer implements RobotModeChangeListener {
       orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
       orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
       orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
-      orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
+      //orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
       orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
       orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
       orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
@@ -470,10 +470,10 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOff.and(fieldTriggers.enterDeadZone),
         hoardingState));
 
-      outpostPassingState.addTransition(new StateTransition(
+    outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
-      depotPassingState.addTransition(new StateTransition(
+    depotPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterOutpostPass),
         outpostPassingState));
 
@@ -715,7 +715,8 @@ public class RobotContainer implements RobotModeChangeListener {
           .whileTrue(
               (conveyerSubsystem
                   .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
-                      () -> shooterHoodSubsystem.atTarget()).until(() -> !turretSubsystem.atTarget()).until(
+                      () -> shooterHoodSubsystem.atTarget())
+                  .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
                   .repeatedly()
                   .alongWith(intakeAgitatorSubsystem.agitatorOn()).onlyIf(() -> !stateMachine.isActive())));
@@ -990,12 +991,26 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycleGated(0.8, () -> shooterSubsystem.atRPM(),
-            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())));
+            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())
+            .until(() -> !turretSubsystem.atTarget()).until(
+                () -> !shooterHoodSubsystem.atTarget())));
+
+    NamedCommands.registerCommand("Feed Pass", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8)));
+
+    NamedCommands.registerCommand("No More Feed", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0)).withTimeout(5));
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
     NamedCommands.registerCommand("Initialize Shot",
         new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+
+    NamedCommands.registerCommand("Initialize Pass Right",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_CORNER.getTargetPosition()));
+
+    NamedCommands.registerCommand("Initialize Pass Left",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
@@ -1005,8 +1020,8 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())))
         .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
-            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
+            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1300))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(700))))));
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(

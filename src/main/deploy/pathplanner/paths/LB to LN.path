@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.377232524964336,
-        "y": 4.520199714693296
+        "x": 7.28666191155492,
+        "y": 4.766034236804566
       },
       "isLocked": false,
       "linkedName": "Left Bump Start"
     },
     {
       "anchor": {
-        "x": 8.244122681883024,
-        "y": 6.810342368045649
+        "x": 7.974951807228916,
+        "y": 6.719771754636234
       },
       "prevControl": {
-        "x": 6.368017118402282,
-        "y": 8.38885877318117
+        "x": 6.499710843373492,
+        "y": 8.20594042933503
       },
       "nextControl": null,
       "isLocked": false,
@@ -32,6 +32,10 @@
     {
       "waypointRelativePos": 0.3496801705756997,
       "rotationDegrees": -45.0
+    },
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": -59.99999999999999
     }
   ],
   "constraintZones": [],
@@ -39,7 +43,7 @@
   "eventMarkers": [
     {
       "name": "Intake Down",
-      "waypointRelativePos": 0.4753544902093181,
+      "waypointRelativePos": 0.0,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
@@ -50,8 +54,8 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
-    "maxAcceleration": 2.5,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -59,7 +63,7 @@
   },
   "goalEndState": {
     "velocity": 1.0,
-    "rotation": -90.0
+    "rotation": -70.0
   },
   "reversed": false,
   "folder": "Left Bump Start General",

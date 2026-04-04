@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 8.088858773181169,
-        "y": 4.300242510699002
+        "x": 7.778253012048193,
+        "y": 4.679734939759036
       },
       "prevControl": {
-        "x": 8.115176928138617,
-        "y": 5.474913768692978
+        "x": 7.804571167005641,
+        "y": 5.854406197753011
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Center Neutral Collect"
+      "linkedName": "LN to CN Short"
     }
   ],
   "rotationTargets": [

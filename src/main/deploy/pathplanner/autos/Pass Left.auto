@@ -5,7 +5,7 @@
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
               {
@@ -15,23 +15,17 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "RB to RN"
+                        "pathName": "LB to LN"
                       }
                     },
                     {
-                      "type": "path",
-                      "data": {
-                        "pathName": "RN to CN"
-                      }
-                    },
-                    {
-                      "type": "sequential",
+                      "type": "deadline",
                       "data": {
                         "commands": [
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "CN to RB"
+                              "pathName": "LN to CN"
                             }
                           },
                           {
@@ -41,91 +35,35 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 8.0
+                                    "waitTime": 5.0
                                   }
                                 },
                                 {
                                   "type": "named",
                                   "data": {
-                                    "name": "Feed Shot"
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Jostle"
+                                    "name": "Feed Pass"
                                   }
                                 }
                               ]
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Conveyer Off"
                             }
                           }
                         ]
                       }
                     },
                     {
-                      "type": "path",
-                      "data": {
-                        "pathName": "RB to RN close"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "RN close to CN close"
-                      }
-                    },
-                    {
-                      "type": "sequential",
+                      "type": "deadline",
                       "data": {
                         "commands": [
                           {
-                            "type": "path",
+                            "type": "wait",
                             "data": {
-                              "pathName": "CN close to RB"
+                              "waitTime": 0.1
                             }
                           },
                           {
-                            "type": "deadline",
+                            "type": "named",
                             "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 0.1
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Rollers Off"
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "type": "parallel",
-                            "data": {
-                              "commands": [
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Feed Shot"
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Jostle"
-                                  }
-                                }
-                              ]
+                              "name": "Conveyer Off"
                             }
                           }
                         ]
@@ -137,7 +75,89 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Initialize Shot At Bump"
+                  "name": "Initialize Pass Left"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CN to LB Prep Wall Clean"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "deadline",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "LB to Wall Clean"
+                            }
+                          },
+                          {
+                            "type": "sequential",
+                            "data": {
+                              "commands": [
+                                {
+                                  "type": "wait",
+                                  "data": {
+                                    "waitTime": 1.5
+                                  }
+                                },
+                                {
+                                  "type": "named",
+                                  "data": {
+                                    "name": "Feed Shot"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Conveyer Off"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Lakeshore LB to LN"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Lakeshore LN to CN"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Lakeshore CN to DP Init"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Shot"
                 }
               }
             ]
@@ -147,6 +167,6 @@
     }
   },
   "resetOdom": false,
-  "folder": "Right Bump Start",
+  "folder": "Left Bump Start",
   "choreoAuto": false
 }

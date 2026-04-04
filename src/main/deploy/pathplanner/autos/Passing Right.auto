@@ -5,6 +5,57 @@
     "data": {
       "commands": [
         {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Short RB to RN"
+                      }
+                    },
+                    {
+                      "type": "deadline",
+                      "data": {
+                        "commands": [
+                          {
+                            "type": "path",
+                            "data": {
+                              "pathName": "Short RN to CN"
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Feed Pass"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Initialize Pass Right"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Conveyer Off"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -15,51 +66,13 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "LB to LN"
+                        "pathName": "Short CN to RN"
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "LN to CN"
-                      }
-                    },
-                    {
-                      "type": "deadline",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "CN to DP Init"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Feed Shot"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "deadline",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "path",
-                            "data": {
-                              "pathName": "DP Init to DP"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Feed Shot"
-                            }
-                          }
-                        ]
+                        "pathName": "CN to RB Wall Clean"
                       }
                     },
                     {
@@ -67,15 +80,15 @@
                       "data": {
                         "commands": [
                           {
-                            "type": "named",
+                            "type": "path",
                             "data": {
-                              "name": "Feed Shot"
+                              "pathName": "RB to Wall Clean"
                             }
                           },
                           {
                             "type": "named",
                             "data": {
-                              "name": "Jostle"
+                              "name": "Feed Shot"
                             }
                           }
                         ]
@@ -97,6 +110,6 @@
     }
   },
   "resetOdom": false,
-  "folder": "Left Bump Start",
+  "folder": "Right Bump Start",
   "choreoAuto": false
 }

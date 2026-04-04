@@ -3,57 +3,57 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.716752440106477,
-        "y": 3.4354303460514632
+        "x": 7.559698795180722,
+        "y": 3.4776867469879518
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.734771084337349,
-        "y": 3.6634578313253012
+        "x": 8.095156626506023,
+        "y": 4.614168674698794
       },
       "isLocked": false,
-      "linkedName": "CN close"
+      "linkedName": "Short Right CN"
     },
     {
       "anchor": {
-        "x": 3.46,
-        "y": 2.5
+        "x": 8.193506024096386,
+        "y": 2.2319277108433733
       },
       "prevControl": {
-        "x": 6.849397590361446,
-        "y": 1.9478072289156638
+        "x": 8.45979298076758,
+        "y": 4.123263479023081
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Straight RB Start"
+      "linkedName": "Reverse Right Neutral Collect"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.5775401069518719,
-      "rotationDegrees": 0.6789233823886232
+      "waypointRelativePos": 0.4157676348547779,
+      "rotationDegrees": -90.0
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 1.0,
+    "maxAcceleration": 1.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": 0.7223416938649584
+    "velocity": 1.0,
+    "rotation": -90.0
   },
   "reversed": false,
   "folder": "Right Bump Start General",
   "idealStartingState": {
-    "velocity": 1.5,
-    "rotation": 90.0
+    "velocity": 1.0,
+    "rotation": 88.57216531465521
   },
   "useDefaultConstraints": false
 }

@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.377232524964336,
-        "y": 4.520199714693296
+        "x": 7.441925820256776,
+        "y": 4.804850213980028
       },
       "isLocked": false,
       "linkedName": "Left Bump Start"
     },
     {
       "anchor": {
-        "x": 6.976134094151213,
-        "y": 6.810342368045649
+        "x": 7.027888730385163,
+        "y": 6.422182596291013
       },
       "prevControl": {
-        "x": 5.100028530670471,
-        "y": 8.38885877318117
+        "x": 5.358801711840228,
+        "y": 7.8583737517831675
       },
       "nextControl": null,
       "isLocked": false,
@@ -50,7 +50,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
+    "maxVelocity": 3.0,
     "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -58,7 +58,7 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 1.0,
+    "velocity": 2.0,
     "rotation": -90.0
   },
   "reversed": false,
