@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -58,6 +59,21 @@ public class ShotCalculator {
                                         (Inches.of(218.838)).in(Meters),
                                         0
                         });
+
+        private static final DoubleArrayPublisher shotCalculatedPub = NetworkTableInstance.getDefault()
+                        .getTable("dashboard")
+                        .getDoubleArrayTopic("shotCalculated")
+                        .publish();
+
+        private static final DoubleArrayPublisher shotActualPub = NetworkTableInstance.getDefault()
+                        .getTable("dashboard")
+                        .getDoubleArrayTopic("shotActual")
+                        .publish();
+
+        private static final DoubleArrayPublisher turretLimitsPub = NetworkTableInstance.getDefault()
+                        .getTable("dashboard")
+                        .getDoubleArrayTopic("turretLimits")
+                        .publish();
 
         public enum FieldTargets {
                 BLUE_HUB(new Translation3d(Inches.of(182.11), Inches.of(158.84), Inches.of(72))),
@@ -357,19 +373,8 @@ public class ShotCalculator {
                         Supplier<VelocityVector> robotVelocity,
                         Supplier<AngularVelocity> actualShooterSpeed) {
 
-                // Convert actual shooter wheel speed back to linear exit velocity
-                // (inverse of calculateShooterSpeed)
+                LinearVelocity actualExitVelocity = calculateActualExitVelocity(actualShooterSpeed);
 
-                // Reverse the shooter gear math from calculateShooterSpeed
-                AngularVelocity rpsBig = RevolutionsPerSecond.of(
-                                actualShooterSpeed.get().in(RevolutionsPerSecond) * COUNTER_WHEEL_RECIPROCAL / 2.0);
-                LinearVelocity actualExitVelocity = FeetPerSecond.of(
-                                rpsBig.in(RevolutionsPerSecond) * SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
-
-                SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitVelocityFtps",
-                                actualExitVelocity.in(FeetPerSecond));
-
-                // Recompute net horizontal velocity using actual exit velocity
                 Angle bFieldAngle = calculateBaseFieldAngleToTarget(targetPosition.toTranslation2d(), robotPose);
                 Angle bExitAngle = calculateHighBaseExitAngle(targetPosition, robotPose);
 
@@ -392,6 +397,17 @@ public class ShotCalculator {
 
                 SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitAngleDeg", angle.in(Degrees));
                 return angle;
+        }
+
+        public static LinearVelocity calculateActualExitVelocity(Supplier<AngularVelocity> actualShooterSpeed) {
+                AngularVelocity rpsBig = RevolutionsPerSecond.of(
+                                actualShooterSpeed.get().in(RevolutionsPerSecond) * COUNTER_WHEEL_RECIPROCAL / 2.0);
+                LinearVelocity actualExitVelocity = FeetPerSecond.of(
+                                rpsBig.in(RevolutionsPerSecond) * SHOOTER_WHEEL_CIRCUMFERENCE.in(Feet));
+
+                SmartDashboard.putNumber("frc3620/ShotCalculator/ActualExitVelocityFtps",
+                                actualExitVelocity.in(FeetPerSecond));
+                return actualExitVelocity;
         }
 
         public static Angle calculateHoodAngle(
@@ -522,8 +538,54 @@ public class ShotCalculator {
                 return shooterSpeed.times(preShooterRatio);
         }
 
-        // In ShotCalculator, add a method to publish all shot data at once
-        public static void publishShotData() {
+        public static void publishShotData(
+                        Supplier<Pose2d> robotPose,
+                        Supplier<VelocityVector> robotVelocity,
+                        FieldTargets currentTarget,
+                        Supplier<AngularVelocity> currentShooterSpeed,
+                        Supplier<Angle> currentTurretAngle) {
+                Translation3d target = currentTarget.getTargetPosition();
+                NetworkTable dashTable = NetworkTableInstance.getDefault().getTable("dashboard");
+
+                Distance robotX = robotPose.get().getMeasureX();
+                Distance robotY = robotPose.get().getMeasureY();
+                double robotHeading = robotPose.get().getRotation().getDegrees();
+                Distance targetXM = target.getMeasureX();
+                Distance targetYM = target.getMeasureY();
+                Distance targetZFt = target.getMeasureZ();
+                Distance hDistanceFt = calculateBaseHDistanceToTarget(target.toTranslation2d(), robotPose);
+                Angle fieldAngleDeg = calculateBaseFieldAngleToTarget(target.toTranslation2d(), robotPose);
+
+                Angle calcTurretAngle = calculateNetTurretAngleToTarget(
+                                target.toTranslation2d(), robotPose, robotVelocity);
+                Angle actualTurret = currentTurretAngle.get();
+
+                // --- Calculated (predicted) shot --- //
+                LinearVelocity calcExitVelocity = calculateBaseExitVelocity(target, robotPose);
+                Angle calcExitAngle = calculateHighBaseExitAngle(target, robotPose);
+
+                LinearVelocity actualExitVelocity = calculateActualExitVelocity(currentShooterSpeed);
+                Angle actualExitAngle = calculateExitAngleFromActualSpeed(
+                                target, robotPose, robotVelocity, currentShooterSpeed);
+
+                shotCalculatedPub.set(new double[] {
+                                robotX.in(Meters), robotY.in(Meters), robotHeading,
+                                targetXM.in(Meters), targetYM.in(Meters), targetZFt.in(Feet),
+                                calcExitAngle.in(Degrees), calcExitVelocity.in(FeetPerSecond),
+                                hDistanceFt.in(Feet), fieldAngleDeg.in(Degrees),
+                                calcTurretAngle.in(Degrees),
+                });
+
+                shotActualPub.set(new double[] {
+                                robotX.in(Meters), robotY.in(Meters), robotHeading,
+                                targetXM.in(Meters), targetYM.in(Meters), targetZFt.in(Feet),
+                                actualExitAngle.in(Degrees), actualExitVelocity.in(FeetPerSecond),
+                                hDistanceFt.in(Feet), fieldAngleDeg.in(Degrees),
+                                actualTurret.in(Degrees),
+                });
+
+                turretLimitsPub.set(new double[] { -298.0, 135.0 });
 
         }
+
 }

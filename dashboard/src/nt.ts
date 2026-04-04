@@ -1,11 +1,12 @@
 import { NetworkTables, NetworkTablesTopic, NetworkTablesTypeInfos } from "ntcore-ts-client";
-import { type TopicType, TOPIC_CONFIGS, typeInfoMap } from "./topics";
+import { TOPIC_CONFIGS, typeInfoMap } from "./topics";
 
 let nt: NetworkTables | null = null;
 
 export type NTValue = string | number | boolean | number[];
 
 const topicRegistry = new Map<string, NetworkTablesTopic<NTValue>>();
+const subscriberRegistry = new Map<string, NetworkTablesTopic<NTValue>>();
 
 let publisherReady = false;
 
@@ -27,8 +28,15 @@ export async function initNT(timeoutMs = 5000): Promise<void> {
         typeInfoMap[config.type],
         config.defaultValue
       );
-      await topic.publish();
-      topicRegistry.set(config.key, topic as NetworkTablesTopic<NTValue>);
+
+      if (config.readonly) {
+        // Robot owns this — dashboard only listens
+        subscriberRegistry.set(config.key, topic as NetworkTablesTopic<NTValue>);
+      } else {
+        // Dashboard owns this — publish and allow setValue
+        await topic.publish();
+        topicRegistry.set(config.key, topic as NetworkTablesTopic<NTValue>);
+      }
     }
     publisherReady = true;
   };
@@ -40,10 +48,10 @@ export async function initNT(timeoutMs = 5000): Promise<void> {
   try {
     await Promise.race([connect(), timeout]);
   } catch (e) {
-    // Reset so the user can retry cleanly
     publisherReady = false;
     nt = null;
     topicRegistry.clear();
+    subscriberRegistry.clear();
     throw e;
   }
 }
@@ -54,8 +62,10 @@ export function setValue(key: string, value: NTValue) {
 }
 
 export function subscribeToValue(
-  key: string, 
+  key: string,
   callback: (value: NTValue | null) => void
 ) {
-  topicRegistry.get(key)?.subscribe(callback);
+  // Check both registries — widgets can subscribe to anything regardless of who publishes
+  const topic = topicRegistry.get(key) ?? subscriberRegistry.get(key);
+  topic?.subscribe(callback);
 }

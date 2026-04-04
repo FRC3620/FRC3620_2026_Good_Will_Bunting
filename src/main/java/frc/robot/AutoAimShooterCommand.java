@@ -18,7 +18,7 @@ import frc.robot.Subsystems.IntakeShoulderSubsystem;
 
 public class AutoAimShooterCommand extends ParallelCommandGroup {
 
-    public AutoAimShooterCommand(Translation3d target) {
+    public AutoAimShooterCommand(Supplier<Translation3d> target) {
 
         Supplier<VelocityVector> robotVelocity;
 
@@ -35,7 +35,7 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
             robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                     RobotContainer.swerveSubsystem.getKinematics(),
                     RobotContainer.swerveSubsystem.getState(),
-                    RobotContainer.swerveSubsystem.getPigeon2().getRotation2d()));
+                    RobotContainer.swerveSubsystem.getState().Pose.getRotation()));
 
         //}
 
@@ -44,19 +44,19 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
         addCommands(
 
             RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                target.toTranslation2d(),
+                target.get().toTranslation2d(),
                 robotPose,
                 robotVelocity
             ),
 
             RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
-                target,
+                target.get(),
                 robotPose,
                 robotVelocity
             ),
 
             RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
-                target,
+                target.get(),
                 robotPose,
                 robotVelocity,
                 shooterExitSpeed

@@ -36,13 +36,16 @@ public class OutpostPassingState extends SuperState {
      * RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
      */
 
-    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_PASS.getTargetPosition());
+    Command doEverythingCommand = new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.OP_PASS.getTargetPosition());
 
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
 
         CommandScheduler.getInstance().schedule(doEverythingCommand);
+
+        RobotContainer.setActiveTarget(ShotCalculator.FieldTargets.OP_PASS);
+
     }
 
     @Override
