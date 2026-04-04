@@ -233,7 +233,7 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
       const arcPoints = computeArcPoints(
         shot.exitVelocityFtps,
         shot.exitAngleDeg,
-        shot.targetZ * 3.281,
+        shot.targetZ,
       );
       const totalDistFt = arcPoints[arcPoints.length - 1].x || 1;
       const totalDistM = totalDistFt / 3.281;
@@ -345,7 +345,7 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     ctx.fillStyle = "#040d1a";
     ctx.fillRect(0, 0, W, H);
 
-    const targetZFt = calcShot.targetZ * 3.281;
+    const targetZFt = calcShot.targetZ;
     const calcArc = computeArcPoints(calcShot.exitVelocityFtps, calcShot.exitAngleDeg, targetZFt);
     const actualArc = computeArcPoints(actualShot.exitVelocityFtps, actualShot.exitAngleDeg, targetZFt);
 
