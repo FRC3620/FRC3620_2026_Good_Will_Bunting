@@ -7,6 +7,7 @@ const FIELD_WIDTH_M = 16.54;
 const FIELD_HEIGHT_M = 8.07;
 const G = 32.2; // ft/s²
 const TURRET_LINE_LENGTH = 40; // pixels, length of turret aim lines on top-down view
+const TURRET_HEIGHT_FT = 1.8;
 
 interface ShotData {
   robotX: number;
@@ -37,7 +38,12 @@ function computeArcPoints(
   const vx = exitVelocityFtps * Math.cos(angleRad);
   const vy = exitVelocityFtps * Math.sin(angleRad);
 
-  const disc = vy * vy - 2 * G * targetHeightFt;
+  // Delta height the projectile needs to travel from launch point to target
+  const deltaZ = targetHeightFt - TURRET_HEIGHT_FT;
+
+  // Solve for flight time: deltaZ = vy*t - 0.5*G*t^2
+  // 0.5G*t^2 - vy*t + deltaZ = 0
+  const disc = vy * vy - 2 * G * deltaZ;
   const tFlight = disc >= 0
     ? (vy + Math.sqrt(disc)) / G
     : (vy * 2) / G;
@@ -45,25 +51,27 @@ function computeArcPoints(
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * tFlight;
+    // y is offset by turret launch height so arc starts and ends at correct heights
     points.push({
       x: vx * t,
-      y: vy * t - 0.5 * G * t * t,
+      y: TURRET_HEIGHT_FT + vy * t - 0.5 * G * t * t,
     });
   }
   return points;
 }
 
+
 function parseShotData(arr: number[]): ShotData {
   return {
-    robotX:        arr[0] ?? 0,
-    robotY:        arr[1] ?? 0,
-    robotHeading:  arr[2] ?? 0,
-    targetX:       arr[3] ?? 0,
-    targetY:       arr[4] ?? 0,
-    targetZ:       arr[5] ?? 0,
-    exitAngleDeg:  arr[6] ?? 0,
+    robotX: arr[0] ?? 0,
+    robotY: arr[1] ?? 0,
+    robotHeading: arr[2] ?? 0,
+    targetX: arr[3] ?? 0,
+    targetY: arr[4] ?? 0,
+    targetZ: arr[5] ?? 0,
+    exitAngleDeg: arr[6] ?? 0,
     exitVelocityFtps: arr[7] ?? 0,
-    hDistanceFt:   arr[8] ?? 0,
+    hDistanceFt: arr[8] ?? 0,
     fieldAngleDeg: arr[9] ?? 0,
     turretAngleDeg: arr[10] ?? 0,
   };
@@ -130,7 +138,7 @@ function drawTurretLimitArc(
   // Canvas angles: subtract because canvas Y is flipped
   // Also canvas arc goes clockwise, field angles go counterclockwise
   const startRad = -(headingRad + (limits.max * Math.PI) / 180);
-  const endRad   = -(headingRad + (limits.min * Math.PI) / 180);
+  const endRad = -(headingRad + (limits.min * Math.PI) / 180);
 
   ctx.save();
   ctx.strokeStyle = "rgba(180, 180, 180, 0.35)";
@@ -159,7 +167,7 @@ function drawTurretLimitArc(
 
 export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) {
   const topDownRef = useRef<HTMLCanvasElement>(null);
-  const sideRef    = useRef<HTMLCanvasElement>(null);
+  const sideRef = useRef<HTMLCanvasElement>(null);
   const fieldImgRef = useRef<HTMLImageElement | null>(null);
   const [fieldLoaded, setFieldLoaded] = useState(false);
 
@@ -204,7 +212,7 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    canvas.width  = rect.width  * dpr;
+    canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
     const W = rect.width;
@@ -212,7 +220,7 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
 
     ctx.drawImage(img, 0, 0, W, H);
 
-    const toX = (mx: number) => (mx / FIELD_WIDTH_M)  * W;
+    const toX = (mx: number) => (mx / FIELD_WIDTH_M) * W;
     const toY = (my: number) => H - (my / FIELD_HEIGHT_M) * H;
 
     const rx = toX(calcShot.robotX);
@@ -228,8 +236,8 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
         shot.targetZ * 3.281,
       );
       const totalDistFt = arcPoints[arcPoints.length - 1].x || 1;
-      const totalDistM  = totalDistFt / 3.281;
-      const angleRad    = (shot.fieldAngleDeg * Math.PI) / 180;
+      const totalDistM = totalDistFt / 3.281;
+      const angleRad = (shot.fieldAngleDeg * Math.PI) / 180;
 
       ctx.beginPath();
       arcPoints.forEach((pt, i) => {
@@ -247,14 +255,14 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
 
     // Draw arcs — actual first so calculated renders on top
     drawTopDownArc(actualShot, "rgba(0, 210, 255, 0.75)");  // cyan = actual
-    drawTopDownArc(calcShot,   "rgba(255, 203, 5, 0.85)");  // maize = calculated
+    drawTopDownArc(calcShot, "rgba(255, 203, 5, 0.85)");  // maize = calculated
 
     // Turret limit arc
     drawTurretLimitArc(ctx, rx, ry, calcShot.robotHeading, turretLimits);
 
     // Turret aim lines
-    drawTurretLine(ctx, rx, ry, calcShot.robotHeading,   calcShot.turretAngleDeg,   "rgba(255, 203, 5, 0.9)",  "CALC", W, H);
-    drawTurretLine(ctx, rx, ry, actualShot.robotHeading, actualShot.turretAngleDeg, "rgba(0, 210, 255, 0.9)",  "ACTL", W, H);
+    drawTurretLine(ctx, rx, ry, calcShot.robotHeading, calcShot.turretAngleDeg, "rgba(255, 203, 5, 0.9)", "CALC", W, H);
+    drawTurretLine(ctx, rx, ry, actualShot.robotHeading, actualShot.turretAngleDeg, "rgba(0, 210, 255, 0.9)", "ACTL", W, H);
 
     // Robot body
     ctx.save();
@@ -292,21 +300,21 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     // Labels
     ctx.font = "bold 10px 'Share Tech Mono', monospace";
     ctx.fillStyle = "#00274C";
-    ctx.fillText("ROBOT",  rx + 13, ry + 4);
+    ctx.fillText("ROBOT", rx + 13, ry + 4);
     ctx.fillText("TARGET", tx + 10, ty + 4);
 
     // Legend
     const legendX = 8;
     let legendY = 16;
     [
-      { color: "rgba(255, 203, 5, 0.9)",  label: "Calculated" },
-      { color: "rgba(0, 210, 255, 0.9)",  label: "Actual" },
-      { color: "rgba(180,180,180,0.5)",   label: "Turret range" },
-      { color: "rgba(255, 80, 80, 0.7)",  label: "Hard stops" },
+      { color: "rgba(255, 203, 5, 0.9)", label: "Calculated" },
+      { color: "rgba(0, 210, 255, 0.9)", label: "Actual" },
+      { color: "rgba(180,180,180,0.5)", label: "Turret range" },
+      { color: "rgba(255, 80, 80, 0.7)", label: "Hard stops" },
     ].forEach(({ color, label }) => {
       ctx.fillStyle = color;
       ctx.fillRect(legendX, legendY - 8, 14, 3);
-      ctx.fillStyle = "white";
+      ctx.fillStyle = "#00274C";
       ctx.font = "9px 'Share Tech Mono', monospace";
       ctx.fillText(label, legendX + 18, legendY);
       legendY += 14;
@@ -323,7 +331,7 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    canvas.width  = rect.width  * dpr;
+    canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
     const W = rect.width;
@@ -331,14 +339,14 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
 
     const PAD = { top: 24, right: 20, bottom: 30, left: 44 };
     const plotW = W - PAD.left - PAD.right;
-    const plotH = H - PAD.top  - PAD.bottom;
+    const plotH = H - PAD.top - PAD.bottom;
 
     // Background
     ctx.fillStyle = "#040d1a";
     ctx.fillRect(0, 0, W, H);
 
     const targetZFt = calcShot.targetZ * 3.281;
-    const calcArc   = computeArcPoints(calcShot.exitVelocityFtps,   calcShot.exitAngleDeg,   targetZFt);
+    const calcArc = computeArcPoints(calcShot.exitVelocityFtps, calcShot.exitAngleDeg, targetZFt);
     const actualArc = computeArcPoints(actualShot.exitVelocityFtps, actualShot.exitAngleDeg, targetZFt);
 
     const allPoints = [...calcArc, ...actualArc];
@@ -404,8 +412,8 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     };
 
     // Actual arc behind calculated
-    drawSideArc(actualArc, "rgba(0, 210, 255, 0.9)",  "rgba(0, 210, 255, 0.12)");
-    drawSideArc(calcArc,   "rgba(255, 203, 5, 0.9)",  "rgba(255, 203, 5, 0.12)");
+    drawSideArc(actualArc, "rgba(0, 210, 255, 0.9)", "rgba(0, 210, 255, 0.12)");
+    drawSideArc(calcArc, "rgba(255, 203, 5, 0.9)", "rgba(255, 203, 5, 0.12)");
 
     // Target height marker
     ctx.strokeStyle = "rgba(255, 80, 80, 0.7)";
@@ -422,11 +430,25 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     ctx.arc(toPlotX(maxX), toPlotY(targetZFt), 5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Launch dot
+    // Launch dot — positioned at turret height, not floor
     ctx.fillStyle = "rgba(0, 120, 255, 0.9)";
     ctx.beginPath();
-    ctx.arc(toPlotX(0), toPlotY(0), 5, 0, Math.PI * 2);
+    ctx.arc(toPlotX(0), toPlotY(TURRET_HEIGHT_FT), 5, 0, Math.PI * 2);
     ctx.fill();
+
+    // Turret height tick on the left axis
+    ctx.strokeStyle = "rgba(0, 120, 255, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(PAD.left, toPlotY(TURRET_HEIGHT_FT));
+    ctx.lineTo(PAD.left + plotW, toPlotY(TURRET_HEIGHT_FT));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "rgba(0,120,255,0.5)";
+    ctx.font = "9px 'Share Tech Mono', monospace";
+    ctx.fillText(`${TURRET_HEIGHT_FT.toFixed(1)}ft`, PAD.left - 40, toPlotY(TURRET_HEIGHT_FT) + 4);
 
     // Axis labels
     ctx.fillStyle = "rgba(255,203,5,0.45)";
@@ -523,10 +545,10 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
         fontSize: "0.72rem",
       }}>
         {[
-          ["EXIT ANGLE",    `${calcShot.exitAngleDeg.toFixed(1)}°`,      `${actualShot.exitAngleDeg.toFixed(1)}°`],
-          ["EXIT VEL",      `${calcShot.exitVelocityFtps.toFixed(1)} fps`, `${actualShot.exitVelocityFtps.toFixed(1)} fps`],
-          ["TURRET ANGLE",  `${calcShot.turretAngleDeg.toFixed(1)}°`,    `${actualShot.turretAngleDeg.toFixed(1)}°`],
-          ["H DISTANCE",    `${calcShot.hDistanceFt.toFixed(1)} ft`,     "—"],
+          ["EXIT ANGLE", `${calcShot.exitAngleDeg.toFixed(1)}°`, `${actualShot.exitAngleDeg.toFixed(1)}°`],
+          ["EXIT VEL", `${calcShot.exitVelocityFtps.toFixed(1)} fps`, `${actualShot.exitVelocityFtps.toFixed(1)} fps`],
+          ["TURRET ANGLE", `${calcShot.turretAngleDeg.toFixed(1)}°`, `${actualShot.turretAngleDeg.toFixed(1)}°`],
+          ["H DISTANCE", `${calcShot.hDistanceFt.toFixed(1)} ft`, "—"],
         ].map(([label, calc, actual]) => (
           <div key={label} style={{
             padding: "0.4rem 0.6rem",
