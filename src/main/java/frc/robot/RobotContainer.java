@@ -262,7 +262,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem != null) {
       /* Setting up bindings for necessary control of the swerve drive platform */
       drive = new SwerveRequest.FieldCentric()
-          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+          .withRotationalDeadband(MaxAngularRate * 0.05) // Add a 10% deadband
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
       brake = new SwerveRequest.SwerveDriveBrake();
       point = new SwerveRequest.PointWheelsAt();
@@ -554,7 +554,7 @@ public class RobotContainer implements RobotModeChangeListener {
     swerveSubsystem.setDefaultCommand(
         swerveSubsystem.applyRequest(() -> {
 
-          double reducedSpeedMultiplier = 0.5;
+          double reducedSpeedMultiplier = 0.3;
 
           boolean overrideReducedSpeed = SmartDashboard.getBoolean("frc3620/Override Reduced Speed", false);
           ;
@@ -567,20 +567,27 @@ public class RobotContainer implements RobotModeChangeListener {
 
           // Supplier for dynamic speed multiplier based on FSM state
 
-          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed
-              || !stateMachine.isActive()
-                  && driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean()
-                  && !overrideReducedSpeed)
-                      ? 0.5 // reduced speed in scoring
-                      : 1.0; // full speed otherwise
+          double multiplier = ((stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed)
+              || !stateMachine.isActive())
+                  ? reducedSpeedMultiplier // reduced speed in scoring
+                  : 1.0; // full speed otherwise
+
+          double rotationMult = Math.pow(multiplier, 1.25);
 
           SmartDashboard.putBoolean("frc3620/Override Reduced Speed", overrideReducedSpeed);
 
           // Apply scaled velocities
-          return drive
-              .withVelocityX(xInput * MaxSpeed * multiplier)
-              .withVelocityY(yInput * MaxSpeed * multiplier)
-              .withRotationalRate(rotInput * MaxAngularRate * multiplier);
+          if (driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean()) {
+            return drive
+                .withVelocityX(xInput * MaxSpeed * multiplier)
+                .withVelocityY(yInput * MaxSpeed * multiplier)
+                .withRotationalRate(rotInput * MaxAngularRate * rotationMult);
+          } else {
+            return drive
+                .withVelocityX(xInput * MaxSpeed)
+                .withVelocityY(yInput * MaxSpeed)
+                .withRotationalRate(rotInput * MaxAngularRate);
+          }
         }).withName("Drive from Joysticks")); // Idle while the robot is disabled. This ensures the configured
     // neutral mode is applied to the drive motors while disabled.
     final var idle = new SwerveRequest.Idle();
@@ -770,7 +777,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverLeftTriggerFlySky
           .whileTrue(
               intakeShoulderSubsystem.createJostleCommand()
-                  .alongWith(intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(3000))))
+                  .alongWith(intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(3000))))
           .onFalse(
               intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
@@ -784,11 +791,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeRollerSubsystem != null) {
       rollersOnTrigger.onTrue(
-          intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(3000)));
+          intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(3000)));
       rollersOffTrigger.onTrue(
           intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-          intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(-3000)));
+          intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(-3000)));
     }
 
   }
@@ -875,8 +882,9 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeRollerSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeRollers/rollersOff", intakeRollerSubsystem.rollersOff());
-      SmartDashboard.putData("frc3620/IntakeRollers/rollersSetVelocity", intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000)));
-      
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersSetVelocity",
+          intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(3000)));
+
     }
 
     if (shooterSubsystem != null) {
@@ -1017,11 +1025,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Intake Down",
         intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.OUT.getAngle())
-            .alongWith(intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000))));
+            .alongWith(intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(3000))));
     NamedCommands.registerCommand("Intake Up",
         intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.IN.getAngle()));
 
-    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000)));
+    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(3000)));
     NamedCommands.registerCommand("Rollers Off", intakeRollerSubsystem.rollersOff());
 
     NamedCommands.registerCommand("Agitate On", intakeAgitatorSubsystem.agitatorOn());

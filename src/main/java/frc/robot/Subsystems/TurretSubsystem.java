@@ -79,8 +79,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.67578125);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.96435546875);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.111328125);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.414306640625);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
@@ -92,10 +92,10 @@ public class TurretSubsystem extends SubsystemBase {
   private static final double MIN_ANGLE = -286;
   private static final double MAX_ANGLE = 113;
 
-  private Angle nearRightWrappingAngle = Degrees.of(MIN_ANGLE + 30);
-  private Angle reallyCloseToRightWrappingAngle = Degrees.of(MIN_ANGLE + 15);
-  private Angle nearLeftWrappingAngle = Degrees.of(MAX_ANGLE - 30);
-  private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(MAX_ANGLE - 15);
+  private Angle nearRightWrappingAngle = Degrees.of(MIN_ANGLE + 70);
+  private Angle reallyCloseToRightWrappingAngle = Degrees.of(MIN_ANGLE + 30);
+  private Angle nearLeftWrappingAngle = Degrees.of(MAX_ANGLE - 70);
+  private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(MAX_ANGLE - 30);
 
 
   private static boolean turretInitialized = false;
@@ -114,7 +114,7 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(80, 0, 0, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(120, 0, 1, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
@@ -151,7 +151,7 @@ public class TurretSubsystem extends SubsystemBase {
     SmartDashboard.putBoolean(RERUN_SEED, false);
 
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Angle Dashboard Control", 180);
-    SmartDashboard.putNumber("frc3620/ShotCalculator/TurretAlpha", 1.0);
+    SmartDashboard.putNumber("frc3620/ShotCalculator/TurretAlpha", turretFilterAlpha);
     SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/Targeting Offset Degrees", turretTargetingOffset);
     SmartDashboard.putNumber("frc3620/ShotCalculator/XVelocityMultipler", 1);
     SmartDashboard.putNumber("frc3620/ShotCalculator/YVelocityMultipler", 1);
