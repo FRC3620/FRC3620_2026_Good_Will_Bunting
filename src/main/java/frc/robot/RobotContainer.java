@@ -173,6 +173,8 @@ public class RobotContainer implements RobotModeChangeListener {
   public static PowerDistribution powerDistribution;
   public static Trigger useFMSTriggers = new Trigger(() -> false);
 
+  private static SendableChooser<OrchestraManager.OrchestraSong> musicChooser;
+  private static OrchestraManager.OrchestraSong lastSong = null;
   private static ShotCalculator.FieldTargets activeTarget = ShotCalculator.FieldTargets.BLUE_HUB;
 
   /**
@@ -217,6 +219,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     configureButtonBindings();
 
+    setupMusicChooser();
+
     FollowPathCommand.warmupCommand().schedule();
 
     // default commands
@@ -237,11 +241,23 @@ public class RobotContainer implements RobotModeChangeListener {
     Robot.addRobotModeChangeListener(this);
   }
 
+  private void setupMusicChooser() {
+    musicChooser = new SendableChooser<>();
+
+    musicChooser.setDefaultOption(
+        OrchestraManager.OrchestraSong.TITANIUM.displayName,
+        OrchestraManager.OrchestraSong.TITANIUM);
+
+    for (OrchestraManager.OrchestraSong song : OrchestraManager.OrchestraSong.values()) {
+      musicChooser.addOption(song.displayName, song);
+    }
+
+    SmartDashboard.putData("Music Selector", musicChooser);
+  }
+
   private void makeSubsystems() {
+
     healthSubsystem = new HealthSubsystem();
-
-    flySkyWatcherSubsystem = new FlySkyWatcherSubsystem();
-
     swerveSubsystem = configureSwerveDrive();
     if (swerveSubsystem != null) {
       /* Setting up bindings for necessary control of the swerve drive platform */
@@ -331,8 +347,25 @@ public class RobotContainer implements RobotModeChangeListener {
     return rv;
   }
 
+  private static void loadSelectedSong() {
+    if (musicChooser != null) {
+      OrchestraManager.OrchestraSong selected = musicChooser.getSelected();
+
+      if (selected != null && selected != lastSong) {
+        orchestra.reload(selected.filename);
+        lastSong = selected;
+      }
+    }
+  }
+
   private void makeMusic() {
-    orchestra.loadSong("titanium.chrp");
+    if (musicChooser != null) {
+      loadSelectedSong();
+    }
+  }
+
+  public static void updateMusicSelection() {
+    loadSelectedSong();
   }
 
   private void makeStates() {
@@ -472,10 +505,17 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOff.and(fieldTriggers.enterDeadZone),
         hoardingState));
 
-      outpostPassingState.addTransition(new StateTransition(
+    depotPassingState.addTransition(new StateTransition(
+        fmsTriggersOn.and(fieldTriggers.enterOutpostPass),
+        outpostPassingState));
+    outpostPassingState.addTransition(new StateTransition(
+        fmsTriggersOn.and(fieldTriggers.enterDepotPass),
+        depotPassingState));
+
+    outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
-      depotPassingState.addTransition(new StateTransition(
+    depotPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterOutpostPass),
         outpostPassingState));
 
@@ -527,9 +567,12 @@ public class RobotContainer implements RobotModeChangeListener {
 
           // Supplier for dynamic speed multiplier based on FSM state
 
-          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed || !stateMachine.isActive() && driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean() && !overrideReducedSpeed)
-              ? 0.5 // reduced speed in scoring
-              : 1.0; // full speed otherwise
+          double multiplier = (stateMachine.getCurrentState() == scoringState && !overrideReducedSpeed
+              || !stateMachine.isActive()
+                  && driverJoystick.button(OdoIdsFlySky.ButtonId.SWH, () -> false).getAsBoolean()
+                  && !overrideReducedSpeed)
+                      ? 0.5 // reduced speed in scoring
+                      : 1.0; // full speed otherwise
 
           SmartDashboard.putBoolean("frc3620/Override Reduced Speed", overrideReducedSpeed);
 
@@ -709,19 +752,25 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
+
       driverRightTriggerFlySky
           .whileTrue(
-              (conveyerSubsystem.setDutyCycleGated(0.8)
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())
-                  ).onlyIf(() -> !stateMachine.isActive()));
+              (conveyerSubsystem
+                  .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+                      () -> shooterHoodSubsystem.atTarget())
+                  .until(() -> !turretSubsystem.atTarget()).until(
+                      () -> !shooterHoodSubsystem.atTarget())
+                  .repeatedly()
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn()))
+                  .onlyIf(() -> stateMachine.getCurrentState() != hoardingState));
+
     }
-    
 
     if (intakeShoulderSubsystem != null) {
       driverLeftTriggerFlySky
           .whileTrue(
               intakeShoulderSubsystem.createJostleCommand()
-                  .alongWith(intakeRollerSubsystem.rollersOn()))
+                  .alongWith(intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(3000))))
           .onFalse(
               intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
@@ -735,11 +784,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeRollerSubsystem != null) {
       rollersOnTrigger.onTrue(
-          intakeRollerSubsystem.rollersOn());
+          intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(3000)));
       rollersOffTrigger.onTrue(
           intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-          intakeRollerSubsystem.rollersBackwards());
+          intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(-3000)));
     }
 
   }
@@ -753,7 +802,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   boolean weSawFlySky = false;
 
-  void setupDriverOdo (boolean doLog) {
+  void setupDriverOdo(boolean doLog) {
     Joystick realDriverJoystick = driverJoystick.getRealJoystick();
     String driveControllerName = realDriverJoystick.getName();
     int n_axes = realDriverJoystick.getAxisCount();
@@ -778,6 +827,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   class FlySkyWatcherSubsystem extends SubsystemBase {
     Timer timer = new Timer();
+
     public FlySkyWatcherSubsystem() {
       timer.reset();
       timer.start();
@@ -785,14 +835,15 @@ public class RobotContainer implements RobotModeChangeListener {
 
     @Override
     public void periodic() {
-      if (! weSawFlySky) {
+      if (!weSawFlySky) {
         if (Robot.getCurrentRobotMode() == RobotMode.DISABLED) {
           if (timer.advanceIfElapsed(1.0)) {
             setupDriverOdo(false);
           }
         }
       }
-      SmartDashboard.putString("frc3620/joystick_type", driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
+      SmartDashboard.putString("frc3620/joystick_type",
+          driverJoystick.getCurrentJoystickType() == JoystickType.A ? "Flysky" : "not Flysky");
     }
   }
 
@@ -824,7 +875,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeRollerSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeRollers/rollersOff", intakeRollerSubsystem.rollersOff());
-      SmartDashboard.putData("frc3620/IntakeRollers/rollersOn", intakeRollerSubsystem.rollersOn());
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersSetVelocity", intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000)));
+      
     }
 
     if (shooterSubsystem != null) {
@@ -903,8 +955,7 @@ public class RobotContainer implements RobotModeChangeListener {
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
                     FeetPerSecond
                         .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))),
-                () -> shooterSubsystem.getVelocity()
-                      )
+                () -> shooterSubsystem.getVelocity())
                 .in(Degrees));
 
         SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM",
@@ -929,7 +980,8 @@ public class RobotContainer implements RobotModeChangeListener {
       }
     }.withName("Calculate Test Shot").ignoringDisable(true));
 
-    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+    SmartDashboard
+        .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
@@ -965,11 +1017,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Intake Down",
         intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.OUT.getAngle())
-            .alongWith(intakeRollerSubsystem.rollersOn()));
+            .alongWith(intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000))));
     NamedCommands.registerCommand("Intake Up",
         intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.IN.getAngle()));
 
-    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.rollersOn());
+    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000)));
     NamedCommands.registerCommand("Rollers Off", intakeRollerSubsystem.rollersOff());
 
     NamedCommands.registerCommand("Agitate On", intakeAgitatorSubsystem.agitatorOn());
@@ -982,12 +1034,27 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
-        .alongWith(conveyerSubsystem.setDutyCycleGated(0.8)));
+        .alongWith(conveyerSubsystem.setDutyCycleGated(0.8, () -> shooterSubsystem.atRPM(),
+            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())
+            .until(() -> !turretSubsystem.atTarget()).until(
+                () -> !shooterHoodSubsystem.atTarget())));
+
+    NamedCommands.registerCommand("Feed Pass", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8)));
+
+    NamedCommands.registerCommand("No More Feed", intakeAgitatorSubsystem.agitatorOn()
+        .alongWith(conveyerSubsystem.setDutyCycle(0)).withTimeout(5));
 
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
     NamedCommands.registerCommand("Initialize Shot",
         new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+
+    NamedCommands.registerCommand("Initialize Pass Right",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_CORNER.getTargetPosition()));
+
+    NamedCommands.registerCommand("Initialize Pass Left",
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
@@ -997,8 +1064,8 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())))
         .alongWith(shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
-            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200))
-                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000))))));
+            .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1300))
+                .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(700))))));
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
@@ -1024,8 +1091,7 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getKinematics(),
             swerveSubsystem.getState(),
             swerveSubsystem.getPigeon2().getRotation2d())),
-        () -> shooterSubsystem.getVelocity()
-          ));
+        () -> shooterSubsystem.getVelocity()));
   }
 
   void sendSwerveSubsystemToHealthSubsystem() {

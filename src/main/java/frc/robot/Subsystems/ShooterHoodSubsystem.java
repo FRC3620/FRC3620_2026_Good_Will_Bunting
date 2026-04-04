@@ -136,7 +136,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             pivot.updateTelemetry();
 
-            SmartDashboard.putBoolean("frc3620/ShooterHood/atTarget", atTarget().getAsBoolean());
+            SmartDashboard.putBoolean("frc3620/ShooterHood/atTarget", atTarget());
 
             SmartDashboard.putNumber("frc3620/ShooterHood/Voltage", motorController.getVoltage().in(Volts));
             SmartDashboard.putNumber("frc3620/ShooterHood/Hood Velocity Deg p SEc",
@@ -287,7 +287,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 .withName("Shooter Hood Calibration");
     }
 
-    public BooleanSupplier atTarget() {
+    public boolean atTarget() {
 
         Angle current = getAngle();
         if (current.isNear(targetAngle, Degrees.of(5))) {
@@ -296,7 +296,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             atTarget = false;
         }
 
-        return () -> atTarget;
+        return atTarget;
     }
 
     public TalonFX getMotor() {

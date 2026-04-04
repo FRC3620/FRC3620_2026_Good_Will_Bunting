@@ -47,8 +47,8 @@
   "eventMarkers": [
     {
       "name": "Feed Shot",
-      "waypointRelativePos": 0.9777177582714361,
-      "endWaypointRelativePos": 1.0,
+      "waypointRelativePos": 0.95,
+      "endWaypointRelativePos": null,
       "command": {
         "type": "named",
         "data": {
@@ -58,7 +58,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 2.5,
+    "maxVelocity": 3.0,
     "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -72,7 +72,7 @@
   "reversed": false,
   "folder": "Left Bump Start General",
   "idealStartingState": {
-    "velocity": 1.5,
+    "velocity": 2.0,
     "rotation": 180.0
   },
   "useDefaultConstraints": false

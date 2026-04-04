@@ -1,0 +1,59 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.193506024096386,
+        "y": 2.2319277108433733
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.614337349397589,
+        "y": 1.2375060240963842
+      },
+      "isLocked": false,
+      "linkedName": "Reverse Right Neutral Collect"
+    },
+    {
+      "anchor": {
+        "x": 3.46,
+        "y": 2.5
+      },
+      "prevControl": {
+        "x": 7.472277108433734,
+        "y": 2.87666265060241
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Wall Clean Right Bump Setup"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5775401069518719,
+      "rotationDegrees": 135.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 2.0,
+    "rotation": 135.0
+  },
+  "reversed": false,
+  "folder": "Right Bump Start General",
+  "idealStartingState": {
+    "velocity": 1.5,
+    "rotation": -90.0
+  },
+  "useDefaultConstraints": false
+}

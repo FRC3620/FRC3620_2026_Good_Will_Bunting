@@ -1,0 +1,117 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.46,
+        "y": 2.5
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 3.1230481927710843,
+        "y": 1.9368795180722884
+      },
+      "isLocked": false,
+      "linkedName": "Wall Clean Right Bump Setup"
+    },
+    {
+      "anchor": {
+        "x": 3.1776867469879515,
+        "y": 0.575
+      },
+      "prevControl": {
+        "x": 3.5352817224181896,
+        "y": 0.5889154839789128
+      },
+      "nextControl": {
+        "x": 2.511096385542168,
+        "y": 0.5490602409638551
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.6752409638554218,
+        "y": 0.691120481927711
+      },
+      "prevControl": {
+        "x": 0.6450091454192167,
+        "y": 0.44295513955686283
+      },
+      "nextControl": {
+        "x": 0.7080240963855422,
+        "y": 0.9602289156626511
+      },
+      "isLocked": false,
+      "linkedName": "Wall Clean Right End"
+    },
+    {
+      "anchor": {
+        "x": 0.6752409638554218,
+        "y": 2.3193493975903605
+      },
+      "prevControl": {
+        "x": 0.7298795180722891,
+        "y": 1.4779156626506016
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.8,
+      "rotationDegrees": -170.0
+    },
+    {
+      "waypointRelativePos": 1.55,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 1.8,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 2.4074688796680412,
+      "rotationDegrees": 150.0
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 1.45,
+      "maxWaypointRelativePos": 3.0,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0.0,
+    "rotation": 155.0
+  },
+  "reversed": false,
+  "folder": "Right Bump Start General",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 135.0
+  },
+  "useDefaultConstraints": false
+}
