@@ -174,198 +174,198 @@ public class RobotContainer implements RobotModeChangeListener {
   public static Trigger useFMSTriggers = new Trigger(() -> false);
 
   private static SendableChooser<OrchestraManager.OrchestraSong> musicChooser;
-    private static OrchestraManager.OrchestraSong lastSong = null;
-    
-      /**
-       * The container for the robot. Contains subsystems, OI devices, and commands.
-       */
-      public RobotContainer() {
-    
-        canDeviceFinder = new CANDeviceFinder();
-        logger.info("CAN Devices = {}", canDeviceFinder.getDeviceSet());
-    
-        robotParameters = RobotParametersContainer.getRobotParameters(RobotParameters.class);
-        logger.info("got parameters for chassis '{}'", robotParameters.getName());
-        Utilities.logMetadataToDataLog("Robot", robotParameters.getName());
-    
-        boolean iAmACompetitionRobot = amIACompBot();
-        if (!iAmACompetitionRobot) {
-          logger.warn("this is a test chassis, will try to deal with missing hardware!");
-        }
-    
-        if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
-            || RobotContainer.shouldMakeAllCANDevices()) {
-          powerDistribution = new PowerDistribution(1, ModuleType.kRev);
-          // DogLog.setPdh(powerDistribution);
-        }
-    
-        makeJoysticks();
-    
-        makeSubsystems();
-        if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
-          missingDevicesAlert.set(true);
-          missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
-        }
-    
-        makeStates();
-        makeStateTransitions();
-        makeStateMachine();
-    
-        setupSmartDashboardCommands();
-    
-        setupPathPlannerCommands();
-        setUpAutonomousCommands();
-    
-        configureButtonBindings();
-    
-        setupMusicChooser();
-    
-        FollowPathCommand.warmupCommand().schedule();
-    
-        // default commands
-        // turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() ->
-        // Degrees.of(0)));
-        // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
-    
-        // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
-        // RPM.of(0)));
-        intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.idle());
-        intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.idle());
-        conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setDutyCycle(0));
-        // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
-        // Degrees.of(30)));
-        preshooterSubsystem.setDefaultCommand(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
-        intakeAgitatorSubsystem.setDefaultCommand(intakeAgitatorSubsystem.agitatorOff());
-    
-        Robot.addRobotModeChangeListener(this);
-      }
-    
-      private void setupMusicChooser() {
-  musicChooser = new SendableChooser<>();
+  private static OrchestraManager.OrchestraSong lastSong = null;
 
-  musicChooser.setDefaultOption(
-      OrchestraManager.OrchestraSong.TITANIUM.displayName,
-      OrchestraManager.OrchestraSong.TITANIUM);
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
+  public RobotContainer() {
 
-  for (OrchestraManager.OrchestraSong song : OrchestraManager.OrchestraSong.values()) {
-    musicChooser.addOption(song.displayName, song);
+    canDeviceFinder = new CANDeviceFinder();
+    logger.info("CAN Devices = {}", canDeviceFinder.getDeviceSet());
+
+    robotParameters = RobotParametersContainer.getRobotParameters(RobotParameters.class);
+    logger.info("got parameters for chassis '{}'", robotParameters.getName());
+    Utilities.logMetadataToDataLog("Robot", robotParameters.getName());
+
+    boolean iAmACompetitionRobot = amIACompBot();
+    if (!iAmACompetitionRobot) {
+      logger.warn("this is a test chassis, will try to deal with missing hardware!");
+    }
+
+    if (RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.REV_PDH, 1, "PDH")
+        || RobotContainer.shouldMakeAllCANDevices()) {
+      powerDistribution = new PowerDistribution(1, ModuleType.kRev);
+      // DogLog.setPdh(powerDistribution);
+    }
+
+    makeJoysticks();
+
+    makeSubsystems();
+    if (!canDeviceFinder.getMissingDeviceSet().isEmpty()) {
+      missingDevicesAlert.set(true);
+      missingDevicesAlert.setText("Missing from CAN bus: " + canDeviceFinder.getMissingDeviceSet());
+    }
+
+    makeStates();
+    makeStateTransitions();
+    makeStateMachine();
+
+    setupSmartDashboardCommands();
+
+    setupPathPlannerCommands();
+    setUpAutonomousCommands();
+
+    configureButtonBindings();
+
+    setupMusicChooser();
+
+    FollowPathCommand.warmupCommand().schedule();
+
+    // default commands
+    // turretSubsystem.setDefaultCommand(turretSubsystem.setAngle(() ->
+    // Degrees.of(0)));
+    // climberSubsystem.setDefaultCommand(climberSubsystem.set(0));
+
+    // shooterSubsystem.setDefaultCommand(shooterSubsystem.setVelocity(() ->
+    // RPM.of(0)));
+    intakeShoulderSubsystem.setDefaultCommand(intakeShoulderSubsystem.idle());
+    intakeRollerSubsystem.setDefaultCommand(intakeRollerSubsystem.idle());
+    conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setDutyCycle(0));
+    // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
+    // Degrees.of(30)));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
+    intakeAgitatorSubsystem.setDefaultCommand(intakeAgitatorSubsystem.agitatorOff());
+
+    Robot.addRobotModeChangeListener(this);
   }
 
-  SmartDashboard.putData("Music Selector", musicChooser);
-}
-  
-    
-      private void makeSubsystems() {
-        
-        healthSubsystem = new HealthSubsystem();
-        swerveSubsystem = configureSwerveDrive();
-        if (swerveSubsystem != null) {
-          /* Setting up bindings for necessary control of the swerve drive platform */
-          drive = new SwerveRequest.FieldCentric()
-              .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-              .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
-          brake = new SwerveRequest.SwerveDriveBrake();
-          point = new SwerveRequest.PointWheelsAt();
-    
-          swerveLogger = new SwerveTelemetry(MaxSpeed);
-    
-          sendSwerveSubsystemToHealthSubsystem();
-        }
-    
-        questNavSubsystem = new QuestNavSubsystem(swerveSubsystem, new Pose3d());
-        limelightSubsystem = new LimelightSubsystem();
-    
-        turretSubsystem = new TurretSubsystem();
-        // climberSubsystem = new ClimberSubsystem();
-        shooterSubsystem = new ShooterSubsystem();
-        intakeShoulderSubsystem = new IntakeShoulderSubsystem();
-        intakeRollerSubsystem = new IntakeRollerSubsytem();
-        intakeAgitatorSubsystem = new IntakeAgitatorSubsytem();
-    
-        shooterHoodSubsystem = new ShooterHoodSubsystem();
-        preshooterSubsystem = new PreshooterSubsystem();
-        conveyerSubsystem = new ConveyerSubsystem();
-        blinkyLightsSubsystem = new BlinkyLightsSubsystem();
-    
-        if (swerveSubsystem != null)
-          orchestra = new OrchestraManager();
-        if (swerveSubsystem != null) {
-          orchestra.addInstrument(swerveSubsystem.getModule(0).getDriveMotor(), 4); // fretless bass - most notes, low
-          orchestra.addInstrument(swerveSubsystem.getModule(1).getDriveMotor(), 4); // doubled bass
-          orchestra.addInstrument(swerveSubsystem.getModule(2).getDriveMotor(), 9); // unknown/drums - busy, low range
-          orchestra.addInstrument(swerveSubsystem.getModule(3).getDriveMotor(), 9); // doubled
-          orchestra.addInstrument(swerveSubsystem.getModule(0).getSteerMotor(), 1); // acoustic bass line
-          orchestra.addInstrument(swerveSubsystem.getModule(1).getSteerMotor(), 1); // doubled
-          orchestra.addInstrument(swerveSubsystem.getModule(2).getSteerMotor(), 3); // violin melody - shooters handle highs
-                                                                                    // best
-          orchestra.addInstrument(swerveSubsystem.getModule(3).getSteerMotor(), 3); // doubled melody
-          orchestra.addInstrument(shooterSubsystem.getMotor1(), 3); // tripled melody
-          orchestra.addInstrument(shooterSubsystem.getMotor2(), 3); // quadrupled melody
-          orchestra.addInstrument(turretSubsystem.getMotor(), 10); // lead synth mid
-          orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
-          orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
-          orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
-          orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
-          orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
-          orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
-          orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
-          makeMusic();
-        }
-    
-        // healthSubsystem.dumpDatabase();
-      }
-    
-      private SwerveSubsystem configureSwerveDrive() {
-        String serialNumber = RobotController.getSerialNumber();
-        SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
-        String robotVariant = robotParameters.getVariant();
-        SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
-    
-        Class<?> tunerConstantsClass;
-        if (robotVariant.toLowerCase().equals("chudbot")) {
-          tunerConstantsClass = ChudbotTunerConstants.class;
-        } else if (robotVariant.toLowerCase().equals("raptor")) {
-          tunerConstantsClass = RaptorTunerConstants.class;
-        } else {
-          tunerConstantsClass = TunerConstants.class;
-        }
-    
-        Integer motorId = Utilities.extractPrivateField(Integer.class, tunerConstantsClass, null, "kFrontLeftDriveMotorId");
-        boolean shouldMakeSwerve = canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
-            "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
-        logger.info("looked for swerve motor {}, got {}", motorId, shouldMakeSwerve);
-        SwerveSubsystem rv = null;
-        if (shouldMakeSwerve) {
-          logger.info("making swerve from {}", tunerConstantsClass);
-          rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
-        }
-        if (rv == null) {
-          logger.error("no swerve drive was created!");
-        } else {
-          logger.info("swerve drive = {}", rv);
-        }
-        return rv;
-      }
+  private void setupMusicChooser() {
+    musicChooser = new SendableChooser<>();
 
-      
-      private static void loadSelectedSong() {
-        if(musicChooser!=null){
-        OrchestraManager.OrchestraSong selected = musicChooser.getSelected();
-    
+    musicChooser.setDefaultOption(
+        OrchestraManager.OrchestraSong.TITANIUM.displayName,
+        OrchestraManager.OrchestraSong.TITANIUM);
+
+    for (OrchestraManager.OrchestraSong song : OrchestraManager.OrchestraSong.values()) {
+      musicChooser.addOption(song.displayName, song);
+    }
+
+    SmartDashboard.putData("Music Selector", musicChooser);
+  }
+
+  private void makeSubsystems() {
+
+    healthSubsystem = new HealthSubsystem();
+    swerveSubsystem = configureSwerveDrive();
+    if (swerveSubsystem != null) {
+      /* Setting up bindings for necessary control of the swerve drive platform */
+      drive = new SwerveRequest.FieldCentric()
+          .withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
+          .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+      brake = new SwerveRequest.SwerveDriveBrake();
+      point = new SwerveRequest.PointWheelsAt();
+
+      swerveLogger = new SwerveTelemetry(MaxSpeed);
+
+      sendSwerveSubsystemToHealthSubsystem();
+    }
+
+    questNavSubsystem = new QuestNavSubsystem(swerveSubsystem, new Pose3d());
+    limelightSubsystem = new LimelightSubsystem();
+
+    turretSubsystem = new TurretSubsystem();
+    // climberSubsystem = new ClimberSubsystem();
+    shooterSubsystem = new ShooterSubsystem();
+    intakeShoulderSubsystem = new IntakeShoulderSubsystem();
+    intakeRollerSubsystem = new IntakeRollerSubsytem();
+    intakeAgitatorSubsystem = new IntakeAgitatorSubsytem();
+
+    shooterHoodSubsystem = new ShooterHoodSubsystem();
+    preshooterSubsystem = new PreshooterSubsystem();
+    conveyerSubsystem = new ConveyerSubsystem();
+    blinkyLightsSubsystem = new BlinkyLightsSubsystem();
+
+    if (swerveSubsystem != null)
+      orchestra = new OrchestraManager();
+    if (swerveSubsystem != null) {
+      orchestra.addInstrument(swerveSubsystem.getModule(0).getDriveMotor(), 4); // fretless bass - most notes, low
+      orchestra.addInstrument(swerveSubsystem.getModule(1).getDriveMotor(), 4); // doubled bass
+      orchestra.addInstrument(swerveSubsystem.getModule(2).getDriveMotor(), 9); // unknown/drums - busy, low range
+      orchestra.addInstrument(swerveSubsystem.getModule(3).getDriveMotor(), 9); // doubled
+      orchestra.addInstrument(swerveSubsystem.getModule(0).getSteerMotor(), 1); // acoustic bass line
+      orchestra.addInstrument(swerveSubsystem.getModule(1).getSteerMotor(), 1); // doubled
+      orchestra.addInstrument(swerveSubsystem.getModule(2).getSteerMotor(), 3); // violin melody - shooters handle highs
+                                                                                // best
+      orchestra.addInstrument(swerveSubsystem.getModule(3).getSteerMotor(), 3); // doubled melody
+      orchestra.addInstrument(shooterSubsystem.getMotor1(), 3); // tripled melody
+      orchestra.addInstrument(shooterSubsystem.getMotor2(), 3); // quadrupled melody
+      orchestra.addInstrument(turretSubsystem.getMotor(), 10); // lead synth mid
+      orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
+      orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
+      orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
+      orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
+      orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
+      orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
+      orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
+      makeMusic();
+    }
+
+    // healthSubsystem.dumpDatabase();
+  }
+
+  private SwerveSubsystem configureSwerveDrive() {
+    String serialNumber = RobotController.getSerialNumber();
+    SmartDashboard.putString("frc3620/Robot Serial", serialNumber);
+    String robotVariant = robotParameters.getVariant();
+    SmartDashboard.putString("frc3620/Robot Variant", robotVariant);
+
+    Class<?> tunerConstantsClass;
+    if (robotVariant.toLowerCase().equals("chudbot")) {
+      tunerConstantsClass = ChudbotTunerConstants.class;
+    } else if (robotVariant.toLowerCase().equals("raptor")) {
+      tunerConstantsClass = RaptorTunerConstants.class;
+    } else {
+      tunerConstantsClass = TunerConstants.class;
+    }
+
+    Integer motorId = Utilities.extractPrivateField(Integer.class, tunerConstantsClass, null, "kFrontLeftDriveMotorId");
+    boolean shouldMakeSwerve = canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId,
+        "Swerve Subsystem") || RobotContainer.shouldMakeAllCANDevices();
+    logger.info("looked for swerve motor {}, got {}", motorId, shouldMakeSwerve);
+    SwerveSubsystem rv = null;
+    if (shouldMakeSwerve) {
+      logger.info("making swerve from {}", tunerConstantsClass);
+      rv = Utilities.callMethod(SwerveSubsystem.class, tunerConstantsClass, null, "createDrivetrain");
+    }
+    if (rv == null) {
+      logger.error("no swerve drive was created!");
+    } else {
+      logger.info("swerve drive = {}", rv);
+    }
+    return rv;
+  }
+
+  private static void loadSelectedSong() {
+    if (musicChooser != null) {
+      OrchestraManager.OrchestraSong selected = musicChooser.getSelected();
+
       if (selected != null && selected != lastSong) {
         orchestra.reload(selected.filename);
         lastSong = selected;
-    }}
+      }
+    }
   }
-  
-    private void makeMusic() {
-      if(musicChooser!=null){
+
+  private void makeMusic() {
+    if (musicChooser != null) {
       loadSelectedSong();
     }
-    }
-    public static void updateMusicSelection() {
+  }
+
+  public static void updateMusicSelection() {
     loadSelectedSong();
-}
+  }
 
   private void makeStates() {
     outpostPassingState = new OutpostPassingState();
@@ -503,6 +503,13 @@ public class RobotContainer implements RobotModeChangeListener {
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDeadZone),
         hoardingState));
+
+    depotPassingState.addTransition(new StateTransition(
+        fmsTriggersOn.and(fieldTriggers.enterOutpostPass),
+        outpostPassingState));
+    outpostPassingState.addTransition(new StateTransition(
+        fmsTriggersOn.and(fieldTriggers.enterDepotPass),
+        depotPassingState));
 
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
@@ -753,7 +760,7 @@ public class RobotContainer implements RobotModeChangeListener {
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
                   .repeatedly()
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn()).onlyIf(() -> !stateMachine.isActive())));
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn())));
 
     }
 
