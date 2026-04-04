@@ -50,6 +50,9 @@ public class ScoringState extends SuperState {
         // Code to run when entering the Passing state
 
         CommandScheduler.getInstance().schedule(doEverythingCommand);
+
+        RobotContainer.setActiveTarget(ShotCalculator.FieldTargets.BLUE_HUB);
+
     }
 
     @Override

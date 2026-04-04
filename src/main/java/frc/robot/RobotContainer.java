@@ -175,6 +175,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private static SendableChooser<OrchestraManager.OrchestraSong> musicChooser;
   private static OrchestraManager.OrchestraSong lastSong = null;
+  private static ShotCalculator.FieldTargets activeTarget = ShotCalculator.FieldTargets.BLUE_HUB;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -1187,5 +1188,13 @@ public class RobotContainer implements RobotModeChangeListener {
 
   public void stopMusic() {
     orchestra.stop();
+  }
+
+  public static ShotCalculator.FieldTargets getActiveTarget() {
+    return activeTarget;
+  }
+
+  public static void setActiveTarget(ShotCalculator.FieldTargets target) {
+    activeTarget = target;
   }
 }
