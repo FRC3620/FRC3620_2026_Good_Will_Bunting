@@ -750,7 +750,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     }
 
-    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
+    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null
+        && stateMachine.getCurrentState() != hoardingState) {
 
       driverRightTriggerFlySky
           .whileTrue(
