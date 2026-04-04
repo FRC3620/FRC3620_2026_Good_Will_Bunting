@@ -43,7 +43,7 @@ public class ScoringState extends SuperState {
      * RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
      */
 
-    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition());
+    Command doEverythingCommand = new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition());
 
     @Override
     public void onEnter() {

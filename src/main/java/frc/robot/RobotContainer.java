@@ -697,7 +697,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (shooterHoodSubsystem != null && shooterSubsystem != null && turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Shoot/AUTO AIM COMMAND",
-          new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+          new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
 
       SmartDashboard.putData("frc3620/Shoot/DeadReckonShotHub",
           shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
@@ -1048,13 +1048,13 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
     NamedCommands.registerCommand("Initialize Shot",
-        new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+        new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Pass Right",
-        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_CORNER.getTargetPosition()));
+        new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.OP_CORNER.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Pass Left",
-        new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPosition()));
+        new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPosition()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),

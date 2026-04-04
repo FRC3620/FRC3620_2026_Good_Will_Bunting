@@ -35,7 +35,7 @@ public class DepotPassingState extends SuperState {
      * RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
      */
 
-    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition());
+    Command doEverythingCommand = new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition());
 
     @Override
     public void onEnter() {
