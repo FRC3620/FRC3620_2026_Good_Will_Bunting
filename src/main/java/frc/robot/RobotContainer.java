@@ -750,8 +750,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     }
 
-    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null
-        && stateMachine.getCurrentState() != hoardingState) {
+    if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
 
       driverRightTriggerFlySky
           .whileTrue(
@@ -761,7 +760,8 @@ public class RobotContainer implements RobotModeChangeListener {
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
                   .repeatedly()
-                  .alongWith(intakeAgitatorSubsystem.agitatorOn())));
+                  .alongWith(intakeAgitatorSubsystem.agitatorOn()))
+                  .onlyIf(() -> stateMachine.getCurrentState() != hoardingState));
 
     }
 
@@ -769,7 +769,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverLeftTriggerFlySky
           .whileTrue(
               intakeShoulderSubsystem.createJostleCommand()
-                  .alongWith(intakeRollerSubsystem.rollersOn()))
+                  .alongWith(intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(3000))))
           .onFalse(
               intakeShoulderSubsystem.createSetPositionThenCoast(() -> IntakeShoulderPositions.OUT.getAngle()));
 
@@ -783,11 +783,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeRollerSubsystem != null) {
       rollersOnTrigger.onTrue(
-          intakeRollerSubsystem.rollersOn());
+          intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(3000)));
       rollersOffTrigger.onTrue(
           intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-          intakeRollerSubsystem.rollersBackwards());
+          intakeRollerSubsystem.createSetVelocityCommand(()-> RPM.of(-3000)));
     }
 
   }
@@ -874,7 +874,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (intakeRollerSubsystem != null) {
       SmartDashboard.putData("frc3620/IntakeRollers/rollersOff", intakeRollerSubsystem.rollersOff());
-      SmartDashboard.putData("frc3620/IntakeRollers/rollersOn", intakeRollerSubsystem.rollersOn());
+      SmartDashboard.putData("frc3620/IntakeRollers/rollersSetVelocity", intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000)));
+      
     }
 
     if (shooterSubsystem != null) {
@@ -1015,11 +1016,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Intake Down",
         intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.OUT.getAngle())
-            .alongWith(intakeRollerSubsystem.rollersOn()));
+            .alongWith(intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000))));
     NamedCommands.registerCommand("Intake Up",
         intakeShoulderSubsystem.createSetPositionCommandGated(() -> IntakeShoulderPositions.IN.getAngle()));
 
-    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.rollersOn());
+    NamedCommands.registerCommand("Rollers On", intakeRollerSubsystem.createSetVelocityCommand(()->RPM.of(3000)));
     NamedCommands.registerCommand("Rollers Off", intakeRollerSubsystem.rollersOff());
 
     NamedCommands.registerCommand("Agitate On", intakeAgitatorSubsystem.agitatorOn());
