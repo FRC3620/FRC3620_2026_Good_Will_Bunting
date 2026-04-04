@@ -71,7 +71,7 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
                     .withSimClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
-                    .withMotorInverted(true)
+                    .withMotorInverted(false)
                     .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
                     .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
