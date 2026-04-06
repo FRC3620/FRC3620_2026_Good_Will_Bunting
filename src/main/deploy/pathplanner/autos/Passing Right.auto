@@ -50,9 +50,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "Conveyer Off"
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Conveyer Off"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.01
+                }
+              }
+            ]
           }
         },
         {

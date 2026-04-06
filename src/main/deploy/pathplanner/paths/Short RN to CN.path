@@ -20,26 +20,42 @@
         "y": 3.4776867469879518
       },
       "prevControl": {
-        "x": 7.663208067648624,
-        "y": 2.791937816888095
+        "x": 7.518525911082856,
+        "y": 3.231100466722679
+      },
+      "nextControl": {
+        "x": 7.600871679278589,
+        "y": 3.7242730272532247
+      },
+      "isLocked": false,
+      "linkedName": "Short Right CN"
+    },
+    {
+      "anchor": {
+        "x": 8.280306818181817,
+        "y": 2.808488636363636
+      },
+      "prevControl": {
+        "x": 8.02263636363636,
+        "y": 4.0246931818181855
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Short Right CN"
+      "linkedName": "Middle Short RN to CN"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.18123667377399316,
+      "waypointRelativePos": 0.35,
       "rotationDegrees": 100.0
     },
     {
-      "waypointRelativePos": 0.5394456289978655,
+      "waypointRelativePos": 1.1,
       "rotationDegrees": 65.0
     },
     {
-      "waypointRelativePos": 0.6865671641790905,
-      "rotationDegrees": 100.0
+      "waypointRelativePos": 1.877358490566041,
+      "rotationDegrees": -70.0
     }
   ],
   "constraintZones": [],
@@ -55,7 +71,7 @@
   },
   "goalEndState": {
     "velocity": 1.5,
-    "rotation": 88.57216531465521
+    "rotation": -90.78482460299196
   },
   "reversed": false,
   "folder": "Right Bump Start General",

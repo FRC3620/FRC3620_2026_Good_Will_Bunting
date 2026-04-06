@@ -16,44 +16,44 @@
     },
     {
       "anchor": {
-        "x": 3.1776867469879515,
-        "y": 0.575
+        "x": 3.199045454545454,
+        "y": 0.6852840909090911
       },
       "prevControl": {
-        "x": 3.5352817224181896,
-        "y": 0.5889154839789128
+        "x": 3.443554563517246,
+        "y": 0.7373925895424239
       },
       "nextControl": {
-        "x": 2.511096385542168,
-        "y": 0.5490602409638551
+        "x": 2.570329545454545,
+        "y": 0.5512954545454546
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.6752409638554218,
-        "y": 0.691120481927711
+        "x": 0.78725,
+        "y": 0.575
       },
       "prevControl": {
-        "x": 0.6450091454192167,
-        "y": 0.44295513955686283
+        "x": 0.13792045454545443,
+        "y": 0.2730113636363637
       },
       "nextControl": {
-        "x": 0.7080240963855422,
-        "y": 0.9602289156626511
+        "x": 1.0139336293363208,
+        "y": 0.6804254816963777
       },
       "isLocked": false,
       "linkedName": "Wall Clean Right End"
     },
     {
       "anchor": {
-        "x": 0.6752409638554218,
-        "y": 2.3193493975903605
+        "x": 0.78725,
+        "y": 2.293147727272727
       },
       "prevControl": {
-        "x": 0.7298795180722891,
-        "y": 1.4779156626506016
+        "x": 0.519272727272727,
+        "y": 0.7471249999999998
       },
       "nextControl": null,
       "isLocked": false,
@@ -63,7 +63,7 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 0.8,
-      "rotationDegrees": -170.0
+      "rotationDegrees": -150.0
     },
     {
       "waypointRelativePos": 1.55,
@@ -81,10 +81,10 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 1.45,
+      "minWaypointRelativePos": 1.0394973070017952,
       "maxWaypointRelativePos": 3.0,
       "constraints": {
-        "maxVelocity": 1.0,
+        "maxVelocity": 0.75,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -96,7 +96,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 2.5,
+    "maxVelocity": 1.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
