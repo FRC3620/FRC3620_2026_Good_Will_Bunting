@@ -1120,7 +1120,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
       CoreTalonFX steer_motor = module.getSteerMotor();
       healthSubsystem.addMotorToWatch(steer_motor, "Swerve/" + location_name + "/steer",
-          HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(50)));
+          HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(55)));
       CoreTalonFX drive_motor = module.getDriveMotor();
       healthSubsystem.addMotorToWatch(drive_motor, "Swerve/" + location_name + "/drive",
           HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(65)));

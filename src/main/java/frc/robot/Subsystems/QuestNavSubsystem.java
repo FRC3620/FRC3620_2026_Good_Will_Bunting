@@ -85,7 +85,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
       Pose3d initialQuestNavPose) {
 
-    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnected(), "Questnav is not connected",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnectedLongTimeQuestionMark(), "Questnav is not connected",
         new HealthOptions().withShowAlertWhenBad(true));
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "Questnav is not tracking",
         new HealthOptions().withShowAlertWhenBad(true));
@@ -277,6 +277,21 @@ public class QuestNavSubsystem extends SubsystemBase {
     Timer timer = new Timer();
 
     if (questNav.isConnected()) {
+      timer.reset();
+      timer.start();
+    } else {
+      if (timer.hasElapsed(Seconds.of(5))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public boolean getQuestNavIsTrackingLongTimeQuestionMark() {
+    Timer timer = new Timer();
+
+    if (questNav.isTracking()) {
       timer.reset();
       timer.start();
     } else {
