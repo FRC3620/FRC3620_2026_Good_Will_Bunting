@@ -4,6 +4,7 @@
 
 package frc.robot.Subsystems;
 
+import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.Fahrenheit;
 
 import java.util.*;
@@ -75,7 +76,7 @@ public class HealthSubsystem extends SubsystemBase {
   Health circuitBreakerHealth = Health.GOOD;
 
   //@Override
-  public void dont_periodic() {
+  public void periodic() {
     Health newHealth = Health.GOOD;
 
     // only need to do this once
@@ -424,7 +425,7 @@ public class HealthSubsystem extends SubsystemBase {
     private boolean sendHealthChangesToTinyLog = false;
 
     // temperature that we get nervous about motor temps at
-    private Temperature motorTemperatureThreshold = Fahrenheit.of(120);
+    private Temperature motorTemperatureThreshold = Celsius.of(55);
 
     // we should put up an Alert if things go South
     private boolean showAlertWhenBad = false;

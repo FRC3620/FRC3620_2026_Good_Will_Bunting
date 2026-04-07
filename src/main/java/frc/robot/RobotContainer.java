@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.FeetPerSecond;
@@ -943,10 +944,10 @@ public class RobotContainer implements RobotModeChangeListener {
 
       CoreTalonFX steer_motor = module.getSteerMotor();
       healthSubsystem.addMotorToWatch(steer_motor, "Swerve/" + location_name + "/steer",
-          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+          HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(50)));
       CoreTalonFX drive_motor = module.getDriveMotor();
       healthSubsystem.addMotorToWatch(drive_motor, "Swerve/" + location_name + "/drive",
-          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+          HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(65)));
       CANcoder cancoder = module.getEncoder();
       healthSubsystem.addCTRESensorToWatch(cancoder, "Swerve/" + location_name + "/cancoder",
           HealthSubsystem.healthOptionsForCTRESwerveSensors);
