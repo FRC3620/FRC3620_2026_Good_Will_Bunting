@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.FeetPerSecond;
@@ -704,7 +705,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     if (shooterHoodSubsystem != null && shooterSubsystem != null && turretSubsystem != null) {
       SmartDashboard.putData("frc3620/Shoot/AUTO AIM COMMAND",
-          new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+          new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier()));
 
       SmartDashboard.putData("frc3620/Shoot/DeadReckonShotHub",
           shooterHoodSubsystem.createSetAngleCommandGated(() -> Degrees.of(30))
@@ -742,19 +743,6 @@ public class RobotContainer implements RobotModeChangeListener {
        * .whileTrue(
        * shooterSubsystem.sysIdQuasistaticReverse());
        */
-      teachShooterTriggerUnder.onTrue(new InstantCommand(() -> {
-        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
-            new Translation2d(Feet.of(15.17), Feet.of(13.235)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
-        shooterSubsystem.learnShot(distanceFt, 50 + distanceFt.in(Feet) * 5);
-      }));
-
-      teachShooterTriggerOver.onTrue(new InstantCommand(() -> {
-        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
-            new Translation2d(Feet.of(15.17), Feet.of(13.235)),
-            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
-        shooterSubsystem.learnShot(distanceFt, -(50 + distanceFt.in(Feet) * 5));
-      }));
 
     }
 
@@ -935,61 +923,8 @@ public class RobotContainer implements RobotModeChangeListener {
       SmartDashboard.putData("frc3620/intakeAgitator/AgitatorRev", intakeAgitatorSubsystem.agitatorBackwards());
 
     }
-    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0);
-    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0);
-    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0);
 
-    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0);
-    SmartDashboard.putNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0);
-
-    SmartDashboard.putData("frc3620/ShotCalculator/CalculateTestShot", new Command() {
-      @Override
-      public void initialize() {
-        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/HoodAngleDegrees",
-            ShotCalculator.calculateHoodAngle(
-                new Translation3d(
-                    Feet.of(15.17),
-                    Feet.of(13.235),
-                    Feet.of(6.0)),
-                () -> new Pose2d(
-                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0),
-                        Feet),
-                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0),
-                        Feet),
-                    Rotation2d.fromDegrees(
-                        SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))),
-                () -> new VelocityVector(
-                    FeetPerSecond
-                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
-                    FeetPerSecond
-                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))),
-                () -> shooterSubsystem.getVelocity())
-                .in(Degrees));
-
-        SmartDashboard.putNumber("frc3620/ShotCalculator/CalculatedShot/FlywheelVelocityRPM",
-            ShotCalculator.calculateShooterSpeed(
-                new Translation3d(
-                    Feet.of(15.17),
-                    Feet.of(13.235),
-                    Feet.of(6.0)),
-                () -> new Pose2d(
-                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseXFt", 0),
-                        Feet),
-                    Meters.convertFrom(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseYFt", 0),
-                        Feet),
-                    Rotation2d.fromDegrees(
-                        SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotPoseRotationDegrees", 0))),
-                () -> new VelocityVector(
-                    FeetPerSecond
-                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityXFtps", 0)),
-                    FeetPerSecond
-                        .of(SmartDashboard.getNumber("frc3620/ShotCalculator/TestInputs/RobotVelocityYFtps", 0))))
-                .in(RPM));
-      }
-    }.withName("Calculate Test Shot").ignoringDisable(true));
-
-    SmartDashboard
-        .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
@@ -1056,16 +991,16 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Jostle", intakeShoulderSubsystem.createJostleCommand());
 
     NamedCommands.registerCommand("Initialize Shot",
-        new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition()));
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier()));
 
     NamedCommands.registerCommand("Initialize Pass Right",
-        new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.OP_CORNER.getTargetPosition()));
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.OP_CORNER.getTargetPositionSupplier()));
 
     NamedCommands.registerCommand("Initialize Pass Left",
-        new AutoAimShooterCommand(() -> ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPosition()));
+        new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPositionSupplier()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
-        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
+        () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
@@ -1077,7 +1012,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     // These would be zoned events
     NamedCommands.registerCommand("Turret Auto Aim", turretSubsystem.createSetAngleToTargetCommand(
-        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
+        () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
@@ -1085,7 +1020,7 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getPigeon2().getRotation2d()))));
 
     NamedCommands.registerCommand("Shoot", shooterSubsystem.createSetSpeedToTargetCommand(
-        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition(),
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
@@ -1093,7 +1028,7 @@ public class RobotContainer implements RobotModeChangeListener {
             swerveSubsystem.getPigeon2().getRotation2d()))));
 
     NamedCommands.registerCommand("Set Hood Angle", shooterHoodSubsystem.createAutoAngleToTargetCommand(
-        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition(),
+        ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier(),
         () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose),
         () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
             swerveSubsystem.getKinematics(),
@@ -1119,10 +1054,10 @@ public class RobotContainer implements RobotModeChangeListener {
 
       CoreTalonFX steer_motor = module.getSteerMotor();
       healthSubsystem.addMotorToWatch(steer_motor, "Swerve/" + location_name + "/steer",
-          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+          HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(55)));
       CoreTalonFX drive_motor = module.getDriveMotor();
       healthSubsystem.addMotorToWatch(drive_motor, "Swerve/" + location_name + "/drive",
-          HealthSubsystem.healthOptionsForCTRESwerveMotors);
+          HealthSubsystem.healthOptionsForCTRESwerveMotors.withMotorTemperatureThreshold(Celsius.of(65)));
       CANcoder cancoder = module.getEncoder();
       healthSubsystem.addCTRESensorToWatch(cancoder, "Swerve/" + location_name + "/cancoder",
           HealthSubsystem.healthOptionsForCTRESwerveSensors);

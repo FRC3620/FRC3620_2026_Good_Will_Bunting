@@ -210,7 +210,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 .withName("Shooter Hood setAngle Dashboard");
     }
 
-    public Command createAutoAngleToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
+    public Command createAutoAngleToTargetCommand(Supplier<Translation3d> targetPosition, Supplier<Pose2d> robotPosition,
             Supplier<VelocityVector> robotVelocity, Supplier<AngularVelocity> shooterSpeed) {
         if (pivot == null)
             return idle();

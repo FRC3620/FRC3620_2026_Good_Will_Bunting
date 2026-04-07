@@ -4,6 +4,7 @@
 
 package frc.robot.Subsystems;
 
+import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.Fahrenheit;
 
 import java.util.*;
@@ -437,7 +438,7 @@ public class HealthSubsystem extends SubsystemBase {
     private boolean sendHealthChangesToTinyLog = false;
 
     // temperature that we get nervous about motor temps at
-    private Temperature motorTemperatureThreshold = Fahrenheit.of(120);
+    private Temperature motorTemperatureThreshold = Celsius.of(55);
 
     // we should put up an Alert if things go South
     private boolean showAlertWhenBad = false;

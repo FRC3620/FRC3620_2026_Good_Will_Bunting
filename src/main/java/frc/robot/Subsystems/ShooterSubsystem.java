@@ -222,7 +222,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   }
 
-  public Command createSetSpeedToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
+  public Command createSetSpeedToTargetCommand(Supplier<Translation3d> targetPosition, Supplier<Pose2d> robotPosition,
       Supplier<VelocityVector> robotVelocity) {
     if (flywheel == null)
       return idle();
@@ -231,7 +231,7 @@ public class ShooterSubsystem extends SubsystemBase {
         () -> {
           AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
 
-          Distance distanceFeet = getDistanceToTarget(targetPosition.toTranslation2d(), robotPosition);
+          Distance distanceFeet = getDistanceToTarget(() ->targetPosition.get().toTranslation2d(), robotPosition);
 
           double correctionRPM = getRPMCorrection(distanceFeet);
 
@@ -276,9 +276,7 @@ public class ShooterSubsystem extends SubsystemBase {
       }
       SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM());
       SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
-          new Translation2d(
-              Feet.of(15.17),
-              Feet.of(13.235)),
+          () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
           () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose))));
     }
 
@@ -370,7 +368,7 @@ public class ShooterSubsystem extends SubsystemBase {
     rpmCorrectionMap.put(bucket, updated);
   }
 
-  private Distance getDistanceToTarget(Translation2d targetPosition, Supplier<Pose2d> robotPosition) {
+  private Distance getDistanceToTarget(Supplier<Translation2d> targetPosition, Supplier<Pose2d> robotPosition) {
     return ShotCalculator.calculateBaseHDistanceToTarget(targetPosition, robotPosition);
   }
 

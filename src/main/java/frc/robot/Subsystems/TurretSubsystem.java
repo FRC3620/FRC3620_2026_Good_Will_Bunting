@@ -79,8 +79,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.111328125);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.414306640625);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.49951171875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.81591796875);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
@@ -89,8 +89,8 @@ public class TurretSubsystem extends SubsystemBase {
   private boolean atTarget = false;
   
   private Angle targetAngle = Degrees.of(0); 
-  private static final double MIN_ANGLE = -286;
-  private static final double MAX_ANGLE = 113;
+  private static final double MIN_ANGLE = -360;
+  private static final double MAX_ANGLE = 123;
 
   private Angle nearRightWrappingAngle = Degrees.of(MIN_ANGLE + 70);
   private Angle reallyCloseToRightWrappingAngle = Degrees.of(MIN_ANGLE + 30);
@@ -115,6 +115,7 @@ public class TurretSubsystem extends SubsystemBase {
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(120, 0, 1, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
+          .withSimClosedLoopController(120, 0, 1, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
@@ -210,7 +211,7 @@ public class TurretSubsystem extends SubsystemBase {
    * }
    */
 
-  public Command createSetAngleToTargetCommand(Translation2d targetPosition, Supplier<Pose2d> robotPose,
+  public Command createSetAngleToTargetCommand(Supplier<Translation2d> targetPosition, Supplier<Pose2d> robotPose,
       Supplier<VelocityVector> robotVelocity) {
     Command rv;
     if (pivot == null) {

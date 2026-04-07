@@ -44,19 +44,19 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
         addCommands(
 
             RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                target.get().toTranslation2d(),
+                () -> target.get().toTranslation2d(),
                 robotPose,
                 robotVelocity
             ),
 
             RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
-                target.get(),
+                target,
                 robotPose,
                 robotVelocity
             ),
 
             RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
-                target.get(),
+                target,
                 robotPose,
                 robotVelocity,
                 shooterExitSpeed
