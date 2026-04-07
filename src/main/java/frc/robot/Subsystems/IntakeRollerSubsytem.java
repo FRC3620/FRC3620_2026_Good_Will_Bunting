@@ -1,6 +1,7 @@
 package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Pound;
@@ -64,9 +65,9 @@ public class IntakeRollerSubsytem extends SubsystemBase {
             motor1 = new TalonFX(motorId1);
             motor2 = new TalonFX(motorId2);
             RobotContainer.healthSubsystem.addMotorToWatch(motor1, telemetryPrefix,
-                    HealthSubsystem.healthOptionsForYAMS);
+                    HealthSubsystem.healthOptionsForYAMS.withMotorTemperatureThreshold(Celsius.of(65)));
             RobotContainer.healthSubsystem.addMotorToWatch(motor2, telemetryPrefix,
-                    HealthSubsystem.healthOptionsForYAMS);
+                    HealthSubsystem.healthOptionsForYAMS.withMotorTemperatureThreshold(Celsius.of(65)));
 
             SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
