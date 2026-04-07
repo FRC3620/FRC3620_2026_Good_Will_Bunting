@@ -4,6 +4,9 @@ import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import static edu.wpi.first.units.Units.Microseconds;
+import static edu.wpi.first.units.Units.Seconds;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,6 +22,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.util.datalog.StructLogEntry;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -28,6 +32,7 @@ import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
 import edu.wpi.first.wpilibj.DataLogManager;
+import gg.questnav.questnav.protos.wpilib.FrameDataProto;
 
 public class QuestNavSubsystem extends SubsystemBase {
 
@@ -80,7 +85,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
       Pose3d initialQuestNavPose) {
 
-    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnected(), "Questnav is not connected",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnectedLongTimeQuestionMark(), "Questnav is not connected",
         new HealthOptions().withShowAlertWhenBad(true));
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "Questnav is not tracking",
         new HealthOptions().withShowAlertWhenBad(true));
@@ -235,7 +240,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public boolean isQuestnavSufficientlyCharged() {
-    if (getQuestNavPower() < 15)
+    if (getQuestNavPower() < 6.5)
       return false;
     else {
       return true;
@@ -265,6 +270,37 @@ public class QuestNavSubsystem extends SubsystemBase {
 
   public boolean getQuestNavConnected() {
     return questNav.isConnected();
+  }
+
+  public boolean getQuestNavConnectedLongTimeQuestionMark() {
+
+    Timer timer = new Timer();
+
+    if (questNav.isConnected()) {
+      timer.reset();
+      timer.start();
+    } else {
+      if (timer.hasElapsed(Seconds.of(5))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public boolean getQuestNavIsTrackingLongTimeQuestionMark() {
+    Timer timer = new Timer();
+
+    if (questNav.isTracking()) {
+      timer.reset();
+      timer.start();
+    } else {
+      if (timer.hasElapsed(Seconds.of(5))) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   public boolean getQuestNavIsTracking() {
