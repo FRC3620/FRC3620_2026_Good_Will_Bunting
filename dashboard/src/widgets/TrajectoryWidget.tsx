@@ -38,7 +38,6 @@ function computeArcPoints(
   const vx = exitVelocityFtps * Math.cos(angleRad);
   const vy = exitVelocityFtps * Math.sin(angleRad);
 
-  // Delta height the projectile needs to travel from launch point to target
   const deltaZ = targetHeightFt - TURRET_HEIGHT_FT;
 
   // Solve for flight time: deltaZ = vy*t - 0.5*G*t^2
@@ -51,7 +50,6 @@ function computeArcPoints(
   const points: { x: number; y: number }[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = (i / steps) * tFlight;
-    // y is offset by turret launch height so arc starts and ends at correct heights
     points.push({
       x: vx * t,
       y: TURRET_HEIGHT_FT + vy * t - 0.5 * G * t * t,
@@ -92,7 +90,6 @@ function drawTurretLine(
   // Turret angle is relative to robot, robot heading is field-relative
   const absoluteAngleRad = ((robotHeadingDeg + turretAngleDeg) * Math.PI) / 180;
 
-  // Project a long line to the edge of canvas to show aim direction
   const reach = Math.max(W, H);
   const ex = rx + Math.cos(absoluteAngleRad) * reach;
   const ey = ry - Math.sin(absoluteAngleRad) * reach;
@@ -109,7 +106,6 @@ function drawTurretLine(
   ctx.setLineDash([]);
   ctx.globalAlpha = 1;
 
-  // Dot at tip of short line for clarity
   const tipX = rx + Math.cos(absoluteAngleRad) * TURRET_LINE_LENGTH;
   const tipY = ry - Math.sin(absoluteAngleRad) * TURRET_LINE_LENGTH;
   ctx.fillStyle = color;
@@ -117,14 +113,12 @@ function drawTurretLine(
   ctx.arc(tipX, tipY, 3, 0, Math.PI * 2);
   ctx.fill();
 
-  // Label
   ctx.font = "bold 10px 'Share Tech Mono', monospace";
   ctx.fillStyle = color;
   ctx.fillText(label, tipX + 5, tipY - 3);
   ctx.restore();
 }
 
-// Draws the turret range-of-motion arc around the robot
 function drawTurretLimitArc(
   ctx: CanvasRenderingContext2D,
   rx: number,
@@ -147,7 +141,6 @@ function drawTurretLimitArc(
   ctx.arc(rx, ry, radius, startRad, endRad, false);
   ctx.stroke();
 
-  // Hard stop tick marks
   [limits.min, limits.max].forEach(limitDeg => {
     const angleRad = headingRad + (limitDeg * Math.PI) / 180;
     const ix = rx + Math.cos(angleRad) * (radius - 5);
@@ -182,7 +175,6 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     img.onload = () => { fieldImgRef.current = img; setFieldLoaded(true); };
   }, []);
 
-  // Subscribe to both shot topics and turret limits
   useEffect(() => {
     topics.forEach(topic => {
       subscribeToValue(topic.key, (value) => {
@@ -228,7 +220,6 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     const tx = toX(calcShot.targetX);
     const ty = toY(calcShot.targetY);
 
-    // Helper: draw projected arc onto field top-down plane
     const drawTopDownArc = (shot: ShotData, color: string) => {
       const arcPoints = computeArcPoints(
         shot.exitVelocityFtps,
@@ -253,11 +244,9 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
       ctx.setLineDash([]);
     };
 
-    // Draw arcs — actual first so calculated renders on top
     drawTopDownArc(actualShot, "rgba(0, 210, 255, 0.75)");  // cyan = actual
     drawTopDownArc(calcShot, "rgba(255, 203, 5, 0.85)");  // maize = calculated
 
-    // Turret limit arc
     drawTurretLimitArc(ctx, rx, ry, calcShot.robotHeading, turretLimits);
 
     // Turret aim lines
@@ -411,7 +400,6 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
       ctx.stroke();
     };
 
-    // Actual arc behind calculated
     drawSideArc(actualArc, "rgba(0, 210, 255, 0.9)", "rgba(0, 210, 255, 0.12)");
     drawSideArc(calcArc, "rgba(255, 203, 5, 0.9)", "rgba(255, 203, 5, 0.12)");
 
@@ -436,7 +424,6 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
     ctx.arc(toPlotX(0), toPlotY(TURRET_HEIGHT_FT), 5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Turret height tick on the left axis
     ctx.strokeStyle = "rgba(0, 120, 255, 0.4)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
@@ -528,7 +515,7 @@ export default function TrajectoryWidget({ topics }: { topics: TopicConfig[] }) 
           ref={sideRef}
           style={{
             width: "100%",
-            aspectRatio: "3 / 1",
+            aspectRatio: "4 / 1",
             display: "block",
             border: "1px solid var(--border)",
             borderRadius: "2px",

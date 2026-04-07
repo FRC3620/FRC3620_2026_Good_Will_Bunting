@@ -113,7 +113,7 @@ public class Robot extends TimedRobot {
                     RobotContainer.swerveSubsystem.getKinematics(),
                     RobotContainer.swerveSubsystem.getState(),
                     RobotContainer.swerveSubsystem.getState().Pose.getRotation())),
-      RobotContainer.getActiveTarget(),
+      () -> RobotContainer.getActiveTarget(),
       () -> RobotContainer.shooterSubsystem.getVelocity(),
       () -> RobotContainer.turretSubsystem.getAngle()
     );
