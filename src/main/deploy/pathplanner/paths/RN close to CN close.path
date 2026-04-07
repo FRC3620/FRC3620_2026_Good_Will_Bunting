@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.459,
-        "y": 1.8982786157941427
+        "x": 6.740120481927711,
+        "y": 1.9259518072289166
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.4670479148181,
-        "y": 2.501872227151729
+        "x": 6.748168396745812,
+        "y": 2.529545418586503
       },
       "isLocked": false,
       "linkedName": "RN Close"
@@ -31,7 +31,7 @@
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5,
-      "rotationDegrees": 70.0
+      "rotationDegrees": 73.55399525760647
     }
   ],
   "constraintZones": [],
@@ -47,7 +47,7 @@
   },
   "goalEndState": {
     "velocity": 1.5,
-    "rotation": 180.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": "Right Bump Start General",

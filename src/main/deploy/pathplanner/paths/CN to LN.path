@@ -1,0 +1,63 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.088858773181169,
+        "y": 4.300242510699002
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 8.050042796005705,
+        "y": 5.529415121255349
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.998288159771754,
+        "y": 6.189286733238232
+      },
+      "prevControl": {
+        "x": 7.96986987608064,
+        "y": 5.7364336661911555
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Pluh"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.20042643923241216,
+      "rotationDegrees": 100.0
+    },
+    {
+      "waypointRelativePos": 0.5437100213219602,
+      "rotationDegrees": 70.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 1.0,
+    "maxAcceleration": 1.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 1.0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Left Bump Start General",
+  "idealStartingState": {
+    "velocity": 1.0,
+    "rotation": 88.18169703554815
+  },
+  "useDefaultConstraints": false
+}

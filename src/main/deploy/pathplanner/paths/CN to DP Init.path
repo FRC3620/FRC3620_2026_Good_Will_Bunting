@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 4.473611357586512
+        "x": 8.088858773181169,
+        "y": 4.300242510699002
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.234107142857142,
-        "y": 3.362894345238095
+        "x": 6.648764206792932,
+        "y": 3.640370898716121
       },
       "isLocked": false,
       "linkedName": "Left Center Neutral Collect"
@@ -20,8 +20,8 @@
         "y": 5.594546130952381
       },
       "prevControl": {
-        "x": 9.41845238095239,
-        "y": 5.7315773809523805
+        "x": 8.334693295292439,
+        "y": 6.292796005706134
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,20 +30,38 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7599469496021215,
-      "rotationDegrees": 45.0
+      "waypointRelativePos": 0.6609808102345464,
+      "rotationDegrees": -135.0
     },
     {
-      "waypointRelativePos": 0.9257294429708225,
-      "rotationDegrees": 45.0
+      "waypointRelativePos": 0.891257995735609,
+      "rotationDegrees": -135.0
+    },
+    {
+      "waypointRelativePos": 0.9402985074626847,
+      "rotationDegrees": 180.0
     }
   ],
-  "constraintZones": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.8804861580013458,
+      "maxWaypointRelativePos": 1.0,
+      "constraints": {
+        "maxVelocity": 2.0,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 2.5,
-    "maxAcceleration": 2.5,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -56,7 +74,7 @@
   "reversed": false,
   "folder": "Left Bump Start General",
   "idealStartingState": {
-    "velocity": 1.5,
+    "velocity": 1.0,
     "rotation": 180.0
   },
   "useDefaultConstraints": false

@@ -69,9 +69,9 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private SmartMotorController motorController = null;
   private Pivot pivot = null;
 
+  Command calibrationCommand;
   boolean isCalibrated = false;
   boolean activeCalibrating = false;
-  private Command calibrationCommand;
 
   private final Voltage CALIBRATION_VOLTAGE = Volts.of(-2);
   private final double VELOCITY_THRESHOLD = 5.0;
@@ -81,10 +81,10 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   private final Angle CALIBRATED_POS = Degrees.of(0.0); // place holders
 
   public enum IntakeShoulderPositions {
-    OUT(Degrees.of(100)),
+    OUT(Degrees.of(95)),
     IN(Degrees.of(0)),
-    JOSTLE_TOP(Degrees.of(35)),
-    JOSTLE_BOTTOM(Degrees.of(50));
+    JOSTLE_TOP(Degrees.of(30)),
+    JOSTLE_BOTTOM(Degrees.of(55));
 
     private final Angle angle;
 
@@ -148,7 +148,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     if (pivot != null) {
 
-      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation() && DriverStation.isTeleopEnabled()) {
+      if (!activeCalibrating && !isCalibrated && !RobotBase.isSimulation()) {
         calibrationCommand = calibrate();
         CommandScheduler.getInstance().schedule(calibrationCommand);
       }
@@ -180,7 +180,18 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
   public Command createSetPositionCommand(Supplier<Angle> angle) {
     Command rv;
     if (pivot != null) {
-      rv = Commands.waitUntil(() -> isCalibrated).andThen(pivot.setAngle(angle));
+      rv = pivot.setAngle(angle);
+    } else {
+      rv = idle();
+    }
+    return rv.withName(telemetryPrefix + " SetPosition");
+  }
+
+  public Command createSetPositionCommandGated(Supplier<Angle> angle) {
+    Command rv;
+    if (pivot != null) {
+      rv = Commands.waitUntil(() -> isCalibrated).andThen(Commands.none())
+          .andThen(createSetPositionCommand(angle).asProxy());
     } else {
       rv = idle();
     }
@@ -189,23 +200,24 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
   public Command createSetPositionThenCoast(Supplier<Angle> angle) {
     if (pivot != null) {
-      return pivot.setAngle(angle).onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 20);
+      return pivot.setAngle(angle)
+          .onlyWhile(() -> Math.abs(pivot.getAngle().in(Degrees) - angle.get().in(Degrees)) > 20);
     }
     return idle();
   }
 
   public Command createJostleCommand() {
 
-    if(pivot == null) {
+    if (pivot == null) {
       return idle();
     }
-    Time UP_HOLD_TIME = Seconds.of(0.5);
-    Time DOWN_HOLD_TIME = Seconds.of(0.5);
+    Time UP_HOLD_TIME = Seconds.of(0.25);
+    Time DOWN_HOLD_TIME = Seconds.of(0.25);
 
     return Commands.sequence(
-      createSetPositionCommand(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle()).withTimeout(DOWN_HOLD_TIME),
-      createSetPositionCommand(() -> IntakeShoulderPositions.JOSTLE_TOP.getAngle()).withTimeout(UP_HOLD_TIME)
-    ).repeatedly().withName("Jostle Command");
+        createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle()).withTimeout(DOWN_HOLD_TIME),
+        createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_TOP.getAngle()).withTimeout(UP_HOLD_TIME))
+        .repeatedly().withName("Jostle Command");
   }
 
   public Command setPositionDashboardCommand() {
@@ -270,7 +282,7 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
 
       public boolean isFinished() {
         SmartDashboard.putBoolean("frc3620/IntakeShoulder/ShouldFinish",
-            (Timer.getFPGATimestamp() - stallStartTime) > STALL_TIME_SECONDS);
+            stallStartTime > STALL_TIME_SECONDS);
         if (stallStartTime < 0)
           return false;
 
@@ -298,5 +310,12 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     }
         .withName("Intake Shoulder Calibration");
   }
+
+    public TalonFX getMotor() {
+        if (motor != null) {
+            return motor;
+        }
+        return null;
+    }
 
 }

@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --maize: #FFCB05;
+  --maize-dim: #c9a004;
+  --maize-glow: rgba(255, 203, 5, 0.15);
+  --navy: #00274C;
+  --navy-mid: #0a3a6b;
+  --navy-light: #1a4f8a;
+  --bg: #040d1a;
+  --bg-panel: #071525;
+  --bg-card: #0b1e33;
+  --border: rgba(255, 203, 5, 0.2);
+  --border-bright: rgba(255, 203, 5, 0.6);
+  --text-primary: #e8f4ff;
+  --text-secondary: #7a9bb5;
+  --text-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Rajdhani', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(0, 39, 76, 0.8) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(255, 203, 5, 0.05) 0%, transparent 50%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 40px,
+      rgba(255, 203, 5, 0.02) 40px,
+      rgba(255, 203, 5, 0.02) 41px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 40px,
+      rgba(255, 203, 5, 0.02) 40px,
+      rgba(255, 203, 5, 0.02) 41px
+    );
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--maize-dim); }

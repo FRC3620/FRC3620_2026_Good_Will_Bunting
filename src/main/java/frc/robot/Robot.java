@@ -18,11 +18,16 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Helpers.AllianceFlipUtil;
+import frc.robot.Helpers.ShotCalculator;
 
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the
+ * name of this class or
+ * the package after creating this project, you must also update the
+ * build.gradle file in the
  * project.
  */
 public class Robot extends TimedRobot {
@@ -42,27 +47,26 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
 
     logger = LoggingMaster.getLogger(getClass());
-    logger.info ("I'm alive! {}", GitNess.gitDescription());
+    logger.info("I'm alive! {}", GitNess.gitDescription());
     Utilities.logMetadataToDataLog();
 
-    if (! DogLog.getOptions().captureNt()) {
+    if (!DogLog.getOptions().captureNt()) {
       Utilities.addDataLogForNT("frc3620");
       Utilities.addDataLogForNT("SmartDashboard/frc3620");
     }
 
     // whenever a command initializes, the function declared below will run.
-    CommandScheduler.getInstance().onCommandInitialize(command ->
-            logger.info("Initialized {}, subsystems {}", command.getName(), command.getRequirements()));
+    CommandScheduler.getInstance().onCommandInitialize(
+        command -> logger.info("Initialized {}, subsystems {}", command.getName(), command.getRequirements()));
 
     // whenever a command ends, the function declared below will run.
-    CommandScheduler.getInstance().onCommandFinish(command ->
-            logger.info("Ended {}", command.getName()));
+    CommandScheduler.getInstance().onCommandFinish(command -> logger.info("Ended {}", command.getName()));
 
     // whenever a command ends, the function declared below will run.
-    CommandScheduler.getInstance().onCommandInterrupt(command ->
-            logger.info("Interrupted {}", command.getName()));
-    
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+    CommandScheduler.getInstance().onCommandInterrupt(command -> logger.info("Interrupted {}", command.getName()));
+
+    // Instantiate our RobotContainer. This will perform all our button bindings,
+    // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
 
@@ -74,17 +78,24 @@ public class Robot extends TimedRobot {
   }
 
   /**
-   * This function is called every robot packet, no matter the mode. Use this for items like
-   * diagnostics that you want ran during disabled, autonomous, teleoperated and test.
+   * This function is called every robot packet, no matter the mode. Use this for
+   * items like
+   * diagnostics that you want ran during disabled, autonomous, teleoperated and
+   * test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and
    * SmartDashboard integrated updating.
    */
   @Override
   public void robotPeriodic() {
-    // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-    // commands, running already-scheduled commands, removing finished or interrupted commands,
-    // and running subsystem periodic() methods.  This must be called from the robot's periodic
+    // Runs the Scheduler. This is responsible for polling buttons, adding
+    // newly-scheduled
+    // commands, running already-scheduled commands, removing finished or
+    // interrupted commands,
+    // and running subsystem periodic() methods. This must be called from the
+    // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
 
@@ -94,20 +105,48 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("frc3620/FlySky", RobotContainer.driverJoystick.getAxis(OdoIdsFlySky.AxisId.SWG));
 
     m_robotContainer.getStateMachine().update();
+
+    ShotCalculator.updateFromDashboard();
+    ShotCalculator.publishShotData(
+      () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose),
+      () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
+                    RobotContainer.swerveSubsystem.getKinematics(),
+                    RobotContainer.swerveSubsystem.getState(),
+                    RobotContainer.swerveSubsystem.getState().Pose.getRotation())),
+      RobotContainer.getActiveTarget(),
+      () -> RobotContainer.shooterSubsystem.getVelocity(),
+      () -> RobotContainer.turretSubsystem.getAngle()
+    );
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
     processRobotModeChange(RobotMode.DISABLED);
+
+    if (RobotContainer.orchestra != null)
+      RobotContainer.orchestra.play();
   }
 
   @Override
   public void disabledPeriodic() {
     logCANBusIfNecessary(); // don't do this when enabled; unnecessary overhead
+
+    if (RobotContainer.orchestra != null) {
+      // ALWAYS check for new selection
+      RobotContainer.updateMusicSelection();
+
+      // THEN decide whether to play
+      if (!RobotContainer.orchestra.isPlaying()) {
+        RobotContainer.orchestra.play();
+      }
+    }
   }
 
-  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
+  /**
+   * This autonomous runs the autonomous command selected by your
+   * {@link RobotContainer} class.
+   */
   @Override
   public void autonomousInit() {
     logCANBusIfNecessary();
@@ -120,11 +159,15 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
     }
+
+    if (RobotContainer.orchestra != null)
+      RobotContainer.orchestra.stop();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {
@@ -140,11 +183,16 @@ public class Robot extends TimedRobot {
 
     processRobotModeChange(RobotMode.TELEOP);
     logMatchInfo();
+
+    if (RobotContainer.orchestra != null)
+      RobotContainer.orchestra.stop();
+
   }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
   public void testInit() {
@@ -154,18 +202,22 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().cancelAll();
 
     processRobotModeChange(RobotMode.TEST);
+
+    if (RobotContainer.orchestra != null)
+      RobotContainer.orchestra.stop();
   }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   /*
-  * this routine gets called whenever we change modes
-  */
+   * this routine gets called whenever we change modes
+   */
   void processRobotModeChange(RobotMode newMode) {
     logger.info("Switching from {} to {}", currentRobotMode, newMode);
-    
+
     previousRobotMode = currentRobotMode;
     currentRobotMode = newMode;
 
@@ -177,11 +229,11 @@ public class Robot extends TimedRobot {
     }
   }
 
-  public static RobotMode getCurrentRobotMode(){
+  public static RobotMode getCurrentRobotMode() {
     return currentRobotMode;
   }
 
-  public static RobotMode getPreviousRobotMode(){
+  public static RobotMode getPreviousRobotMode() {
     return previousRobotMode;
   }
 
@@ -191,17 +243,17 @@ public class Robot extends TimedRobot {
 
   void logMatchInfo() {
     if (DriverStation.isFMSAttached()) {
-      logger.info("FMS attached. Event name {}, match type {}, match number {}, replay number {}", 
-        DriverStation.getEventName(),
-        DriverStation.getMatchType(),
-        DriverStation.getMatchNumber(),
-        DriverStation.getReplayNumber());
+      logger.info("FMS attached. Event name {}, match type {}, match number {}, replay number {}",
+          DriverStation.getEventName(),
+          DriverStation.getMatchType(),
+          DriverStation.getMatchNumber(),
+          DriverStation.getReplayNumber());
     }
     logger.info("Alliance {}, position {}", DriverStation.getAlliance(), DriverStation.getLocation());
   }
 
   private boolean hasCANBusBeenLogged;
-  
+
   void logCANBusIfNecessary() {
     if (!hasCANBusBeenLogged) {
       if (DriverStation.isDSAttached()) {

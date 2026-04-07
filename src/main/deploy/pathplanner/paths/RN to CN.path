@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.811268855368235,
-        "y": 1.1417746228926342
+        "x": 8.244122681883024,
+        "y": 1.182025677603425
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.811268855368235,
-        "y": 2.141774622892634
+        "x": 8.138867469879518,
+        "y": 2.2537831325301205
       },
       "isLocked": false,
       "linkedName": "Right Neutral Collect"
     },
     {
       "anchor": {
-        "x": 7.811268855368235,
-        "y": 3.3454203935599276
+        "x": 7.868901569186875,
+        "y": 3.769757489300999
       },
       "prevControl": {
-        "x": 7.811268855368235,
-        "y": 2.6594203935599277
+        "x": 7.972410841654776,
+        "y": 3.084008559201142
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,15 +30,23 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.33949191685912156,
+      "waypointRelativePos": 0.20995850622406467,
+      "rotationDegrees": 100.0
+    },
+    {
+      "waypointRelativePos": 0.41908713692946326,
       "rotationDegrees": 70.0
+    },
+    {
+      "waypointRelativePos": 0.7427385892116108,
+      "rotationDegrees": 100.0
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.5,
+    "maxVelocity": 0.5,
     "maxAcceleration": 2.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -47,12 +55,12 @@
   },
   "goalEndState": {
     "velocity": 1.5,
-    "rotation": 180.0
+    "rotation": 73.15808802899495
   },
   "reversed": false,
   "folder": "Right Bump Start General",
   "idealStartingState": {
-    "velocity": 2.0,
+    "velocity": 1.5,
     "rotation": 90.0
   },
   "useDefaultConstraints": false

@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.795173025732032,
-        "y": 4.473611357586512
+        "x": 8.088858773181169,
+        "y": 4.300242510699002
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.078908606921029,
-        "y": 4.529946761313221
+        "x": 7.372594354370166,
+        "y": 4.356577914425711
       },
       "isLocked": false,
       "linkedName": "Left Center Neutral Collect"

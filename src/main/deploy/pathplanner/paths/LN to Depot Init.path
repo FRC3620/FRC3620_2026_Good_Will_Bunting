@@ -1,0 +1,75 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.8947788873038505,
+        "y": 5.542353780313838
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.665606276747502,
+        "y": 6.409243937232525
+      },
+      "isLocked": false,
+      "linkedName": "RN to LN Left Neutral"
+    },
+    {
+      "anchor": {
+        "x": 1.8686830357142856,
+        "y": 5.594546130952381
+      },
+      "prevControl": {
+        "x": 7.234907275320969,
+        "y": 4.778972895863053
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Depot Init"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.09381663113006684,
+      "rotationDegrees": -135.0
+    },
+    {
+      "waypointRelativePos": 0.8827292110874169,
+      "rotationDegrees": -135.0
+    }
+  ],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Feed Shot",
+      "waypointRelativePos": 0.9453072248480787,
+      "endWaypointRelativePos": 1.0,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Feed Shot"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": "Left Bump Start General",
+  "idealStartingState": {
+    "velocity": 1.0,
+    "rotation": 180.0
+  },
+  "useDefaultConstraints": false
+}

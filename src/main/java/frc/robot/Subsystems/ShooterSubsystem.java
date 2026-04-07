@@ -60,12 +60,15 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
+import edu.wpi.first.wpilibj.DigitalInput;
 
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
   int motorId1 = Constants.MOTORID_SHOOTER1;
   int motorId2 = Constants.MOTORID_SHOOTER2;
   String telemetryPrefix = "Shooter";
+
+  private DigitalInput beamBreak;
 
   private SysIdRoutine sysIdRoutine;
 
@@ -83,24 +86,30 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private boolean atRPM = false;
 
+  private static int shotsFiredCounter = 0;
+  private boolean lastBeamBreakState = false;
+  private boolean currentBeamBreakState = false;
+  private boolean shotJustFired = false;
+
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
 
-    rpmCorrectionMap.put(4, -55.0);
-    rpmCorrectionMap.put(5, -60.0);
-    rpmCorrectionMap.put(6, -60.0);
-    rpmCorrectionMap.put(7, -60.0);
-    rpmCorrectionMap.put(8, -67.0);
-    rpmCorrectionMap.put(9, -50.0);
-    rpmCorrectionMap.put(10, -36.0);
-    rpmCorrectionMap.put(11, -26.0);
-    rpmCorrectionMap.put(12, -55.0);
-    rpmCorrectionMap.put(13, -28.0);
-    rpmCorrectionMap.put(14, 0.0);
-    rpmCorrectionMap.put(15, 0.0);
-    rpmCorrectionMap.put(16, 0.0);
-    rpmCorrectionMap.put(17, 0.0);
-    rpmCorrectionMap.put(18, 0.0);
+    rpmCorrectionMap.put(4, -52.0);
+    rpmCorrectionMap.put(5, -35.0);
+    rpmCorrectionMap.put(6, -30.0);
+    rpmCorrectionMap.put(7, -50.0);
+    rpmCorrectionMap.put(8, -35.0);
+    rpmCorrectionMap.put(9, -20.0);
+    rpmCorrectionMap.put(10, 0.0);
+    rpmCorrectionMap.put(11,30.0);
+    rpmCorrectionMap.put(12, 30.0);
+    rpmCorrectionMap.put(13, 30.0);
+    rpmCorrectionMap.put(14, 30.0);
+    rpmCorrectionMap.put(15, 30.0);
+    rpmCorrectionMap.put(16, 40.0);
+    rpmCorrectionMap.put(17, 80.0);
+    rpmCorrectionMap.put(18, 150.0);
+    rpmCorrectionMap.put(19, 170.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -118,7 +127,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(0.2, 0, 0.0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
+          .withClosedLoopController(0.25, 0, 0.45, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
           .withSimClosedLoopController(10, 0, 0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
@@ -132,6 +141,7 @@ public class ShooterSubsystem extends SubsystemBase {
           // Motor properties to prevent over currenting.
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
+          .withMechanismCircumference(Inches.of(Math.PI * 4))
           .withStatorCurrentLimit(Amps.of(40))
           .withClosedLoopRampRate(Seconds.of(0.5))
           .withOpenLoopRampRate(Seconds.of(0.5));
@@ -170,6 +180,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
       setDefaultCommand(idle());
     }
+
+    beamBreak = new DigitalInput(8);
+
     SmartDashboard.putNumber("frc3620/Shooter/Flywheel RPM Dashboard Control", 0);
     SmartDashboard.putNumber("frc3620/Shooter/Filtering Alpha", 1.0);
 
@@ -214,7 +227,6 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    filteredRPM = getVelocity(); // Initialize filtered RPM to current RPM
     return flywheel.setSpeed(
         () -> {
           AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
@@ -224,13 +236,10 @@ public class ShooterSubsystem extends SubsystemBase {
           double correctionRPM = getRPMCorrection(distanceFeet);
 
           AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
-          double alpha = SmartDashboard.getNumber("frc3620/Shooter/Filtering Alpha", 1.0);
-          alpha = MathUtil.clamp(alpha, 0.0, 1.0);
-          filteredRPM = filteredRPM.times(1.0 - alpha).plus(corrected.times(alpha));
 
           SmartDashboard.putNumber("frc3620/Shooter/DistanceFeet", distanceFeet.in(Feet));
           SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
-          return filteredRPM;
+          return corrected;
         });
   }
 
@@ -252,6 +261,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+
+    
     // This method will be called once per scheduler run
     if (flywheel != null) {
       flywheel.updateTelemetry();
@@ -263,12 +274,27 @@ public class ShooterSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("frc3620/Shooter/CorrectionMap/" + entry.getKey(),
             entry.getValue());
       }
-      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM().getAsBoolean());
+      SmartDashboard.putBoolean("frc3620/Shooter/atRPM", atRPM());
       SmartDashboard.putNumber("frc3620/Shooter/CorrectionAtCurrentDistance", getRPMCorrection(getDistanceToTarget(
           new Translation2d(
               Feet.of(15.17),
               Feet.of(13.235)),
           () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose))));
+    }
+
+    if (beamBreak != null) {
+
+      currentBeamBreakState = !beamBreak.get();
+
+      shotJustFired = lastBeamBreakState && !currentBeamBreakState;
+
+      if (shotJustFired) {
+        shotsFiredCounter++;
+      }
+      lastBeamBreakState = currentBeamBreakState;
+
+      SmartDashboard.putBoolean("frc3620/Shooter/BeamBreakBroken", currentBeamBreakState);
+      SmartDashboard.putNumber("frc3620/Shooter/ShotsFiredCounter", shotsFiredCounter);
     }
   }
 
@@ -301,25 +327,28 @@ public class ShooterSubsystem extends SubsystemBase {
       return 0;
     }
 
-    Integer lowerKey = rpmCorrectionMap.floorKey(getBucket(distance));
-    Integer upperKey = rpmCorrectionMap.ceilingKey(getBucket(distance));
+    double distBuckets = distance.in(Feet) / bucketSize.in(Feet);
 
-    if (lowerKey == null)
-      return rpmCorrectionMap.get(upperKey);
-    if (upperKey == null)
-      return rpmCorrectionMap.get(lowerKey);
+    Integer lowKey = rpmCorrectionMap.floorKey((int) Math.floor(distBuckets));
+    Integer highKey = rpmCorrectionMap.ceilingKey((int) Math.ceil(distBuckets));
 
-    if (lowerKey.equals(upperKey)) {
-      return rpmCorrectionMap.get(lowerKey);
-    }
+    if (highKey == null && lowKey == null)
+      return 0;
+    if (lowKey == null)
+      return rpmCorrectionMap.get(highKey);
+    if (highKey == null)
+      return rpmCorrectionMap.get(lowKey);
 
-    double lowerDist = lowerKey * bucketSize.in(Feet);
-    double upperDist = upperKey * bucketSize.in(Feet);
+    if (lowKey.equals(highKey))
+      return rpmCorrectionMap.get(lowKey);
 
-    double lowerVal = rpmCorrectionMap.get(lowerKey);
-    double upperVal = rpmCorrectionMap.get(upperKey);
+    double lowerDist = lowKey * bucketSize.in(Feet);
+    double highDist = highKey * bucketSize.in(Feet);
 
-    double t = (distance.in(Feet) - lowerDist) / (upperDist - lowerDist);
+    double lowerVal = rpmCorrectionMap.get(lowKey);
+    double upperVal = rpmCorrectionMap.get(highKey);
+
+    double t = (distance.in(Feet) - lowerDist) / (highDist - lowerDist);
 
     return lowerVal * (1 - t) + upperVal * t;
   }
@@ -349,15 +378,34 @@ public class ShooterSubsystem extends SubsystemBase {
     return (int) Math.floor(distance.in(Feet) / bucketSize.in(Feet));
   }
 
-  public BooleanSupplier atRPM() {
+  public boolean atRPM() {
 
     AngularVelocity current = getVelocity();
-    if (current.isNear(filteredRPM, RPM.of(100))) {
+    if (current.isNear(filteredRPM, RPM.of(500))) {
       atRPM = true;
     } else {
       atRPM = false;
     }
 
-    return () -> atRPM;
+    return atRPM;
+  }
+
+  public TalonFX getMotor1() {
+    if (motor1 != null) {
+      return motor1;
+    }
+    return null;
+  }
+
+  public TalonFX getMotor2() {
+    if (motor2 != null) {
+      return motor2;
+    }
+    return null;
+  }
+
+  public BooleanSupplier shotFired() {
+    
+    return ()-> shotJustFired;
   }
 }
