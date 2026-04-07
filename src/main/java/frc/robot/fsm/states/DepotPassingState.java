@@ -23,25 +23,28 @@ import frc.robot.fsm.SuperState;
 
 public class DepotPassingState extends SuperState {
 
-    Command conveyerOn = RobotContainer.conveyerSubsystem
-            .setDutyCycleGated(.8, () -> RobotContainer.shooterSubsystem.atRPM(),
-                    () -> RobotContainer.turretSubsystem.atTarget(),
-                    () -> RobotContainer.shooterHoodSubsystem.atTarget())
-            .until(() -> !RobotContainer.turretSubsystem.atTarget()).until(
-                    () -> !RobotContainer.shooterHoodSubsystem.atTarget());
-    Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
-    Command agitatorBack = RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
+    /*
+     * Command conveyerOn = RobotContainer.conveyerSubsystem
+     * .setDutyCycleGated(.8, () -> RobotContainer.shooterSubsystem.atRPM(),
+     * () -> RobotContainer.turretSubsystem.atTarget(),
+     * () -> RobotContainer.shooterHoodSubsystem.atTarget())
+     * .until(() -> !RobotContainer.turretSubsystem.atTarget()).until(
+     * () -> !RobotContainer.shooterHoodSubsystem.atTarget());
+     * Command agitatorOn = RobotContainer.intakeAgitatorSubsystem.agitatorOn();
+     * Command agitatorBack =
+     * RobotContainer.intakeAgitatorSubsystem.agitatorBackwards();
+     */
 
-    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPosition())
-            .alongWith(
-                    conveyerOn,
-                    agitatorOn);
+    Command doEverythingCommand = new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_PASS.getTargetPositionSupplier());
 
     @Override
     public void onEnter() {
         // Code to run when entering the Passing state
 
         CommandScheduler.getInstance().schedule(doEverythingCommand);
+        
+        RobotContainer.setActiveTarget(ShotCalculator.FieldTargets.DEPOT_PASS);
+
     }
 
     @Override

@@ -49,7 +49,7 @@ public class HubTracker {
         double currentTime = DriverStation.getMatchTime();
         Alliance teamAlliance = DriverStation.getAlliance().orElse(Alliance.Blue);
         Alliance currentActive = getActiveAlliance();
-        Alliance futureActive = getActiveAlliance(currentTime - 10);
+        Alliance futureActive = getActiveAlliance(currentTime - 1);
         return currentActive != teamAlliance && futureActive == teamAlliance;
     }
 

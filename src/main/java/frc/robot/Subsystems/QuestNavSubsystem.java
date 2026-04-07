@@ -14,8 +14,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.util.datalog.StructLogEntry;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -151,9 +150,12 @@ public class QuestNavSubsystem extends SubsystemBase {
             updateVelocity(roboPose, timestamp);
           }
         } else {
-          updateVelocity(rollingAvgPose.getAveragePose(), timestamp);
-          swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-          roboPose = robotPose;
+          if (swerveSubsystem != null) {
+            updateVelocity(robotPose, timestamp);
+            swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+            roboPose = robotPose;
+            
+          }
         }
       
       }

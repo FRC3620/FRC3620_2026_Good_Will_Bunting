@@ -70,6 +70,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     private final Voltage CALIBRATION_VOLTAGE = Volts.of(-1.5);
     private final double VELOCITY_THRESHOLD = 2.0; // deg/sec
     private final double STALL_TIME_SECONDS = 0.25;
+    private final double hoodAlpha = 0.5;
 
     private final Angle HOOD_CALIBRATED_POS = Degrees.of(30); // place holders
     private final Angle MAXPOSITION = Degrees.of(60); // place holders
@@ -118,7 +119,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
             setDefaultCommand(idle().withName("Hood default command"));
         }
         SmartDashboard.putNumber("frc3620/ShooterHood/Hood Angle Dashboard Control", 30);
-        SmartDashboard.putNumber("frc3620/ShotCalculator/HoodAlpha", 1.0);
+        SmartDashboard.putNumber("frc3620/ShotCalculator/HoodAlpha", hoodAlpha);
         SmartDashboard.putBoolean("SHOOTER HOOD END RAN", false);
         SmartDashboard.putNumber("frc3620/ShotCalculator/Ratio Over Min Velocity", 1.03);
         SmartDashboard.putData(this);
@@ -209,7 +210,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 .withName("Shooter Hood setAngle Dashboard");
     }
 
-    public Command createAutoAngleToTargetCommand(Translation3d targetPosition, Supplier<Pose2d> robotPosition,
+    public Command createAutoAngleToTargetCommand(Supplier<Translation3d> targetPosition, Supplier<Pose2d> robotPosition,
             Supplier<VelocityVector> robotVelocity, Supplier<AngularVelocity> shooterSpeed) {
         if (pivot == null)
             return idle();
