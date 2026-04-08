@@ -79,8 +79,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.49951171875);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.81591796875);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.60595703125);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.9326171875);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;

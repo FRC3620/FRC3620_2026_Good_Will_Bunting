@@ -3,32 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.46,
-        "y": 2.5
+        "x": 2.2923395149786017,
+        "y": 0.6774179743223976
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.1230481927710843,
-        "y": 1.9368795180722884
+        "x": 1.5548359486447931,
+        "y": 0.5868473609129818
       },
       "isLocked": false,
-      "linkedName": "Wall Clean Right Bump Setup"
-    },
-    {
-      "anchor": {
-        "x": 3.199045454545454,
-        "y": 0.6852840909090911
-      },
-      "prevControl": {
-        "x": 3.443554563517246,
-        "y": 0.7373925895424239
-      },
-      "nextControl": {
-        "x": 2.570329545454545,
-        "y": 0.5512954545454546
-      },
-      "isLocked": false,
-      "linkedName": null
+      "linkedName": "Wall Clean Right Start"
     },
     {
       "anchor": {
@@ -36,12 +20,12 @@
         "y": 0.575
       },
       "prevControl": {
-        "x": 0.13792045454545443,
-        "y": 0.2730113636363637
+        "x": 0.1834939759036145,
+        "y": 0.3851445783132522
       },
       "nextControl": {
-        "x": 1.0139336293363208,
-        "y": 0.6804254816963777
+        "x": 1.1621568003007343,
+        "y": 0.6928921382537827
       },
       "isLocked": false,
       "linkedName": "Wall Clean Right End"
@@ -52,8 +36,8 @@
         "y": 2.293147727272727
       },
       "prevControl": {
-        "x": 0.519272727272727,
-        "y": 0.7471249999999998
+        "x": 0.522253012048193,
+        "y": 0.7457590361445796
       },
       "nextControl": null,
       "isLocked": false,
@@ -62,27 +46,49 @@
   ],
   "rotationTargets": [
     {
+      "waypointRelativePos": 0.55,
+      "rotationDegrees": 180.0
+    },
+    {
       "waypointRelativePos": 0.8,
-      "rotationDegrees": -150.0
-    },
-    {
-      "waypointRelativePos": 1.55,
       "rotationDegrees": 180.0
     },
     {
-      "waypointRelativePos": 1.8,
-      "rotationDegrees": 180.0
-    },
-    {
-      "waypointRelativePos": 2.4074688796680412,
+      "waypointRelativePos": 1.4074688796680412,
       "rotationDegrees": 150.0
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 1.0394973070017952,
-      "maxWaypointRelativePos": 3.0,
+      "minWaypointRelativePos": 0.03949730700179521,
+      "maxWaypointRelativePos": 0.5459057071960567,
+      "constraints": {
+        "maxVelocity": 0.75,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.5498759305210916,
+      "maxWaypointRelativePos": 1.5940446650124016,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 1.5900744416873454,
+      "maxWaypointRelativePos": 2.0,
       "constraints": {
         "maxVelocity": 0.75,
         "maxAcceleration": 3.0,
@@ -96,7 +102,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.0,
+    "maxVelocity": 1.5,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -111,7 +117,7 @@
   "folder": "Right Bump Start General",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 135.0
+    "rotation": -156.49389929369855
   },
   "useDefaultConstraints": false
 }
