@@ -21,6 +21,23 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
   const [imageLoaded, setImageLoaded] = useState(false);
   const [selectedKey, setSelectedKey] = useState(topics[0].key);
 
+  const getDefault = (key: string): Translation3d => {
+    const config = topics.find(t => t.key === key);
+    const def = config?.defaultValue as number[];
+    return { x: def[0], y: def[1], z: def[2] };
+  };
+
+  const handleReset = (key: string) => {
+    const def = getDefault(key);
+    setPositions(prev => ({ ...prev, [key]: def }));
+    setZValues(prev => ({ ...prev, [key]: def.z }));
+    setValue(key, [def.x, def.y, def.z]);
+  };
+
+  const handleResetAll = () => {
+    topics.forEach(t => handleReset(t.key));
+  };
+
   // Store all target positions in one map keyed by topic key
   const [positions, setPositions] = useState<Record<string, Translation3d>>(() =>
     Object.fromEntries(
@@ -252,6 +269,58 @@ export default function MultiTargetFieldWidget({ topics }: { topics: TopicConfig
         X: {selectedPos.x.toFixed(3)}m &nbsp;|&nbsp;
         Y: {selectedPos.y.toFixed(3)}m &nbsp;|&nbsp;
         Z: {selectedPos.z.toFixed(2)}ft
+      </div>
+      {/* Reset buttons */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+        {topics.map(t => (
+          <button
+            key={t.key}
+            onClick={() => handleReset(t.key)}
+            style={{
+              background: "transparent",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border)",
+              padding: "0.25rem 0.75rem",
+              borderRadius: "2px",
+              cursor: "pointer",
+              fontFamily: "var(--text-mono)",
+              fontSize: "0.65rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = "rgba(255,80,80,0.6)";
+              e.currentTarget.style.color = "#ff5050";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "var(--border)";
+              e.currentTarget.style.color = "var(--text-secondary)";
+            }}
+          >
+            ↺ {t.label}
+          </button>
+        ))}
+        <button
+          onClick={handleResetAll}
+          style={{
+            background: "rgba(255,80,80,0.08)",
+            color: "#ff5050",
+            border: "1px solid rgba(255,80,80,0.3)",
+            padding: "0.25rem 0.75rem",
+            borderRadius: "2px",
+            cursor: "pointer",
+            fontFamily: "var(--text-mono)",
+            fontSize: "0.65rem",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,80,80,0.15)"}
+          onMouseLeave={e => e.currentTarget.style.background = "rgba(255,80,80,0.08)"}
+        >
+          ↺ Reset All
+        </button>
       </div>
     </div>
   );

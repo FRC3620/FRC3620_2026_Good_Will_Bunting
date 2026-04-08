@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { connectToRobot, connectToSimulator, initNT, } from "./nt";
+import { connectToRobot, connectToSimulator, initNT, disconnectNT, isConnected } from "./nt";
 import Dashboard from "./DashboardWidget";
 
 // Add these styles inside App.tsx via a <style> tag at the top of each return,
@@ -168,6 +168,23 @@ export default function App() {
   const [teamNumber, setTeamNumber] = useState("3620");
   const [simHost, setSimHost] = useState("localhost");
   const [errorMsg, setErrorMsg] = useState("");
+  const [ntConnected, setNtConnected] = useState(false);
+
+  useEffect(() => {
+    if (appState !== "connected") return;
+
+    const interval = setInterval(() => {
+      setNtConnected(isConnected());
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [appState]);
+
+  const handleDisconnect = () => {
+    disconnectNT();
+    setNtConnected(false);
+    setAppState("selecting");
+  };
 
   const handleConnect = async () => {
     setAppState("connecting");
@@ -254,12 +271,47 @@ export default function App() {
           <div style={styles.headerTitle}>Average Joes</div>
           <div style={styles.headerSub}>FRC Team 3620 · Dashboard</div>
         </div>
-        <div style={styles.statusBadge(true)}>
-          <div style={styles.dot(true)} />
-          {mode === "robot" ? `TEAM ${teamNumber}` : `SIM · ${simHost}`}
+
+        {/* Right side of header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+
+          {/* Connection status */}
+          <div style={styles.statusBadge(ntConnected)}>
+            <div style={styles.dot(ntConnected)} />
+            {mode === "robot" ? `TEAM ${teamNumber}` : `SIM · ${simHost}`}
+          </div>
+
+          {/* Disconnect / back to menu */}
+          <button
+            onClick={handleDisconnect}
+            style={{
+              background: "transparent",
+              color: "var(--text-secondary)",
+              border: "1px solid var(--border)",
+              padding: "0.4rem 0.9rem",
+              borderRadius: "2px",
+              fontFamily: "var(--text-mono)",
+              fontSize: "0.7rem",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = "rgba(255,80,80,0.5)";
+              e.currentTarget.style.color = "#ff5050";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = "var(--border)";
+              e.currentTarget.style.color = "var(--text-secondary)";
+            }}
+          >
+            ← Menu
+          </button>
         </div>
       </header>
-      <div style={{ padding: "1.5rem" }}>
+
+      <div style={{ padding: "0.75rem" }}>
         <Dashboard />
       </div>
     </div>

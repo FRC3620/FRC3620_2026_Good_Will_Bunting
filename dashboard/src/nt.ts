@@ -69,3 +69,14 @@ export function subscribeToValue(
   const topic = topicRegistry.get(key) ?? subscriberRegistry.get(key);
   topic?.subscribe(callback);
 }
+
+export function disconnectNT() {
+  publisherReady = false;
+  topicRegistry.clear();
+  subscriberRegistry.clear();
+  nt = null;
+}
+
+export function isConnected(): boolean {
+  return nt?.isRobotConnected() ?? false;
+}
