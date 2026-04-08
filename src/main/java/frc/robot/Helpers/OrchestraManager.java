@@ -24,7 +24,8 @@ public class OrchestraManager {
         IGOTAFEELING("I Got a Feeling", "IGOTAFEELING.chrp"),
         PIRATE("Pirates of the Caribbean", "Pirate.chrp"),
         DEEPPURPLE("Deep Purple", "deeppurple.chrp"),
-        BOHEMIANRHAPSODY("Bohemian Rhapsody", "bohemianrhapsody.chrp");
+        BOHEMIANRHAPSODY("Bohemian Rhapsody", "bohemianrhapsody.chrp"),
+        IMPERIALMARCH("Imperial March", "imperialmarch.chrp");
 
         public final String displayName;
         public final String filename;
