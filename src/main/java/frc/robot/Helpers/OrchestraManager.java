@@ -22,7 +22,9 @@ public class OrchestraManager {
         CALLMEMAYBE("Call me Maybe", "CallMeMaybe.chrp"),
         SANDSTORM("Sandstorm", "Sandstorm.chrp" ),
         IGOTAFEELING("I Got a Feeling", "IGOTAFEELING.chrp"),
-        PIRATE("Pirates of the Caribbean", "Pirate.chrp");
+        PIRATE("Pirates of the Caribbean", "Pirate.chrp"),
+        DEEPPURPLE("Deep Purple", "deeppurple.chrp"),
+        BOHEMIANRHAPSODY("Bohemian Rhapsody", "bohemianrhapsody.chrp");
 
         public final String displayName;
         public final String filename;
