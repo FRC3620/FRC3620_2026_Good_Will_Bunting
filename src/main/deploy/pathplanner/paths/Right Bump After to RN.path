@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 8.228772727272727,
-        "y": 1.365534090909091
+        "x": 7.579443181818181,
+        "y": 1.2830795454545454
       },
       "prevControl": {
-        "x": 6.951385803925959,
-        "y": -0.032859494416459745
+        "x": 6.3020562584714135,
+        "y": -0.1153140398710053
       },
       "nextControl": null,
       "isLocked": false,
@@ -59,7 +59,7 @@
   },
   "goalEndState": {
     "velocity": 1.5,
-    "rotation": 90.0
+    "rotation": 74.74488129694217
   },
   "reversed": false,
   "folder": "Before and After Right Bump",

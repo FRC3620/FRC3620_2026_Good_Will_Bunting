@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 7.9092613636363645,
-        "y": 3.0146249999999997
+        "y": 2.75
       },
       "prevControl": null,
       "nextControl": {
         "x": 7.042745336618165,
-        "y": 3.7060482335905665
+        "y": 3.441423233590567
       },
       "isLocked": false,
       "linkedName": "Center Neutral Collect"
@@ -20,7 +20,7 @@
         "y": 2.5
       },
       "prevControl": {
-        "x": 7.5815542168674686,
+        "x": 7.581554216867468,
         "y": 2.166361445783133
       },
       "nextControl": null,
