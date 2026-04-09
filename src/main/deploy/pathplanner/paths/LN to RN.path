@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 8.244122681883024,
-        "y": 1.182025677603425
+        "x": 7.579443181818181,
+        "y": 1.2830795454545454
       },
       "prevControl": {
-        "x": 8.239105000863162,
-        "y": 2.0215571394850675
+        "x": 7.57442550079832,
+        "y": 2.1226110073361886
       },
       "nextControl": null,
       "isLocked": false,
@@ -54,7 +54,7 @@
   },
   "goalEndState": {
     "velocity": 2.0,
-    "rotation": 90.0
+    "rotation": 74.74488129694217
   },
   "reversed": false,
   "folder": "Left Bump Start General",

@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.244122681883024,
-        "y": 1.182025677603425
+        "x": 7.579443181818181,
+        "y": 1.2830795454545454
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.898062344704674,
-        "y": 0.2806592179760957
+        "x": 7.233382844639832,
+        "y": 0.38171308582721597
       },
       "isLocked": false,
       "linkedName": "Right Neutral Collect"
@@ -60,7 +60,7 @@
   "folder": "Before and After Right Bump",
   "idealStartingState": {
     "velocity": 2.0,
-    "rotation": 90.0
+    "rotation": 74.74488129694217
   },
   "useDefaultConstraints": true
 }

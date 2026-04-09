@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 7.778253012048193,
-        "y": 4.679734939759036
+        "y": 5.45
       },
       "prevControl": null,
       "nextControl": {
         "x": 6.290307220322088,
-        "y": 3.9292927143667393
+        "y": 4.699557774607704
       },
       "isLocked": false,
       "linkedName": "LN to CN Short"

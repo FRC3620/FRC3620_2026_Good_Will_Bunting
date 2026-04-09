@@ -74,19 +74,7 @@
                                 {
                                   "type": "named",
                                   "data": {
-                                    "name": "Feed Shot"
-                                  }
-                                },
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 3.5
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Jostle"
+                                    "name": "Feed Pass"
                                   }
                                 }
                               ]
