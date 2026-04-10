@@ -79,9 +79,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.44580078125);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.76513671875);
-
+  private static final Angle absAEncoderOffset = Rotations.of(-0.231689453125);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.5400390625);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
@@ -112,7 +111,7 @@ public class TurretSubsystem extends SubsystemBase {
       turretEncoderB = new CANcoder(Constants.ENCODERID_TURRET_B);
 
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
-
+      
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(120, 0, 1, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
