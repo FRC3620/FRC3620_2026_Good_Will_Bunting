@@ -3,16 +3,18 @@
   "robotLength": 0.8382,
   "holonomicMode": true,
   "pathFolders": [
+    "Before and After Left Bump",
     "Before and After Right Bump",
     "Left Bump Start General",
-    "Before and After Left Bump",
+    "Center Start",
     "Right Bump Start General",
     "Test Paths"
   ],
   "autoFolders": [
     "Left Bump Start",
-    "Tests",
-    "Right Bump Start"
+    "Center Start",
+    "Right Bump Start",
+    "Tests"
   ],
   "defaultMaxVel": 1.5,
   "defaultMaxAccel": 1.5,
