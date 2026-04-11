@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { connectToRobot, connectToSimulator, initNT, disconnectNT, isConnected } from "./nt";
 import Dashboard from "./DashboardWidget";
+import buntingLogoBig from "./assets/BuntingLogoBig.png";
+import buntingLogoSmall from "./assets/BuntingLogoSmall.png";
+import buntingLogoSmall2 from "./assets/BuntingLogoSmall2.png";
 
 // Add these styles inside App.tsx via a <style> tag at the top of each return,
 // or just apply classNames if you set up CSS modules.
@@ -208,13 +211,31 @@ export default function App() {
       <div style={styles.page}>
         <header style={styles.header}>
           <div>
-            <div style={styles.headerTitle}>Average Joes</div>
+            <div style={styles.headerTitle}>Average Joes · BUNTING</div>
             <div style={styles.headerSub}>FRC Team 3620 · Dashboard</div>
+            <div ></div>
           </div>
         </header>
 
         <div style={styles.connectPage}>
           <div style={styles.connectCard}>
+            {/* Logo */}
+            <div style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "1.5rem",
+            }}>
+              <img
+                src={buntingLogoBig}
+                alt="BUNTING Dashboard"
+                style={{
+                  width: "350px",
+                  height: "auto",
+                  filter: "drop-shadow(0 0 18px rgba(255, 203, 5, 0.2))",
+                }}
+              />
+            </div>
+
             <div style={styles.connectTitle}>Establish Connection</div>
 
             <div style={styles.radioGroup}>
@@ -267,9 +288,31 @@ export default function App() {
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <div>
-          <div style={styles.headerTitle}>Average Joes</div>
-          <div style={styles.headerSub}>FRC Team 3620 · Dashboard</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <img
+            src={buntingLogoSmall}
+            alt="BUNTING"
+            style={{
+              height: "55px",
+              width: "auto",
+              filter: "drop-shadow(0 0 8px rgba(255, 203, 5, 0.25))",
+              mixBlendMode: "screen",
+            }}
+          />
+          <div>
+            <div style={styles.headerTitle}>Average Joes · BUNTING</div>
+            <div style={styles.headerSub}>FRC Team 3620 · Dashboard</div>
+          </div>
+          <img
+            src={buntingLogoSmall2}
+            alt="BUNTING"
+            style={{
+              height: "55px",
+              width: "auto",
+              filter: "drop-shadow(0 0 8px rgba(255, 203, 5, 0.25))",
+              mixBlendMode: "screen",
+            }}
+          />
         </div>
 
         {/* Right side of header */}
