@@ -143,13 +143,13 @@
   },
   "goalEndState": {
     "velocity": 3.0,
-    "rotation": -46.90915243299639
+    "rotation": -45.0
   },
   "reversed": false,
   "folder": "Left Bump Start General",
   "idealStartingState": {
     "velocity": 3.0,
-    "rotation": -178.66778014613047
+    "rotation": 0.0
   },
   "useDefaultConstraints": false
 }

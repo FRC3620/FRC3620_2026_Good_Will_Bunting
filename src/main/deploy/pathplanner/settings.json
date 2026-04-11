@@ -3,9 +3,10 @@
   "robotLength": 0.8382,
   "holonomicMode": true,
   "pathFolders": [
+    "Before and After Left Bump",
     "Before and After Right Bump",
     "Left Bump Start General",
-    "Before and After Left Bump",
+    "Beebotics",
     "Right Bump Start General",
     "Test Paths"
   ],

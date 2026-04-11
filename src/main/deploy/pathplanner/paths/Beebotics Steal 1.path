@@ -8,35 +8,51 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.9926264418810997,
-        "y": 5.519840283939662
+        "x": 4.469757489300998,
+        "y": 5.529415121255349
       },
       "isLocked": false,
       "linkedName": "Left Bump Start"
     },
     {
       "anchor": {
-        "x": 1.0631669044222536,
-        "y": 4.727218259629101
+        "x": 5.9314698795180725,
+        "y": 5.529415121255349
       },
       "prevControl": {
-        "x": 1.493655723158828,
-        "y": 5.173779946761313
+        "x": 5.51994765545778,
+        "y": 5.485716943737861
+      },
+      "nextControl": {
+        "x": 6.342992103578365,
+        "y": 5.573113298772837
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.974951807228916,
+        "y": 6.719771754636234
+      },
+      "prevControl": {
+        "x": 7.122590361445782,
+        "y": 7.7906874172868354
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Climb"
+      "linkedName": "Left Neutral Collect"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.8020134228187928,
-      "maxWaypointRelativePos": 1.0,
+      "minWaypointRelativePos": 0.708684863523573,
+      "maxWaypointRelativePos": 1.5622828784119105,
       "constraints": {
-        "maxVelocity": 1.5,
-        "maxAcceleration": 1.5,
+        "maxVelocity": 1.0,
+        "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -47,22 +63,22 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.5,
-    "maxAcceleration": 1.5,
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": 0.0
+    "velocity": 1.0,
+    "rotation": -70.0
   },
   "reversed": false,
-  "folder": "Before and After Left Bump",
+  "folder": "Beebotics",
   "idealStartingState": {
-    "velocity": 2.5,
+    "velocity": 0,
     "rotation": -45.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

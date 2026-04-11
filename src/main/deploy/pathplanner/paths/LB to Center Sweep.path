@@ -8,63 +8,51 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.740120481927711,
-        "y": 5.4883855421686745
+        "x": 4.469757489300998,
+        "y": 5.529415121255349
       },
       "isLocked": false,
       "linkedName": "Left Bump Start"
     },
     {
       "anchor": {
-        "x": 6.237445783132531,
+        "x": 8.346493975903615,
         "y": 5.529415121255349
       },
       "prevControl": {
-        "x": 4.467156626506024,
-        "y": 5.553951807228916
+        "x": 7.3464939759036145,
+        "y": 5.529415121255349
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "1"
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.3496801705756997,
+      "waypointRelativePos": 0.40082987551867044,
       "rotationDegrees": -45.0
     }
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "Intake Down",
-      "waypointRelativePos": 0.0,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Intake Down"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": -45.0
+    "velocity": 4.0,
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Left Bump Start General",
+  "folder": "Beebotics",
   "idealStartingState": {
-    "velocity": 1.0,
+    "velocity": 0,
     "rotation": -45.0
   },
   "useDefaultConstraints": false

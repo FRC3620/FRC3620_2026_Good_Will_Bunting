@@ -20,7 +20,7 @@
         "y": 5.555292439372327
       },
       "prevControl": {
-        "x": 7.28666191155492,
+        "x": 7.286661911554919,
         "y": 5.23182596291013
       },
       "nextControl": null,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 3.0,
-    "rotation": -178.66778014613047
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": "Left Bump Start General",
