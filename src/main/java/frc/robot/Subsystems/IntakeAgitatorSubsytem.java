@@ -8,9 +8,12 @@ import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecondPerSecond;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -42,10 +45,13 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
+                    HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))// need to verify gearing here
+                    .withClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
+                    .withSimClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
+                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18, 30)))// need to verify gearing here
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
@@ -64,15 +70,32 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
         }
     }
 
+    /*
+     * public Command agitatorOn() {
+     * // Only use YAMS control, not manual rollers.set()
+     * Command rv;
+     * if (flyWheel != null) {
+     * rv = flyWheel.set(.70); // need to test this
+     * } else {
+     * rv = idle();
+     * }
+     * return rv.withName(telemetryPrefix + " On");
+     * }
+     */
+
     public Command agitatorOn() {
-        // Only use YAMS control, not manual rollers.set()
-        Command rv;
+        return createSetVelocityCommand(() -> RPM.of(3000));
+    }
+
+    public Command agitatorReverse() {
+        return createSetVelocityCommand(() -> RPM.of(-3000));
+    }
+
+    public Command createSetVelocityCommand(Supplier<AngularVelocity> velocity) {
         if (flyWheel != null) {
-            rv = flyWheel.set(.70); // need to test this
-        } else {
-            rv = idle();
+            return flyWheel.setSpeed(velocity);
         }
-        return rv.withName(telemetryPrefix + " On");
+        return idle();
     }
 
     public Command agitatorOff() {
@@ -85,15 +108,17 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
         return rv.withName(telemetryPrefix + " Off");
     }
 
-    public Command agitatorBackwards() {
-        Command rv;
-        if (flyWheel != null) {
-            rv = flyWheel.set(-.30);
-        } else {
-            rv = idle();
-        }
-        return rv.withName(telemetryPrefix + " Backwards");
-    }
+    /*
+     * public Command agitatorBackwards() {
+     * Command rv;
+     * if (flyWheel != null) {
+     * rv = flyWheel.set(-.30);
+     * } else {
+     * rv = idle();
+     * }
+     * return rv.withName(telemetryPrefix + " Backwards");
+     * }
+     */
 
     @Override
     public void periodic() {
@@ -102,7 +127,6 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
             SmartDashboard.putNumber(telemetryPrefix + "agitator Velocity", flyWheel.getSpeed().in(RPM));
         }
     }
-
 
     @Override
     public void simulationPeriodic() {
