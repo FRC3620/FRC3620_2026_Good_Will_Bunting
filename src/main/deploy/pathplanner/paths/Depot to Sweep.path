@@ -3,43 +3,38 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.778253012048193,
-        "y": 5.7
+        "x": 0.43681818181818155,
+        "y": 4.808011363636364
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.34737385222201,
-        "y": 4.199115549215408
+        "x": 0.4368181818221964,
+        "y": 6.178818181823191
       },
       "isLocked": false,
-      "linkedName": "LN to CN Short"
+      "linkedName": "Quick Center to Depot"
     },
     {
       "anchor": {
-        "x": 3.4697574893009984,
-        "y": 5.529415121255349
+        "x": 0.47804545454545433,
+        "y": 7.436250000005009
       },
       "prevControl": {
-        "x": 6.730299572039942,
-        "y": 6.1245934379457925
+        "x": 0.4471250000040148,
+        "y": 6.7560000000050096
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Left Bump Start"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.7313432835820857,
-      "rotationDegrees": -45.0
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 0.75,
+    "maxAcceleration": 0.75,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -47,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -46.90915243299639
+    "rotation": 89.99999999949274
   },
   "reversed": false,
-  "folder": "Left Bump Start General",
+  "folder": "Center Start",
   "idealStartingState": {
-    "velocity": 1.0,
-    "rotation": 180.0
+    "velocity": 0,
+    "rotation": 90.0
   },
   "useDefaultConstraints": false
 }

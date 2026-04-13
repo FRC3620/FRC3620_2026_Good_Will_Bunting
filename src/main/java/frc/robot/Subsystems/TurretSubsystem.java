@@ -79,9 +79,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.44580078125);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.76513671875);
-
+  private static final Angle absAEncoderOffset = Rotations.of(-0.616943359375);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.903564453125);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
@@ -244,15 +243,15 @@ public class TurretSubsystem extends SubsystemBase {
 
             double alpha = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", turretFilterAlpha);
             if (!turretInitialized) {
-              filteredTargetAngle = wrapped;
+              filteredTargetAngle = withOffset;
               turretInitialized = true;
             }
-            double delta = wrapped.minus(filteredTargetAngle).in(Degrees);
+            double delta = withOffset.minus(filteredTargetAngle).in(Degrees);
 
             if (Math.abs(delta) > 120) {
-              filteredTargetAngle = wrapped; // snap instead of smoothing
+              filteredTargetAngle = withOffset; // snap instead of smoothing
             } else if (RobotContainer.questNavSubsystem.getQuestNavOmega().gte(DegreesPerSecond.of(20))) {
-              filteredTargetAngle = wrapped;
+              filteredTargetAngle = withOffset;
             } else {
               filteredTargetAngle = filteredTargetAngle.plus(Degrees.of(delta * alpha));
             }
