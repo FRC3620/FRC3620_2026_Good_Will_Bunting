@@ -751,7 +751,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem
-                  .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+                   .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
                       () -> shooterHoodSubsystem.atTarget())
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
