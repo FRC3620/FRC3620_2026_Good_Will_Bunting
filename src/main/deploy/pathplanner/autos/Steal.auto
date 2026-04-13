@@ -54,7 +54,7 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 1.5
+                                    "waitTime": 2.5
                                   }
                                 },
                                 {
@@ -136,6 +136,6 @@
     }
   },
   "resetOdom": false,
-  "folder": "Left Bump Start",
+  "folder": "Tests",
   "choreoAuto": false
 }

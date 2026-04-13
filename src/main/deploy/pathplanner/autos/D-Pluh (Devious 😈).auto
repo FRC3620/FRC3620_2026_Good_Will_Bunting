@@ -111,6 +111,6 @@
     }
   },
   "resetOdom": false,
-  "folder": "Left Bump Start",
+  "folder": "Tests",
   "choreoAuto": false
 }
