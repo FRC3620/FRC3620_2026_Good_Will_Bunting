@@ -79,9 +79,8 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.44580078125);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.76513671875);
-
+  private static final Angle absAEncoderOffset = Rotations.of(-0.98828125);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.0);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
@@ -90,8 +89,8 @@ public class TurretSubsystem extends SubsystemBase {
   private boolean atTarget = false;
   
   private Angle targetAngle = Degrees.of(0); 
-  private static final double MIN_ANGLE = -360;
-  private static final double MAX_ANGLE = 123;
+  private static final double MIN_ANGLE = -282;
+  private static final double MAX_ANGLE = 125;
 
   private Angle nearRightWrappingAngle = Degrees.of(MIN_ANGLE + 70);
   private Angle reallyCloseToRightWrappingAngle = Degrees.of(MIN_ANGLE + 30);
@@ -115,8 +114,8 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(120, 0, 1, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
-          .withSimClosedLoopController(120, 0, 1, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
+          .withSimClosedLoopController(110, 0, 0, DegreesPerSecond.of(1000), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
@@ -244,15 +243,15 @@ public class TurretSubsystem extends SubsystemBase {
 
             double alpha = SmartDashboard.getNumber("frc3620/ShotCalculator/TurretAlpha", turretFilterAlpha);
             if (!turretInitialized) {
-              filteredTargetAngle = wrapped;
+              filteredTargetAngle = withOffset;
               turretInitialized = true;
             }
-            double delta = wrapped.minus(filteredTargetAngle).in(Degrees);
+            double delta = withOffset.minus(filteredTargetAngle).in(Degrees);
 
             if (Math.abs(delta) > 120) {
-              filteredTargetAngle = wrapped; // snap instead of smoothing
+              filteredTargetAngle = withOffset; // snap instead of smoothing
             } else if (RobotContainer.questNavSubsystem.getQuestNavOmega().gte(DegreesPerSecond.of(20))) {
-              filteredTargetAngle = wrapped;
+              filteredTargetAngle = withOffset;
             } else {
               filteredTargetAngle = filteredTargetAngle.plus(Degrees.of(delta * alpha));
             }

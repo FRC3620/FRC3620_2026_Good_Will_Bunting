@@ -1,0 +1,85 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.405181818181818,
+        "y": 3.9937727272727273
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.8900795454545452,
+        "y": 4.179295454545454
+      },
+      "isLocked": false,
+      "linkedName": "Center Start"
+    },
+    {
+      "anchor": {
+        "x": 0.43681818181818155,
+        "y": 4.808011363636364
+      },
+      "prevControl": {
+        "x": 2.941375,
+        "y": 4.9523068181818175
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Quick Center to Depot"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 89.2559407971113
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.8725314183123878,
+      "maxWaypointRelativePos": 1.0,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 1.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "Intake Down",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Intake Down"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 1.5,
+    "maxAcceleration": 1.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 90.0
+  },
+  "reversed": false,
+  "folder": "Center Start",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -40.42607874009913
+  },
+  "useDefaultConstraints": false
+}

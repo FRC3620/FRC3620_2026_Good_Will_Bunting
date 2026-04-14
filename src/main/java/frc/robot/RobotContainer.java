@@ -89,8 +89,10 @@ import frc.robot.fsm.StateMachine;
 import frc.robot.fsm.StateTransition;
 import frc.robot.fsm.states.ClimbingState;
 import frc.robot.fsm.states.DeadeyeState;
+import frc.robot.fsm.states.DepotDeepState;
 import frc.robot.fsm.states.DepotPassingState;
 import frc.robot.fsm.states.HoardingState;
+import frc.robot.fsm.states.OutpostDeepState;
 import frc.robot.fsm.states.OutpostPassingState;
 import frc.robot.fsm.states.ScoringState;
 
@@ -113,11 +115,14 @@ public class RobotContainer implements RobotModeChangeListener {
   private DeadeyeState deadeyeState;
   private HoardingState hoardingState;
   private DepotPassingState depotPassingState;
+  private OutpostDeepState outpostDeepState;
+  private DepotDeepState depotDeepState;
 
   private static StateMachine stateMachine;
   private FieldTriggers fieldTriggers;
   public static FMSTriggers fmsTriggers;
   private ButtonTriggers buttonTriggers;
+
 
   private Optional<Alliance> alliance;
 
@@ -372,6 +377,8 @@ public class RobotContainer implements RobotModeChangeListener {
   private void makeStates() {
     outpostPassingState = new OutpostPassingState();
     depotPassingState = new DepotPassingState();
+    outpostDeepState = new OutpostDeepState();
+    depotDeepState = new DepotDeepState();
     scoringState = new ScoringState();
     climbingState = new ClimbingState();
     deadeyeState = new DeadeyeState();
@@ -405,7 +412,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     fmsTriggersOff = new Trigger(useFMSTriggers.negate());
     fmsTriggersOn = new Trigger(useFMSTriggers);
-
+     
     scoringState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterDepotPass)),
         hoardingState));
@@ -513,6 +520,8 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOn.and(fieldTriggers.enterDepotPass),
         depotPassingState));
 
+        
+
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
@@ -524,6 +533,27 @@ public class RobotContainer implements RobotModeChangeListener {
         useFMSTriggers.and(fmsTriggers.aboutToBecomeActive), hoardingState));
     depotPassingState.addTransition(new StateTransition(
         useFMSTriggers.and(fmsTriggers.aboutToBecomeActive), hoardingState));
+
+
+    //new deep state transitions
+    outpostPassingState.addTransition(new StateTransition(
+      fieldTriggers.enterDeepOutpost, outpostDeepState));
+    depotPassingState.addTransition(new StateTransition(
+      fieldTriggers.enterDeepDepot, depotDeepState));
+    hoardingState.addTransition(new StateTransition(
+      fieldTriggers.enterDeepOutpost, outpostDeepState));
+    hoardingState.addTransition(new StateTransition(
+      fieldTriggers.enterDeepDepot, depotDeepState));
+    depotDeepState.addTransition(new StateTransition(
+      fieldTriggers.enterDeadZone, hoardingState));
+    outpostDeepState.addTransition(new StateTransition(
+      fieldTriggers.enterDeadZone, hoardingState));
+    outpostDeepState.addTransition(new StateTransition(
+      fieldTriggers.enterOutpostPass, outpostPassingState));
+    depotPassingState.addTransition(new StateTransition(
+      fieldTriggers.enterDepotPass, depotPassingState));
+    //should work
+
     /*
      * hoardingState.addTransition(new StateTransition(
      * useFMSTriggers.and(fmsTriggers.isActivePeriod).and(fieldTriggers.
@@ -751,7 +781,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem
-                  .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+                   .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
                       () -> shooterHoodSubsystem.atTarget())
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())

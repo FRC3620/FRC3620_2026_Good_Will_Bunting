@@ -80,8 +80,10 @@ public class ShotCalculator {
                 OP_PASS(new Translation3d(Inches.of(126), Inches.of(98.85), Inches.of(0))),
                 DEPOT_PASS(new Translation3d(Inches.of(126), Inches.of(218.838), Inches.of(0))),
                 OP_CORNER(new Translation3d(Meters.of(4.054), Meters.of(1.410), Inches.of(0))),
-                DEPOT_CORNER(new Translation3d(Inches.of(110), Inches.of(220), Inches.of(0)));
-                
+                DEPOT_CORNER(new Translation3d(Inches.of(110), Inches.of(220), Inches.of(0))),
+                OP_DEEP_PASS(new Translation3d(Meters.of(5.586), Meters.of(2.404), Meters.of(0))),
+                DEPOT_DEEP_PASS(new Translation3d(Meters.of(5.586), Meters.of(8-2.404), Meters.of(0)))
+                ;
                 private Translation3d targetPosition;
 
                 FieldTargets(Translation3d targetPosition) {
