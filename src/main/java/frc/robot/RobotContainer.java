@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.Optional;
+import java.util.Set;
 
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.CANDeviceFinder;
@@ -122,7 +123,6 @@ public class RobotContainer implements RobotModeChangeListener {
   private FieldTriggers fieldTriggers;
   public static FMSTriggers fmsTriggers;
   private ButtonTriggers buttonTriggers;
-
 
   private Optional<Alliance> alliance;
 
@@ -412,7 +412,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     fmsTriggersOff = new Trigger(useFMSTriggers.negate());
     fmsTriggersOn = new Trigger(useFMSTriggers);
-     
+
     scoringState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterDepotPass)),
         hoardingState));
@@ -520,8 +520,6 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOn.and(fieldTriggers.enterDepotPass),
         depotPassingState));
 
-        
-
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
@@ -534,25 +532,24 @@ public class RobotContainer implements RobotModeChangeListener {
     depotPassingState.addTransition(new StateTransition(
         useFMSTriggers.and(fmsTriggers.aboutToBecomeActive), hoardingState));
 
-
-    //new deep state transitions
+    // new deep state transitions
     outpostPassingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepOutpost, outpostDeepState));
+        fieldTriggers.enterDeepOutpost, outpostDeepState));
     depotPassingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepDepot, depotDeepState));
+        fieldTriggers.enterDeepDepot, depotDeepState));
     hoardingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepOutpost, outpostDeepState));
+        fieldTriggers.enterDeepOutpost, outpostDeepState));
     hoardingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepDepot, depotDeepState));
+        fieldTriggers.enterDeepDepot, depotDeepState));
     depotDeepState.addTransition(new StateTransition(
-      fieldTriggers.enterDeadZone, hoardingState));
+        fieldTriggers.enterDeadZone, hoardingState));
     outpostDeepState.addTransition(new StateTransition(
-      fieldTriggers.enterDeadZone, hoardingState));
+        fieldTriggers.enterDeadZone, hoardingState));
     outpostDeepState.addTransition(new StateTransition(
-      fieldTriggers.enterOutpostPass, outpostPassingState));
+        fieldTriggers.enterOutpostPass, outpostPassingState));
     depotPassingState.addTransition(new StateTransition(
-      fieldTriggers.enterDepotPass, depotPassingState));
-    //should work
+        fieldTriggers.enterDepotPass, depotPassingState));
+    // should work
 
     /*
      * hoardingState.addTransition(new StateTransition(
@@ -681,6 +678,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void configureButtonBindings() {
 
+    SmartDashboard.putNumber("Auto/WaitToStart", 0.0);
+
     Trigger driverLeftTriggerFlySky = new Trigger(
         driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
@@ -781,7 +780,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem
-                   .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+                  .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
                       () -> shooterHoodSubsystem.atTarget())
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
@@ -954,7 +953,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     }
 
-    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+    SmartDashboard
+        .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
@@ -1028,6 +1028,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Initialize Pass Left",
         new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPositionSupplier()));
+
+    NamedCommands.registerCommand("WaitToStart", Commands.defer(
+        () -> Commands.waitSeconds(
+            SmartDashboard.getNumber("Auto/WaitToStart", 0.0)),
+        Set.of()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
