@@ -296,25 +296,6 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem != null)
       orchestra = new OrchestraManager();
     if (swerveSubsystem != null) {
-      orchestra.addInstrument(swerveSubsystem.getModule(0).getDriveMotor(), 4); // fretless bass - most notes, low
-      orchestra.addInstrument(swerveSubsystem.getModule(1).getDriveMotor(), 4); // doubled bass
-      orchestra.addInstrument(swerveSubsystem.getModule(2).getDriveMotor(), 9); // unknown/drums - busy, low range
-      orchestra.addInstrument(swerveSubsystem.getModule(3).getDriveMotor(), 9); // doubled
-      orchestra.addInstrument(swerveSubsystem.getModule(0).getSteerMotor(), 1); // acoustic bass line
-      orchestra.addInstrument(swerveSubsystem.getModule(1).getSteerMotor(), 1); // doubled
-      orchestra.addInstrument(swerveSubsystem.getModule(2).getSteerMotor(), 3); // violin melody - shooters handle highs
-                                                                                // best
-      orchestra.addInstrument(swerveSubsystem.getModule(3).getSteerMotor(), 3); // doubled melody
-      orchestra.addInstrument(shooterSubsystem.getMotor1(), 3); // tripled melody
-      orchestra.addInstrument(shooterSubsystem.getMotor2(), 3); // quadrupled melody
-      orchestra.addInstrument(turretSubsystem.getMotor(), 10); // lead synth mid
-      orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
-      orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
-      orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
-      orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
-      orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
-      orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
-      orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
       makeMusic();
     }
 
@@ -358,7 +339,7 @@ public class RobotContainer implements RobotModeChangeListener {
       OrchestraManager.OrchestraSong selected = musicChooser.getSelected();
 
       if (selected != null && selected != lastSong) {
-        orchestra.reload(selected.filename);
+        orchestra.reload(selected);
         lastSong = selected;
       }
     }
