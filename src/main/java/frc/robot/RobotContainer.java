@@ -412,7 +412,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     fmsTriggersOff = new Trigger(useFMSTriggers.negate());
     fmsTriggersOn = new Trigger(useFMSTriggers);
-
+     
     scoringState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterDepotPass)),
         hoardingState));
@@ -520,6 +520,8 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOn.and(fieldTriggers.enterDepotPass),
         depotPassingState));
 
+        
+
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
@@ -550,7 +552,7 @@ public class RobotContainer implements RobotModeChangeListener {
       fieldTriggers.enterOutpostPass, outpostPassingState));
     depotPassingState.addTransition(new StateTransition(
       fieldTriggers.enterDepotPass, depotPassingState));
-    
+    //should work
 
     /*
      * hoardingState.addTransition(new StateTransition(
