@@ -21,6 +21,9 @@ public class FieldTriggers {
       //  public final Trigger enterOpponentDepot;
        // public final Trigger enterOpponentOutpost;
         public final Trigger enterDeadZone;
+
+        public final Trigger enterDeepOutpost;
+        public final Trigger enterDeepDepot;
      //   public final Trigger enterClimbZone;
 
         public FieldTriggers(Supplier<Pose2d> pSupplier) {
@@ -77,10 +80,18 @@ public class FieldTriggers {
                                 || (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.435334
                                 && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 4.763135
                                 && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 3.266821));
+
+                enterDeepOutpost = new Trigger(
+                                () -> (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.435334
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) < 3.292729));
+                enterDeepDepot = new Trigger(
+                                () -> (AllianceFlipUtil.applyX(safePose.get().getMeasureX().in(Meters)) > 11.435334
+                                && AllianceFlipUtil.applyY(safePose.get().getMeasureY().in(Meters)) > 4.763135));
+                               
         
 
-                enterDepotPass = enterOurAllianceZone.negate().and(enterDeadZone.negate()).and(enterDepotHalf);
-                enterOutpostPass = enterOurAllianceZone.negate().and(enterDeadZone.negate()).and(enterOutpostHalf).and(enterDepotPass.negate());
+                enterDepotPass = enterOurAllianceZone.negate().and(enterDeadZone.negate()).and(enterDeepDepot.negate()).and(enterDepotHalf);
+                enterOutpostPass = enterOurAllianceZone.negate().and(enterDeadZone.negate()).and(enterOutpostHalf).and(enterDeepOutpost.negate()).and(enterDepotPass.negate());
 
         }
 
