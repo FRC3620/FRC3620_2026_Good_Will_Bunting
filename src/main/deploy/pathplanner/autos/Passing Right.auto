@@ -60,9 +60,22 @@
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Initialize Pass Right"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.5
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Initialize Pass Right"
+                      }
+                    }
+                  ]
                 }
               }
             ]
@@ -105,9 +118,22 @@
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Initialize Shot"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.7
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Initialize Shot"
+                      }
+                    }
+                  ]
                 }
               }
             ]

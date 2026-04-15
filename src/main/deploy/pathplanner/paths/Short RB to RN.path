@@ -39,7 +39,7 @@
   "eventMarkers": [
     {
       "name": "Intake Down",
-      "waypointRelativePos": 0.0,
+      "waypointRelativePos": 0.36086175942549376,
       "endWaypointRelativePos": null,
       "command": {
         "type": "named",
@@ -50,7 +50,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 3.5,
     "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
