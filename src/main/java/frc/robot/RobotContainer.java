@@ -528,7 +528,7 @@ public class RobotContainer implements RobotModeChangeListener {
         fieldTriggers.enterDeadZone, hoardingState));
     outpostDeepState.addTransition(new StateTransition(
         fieldTriggers.enterOutpostPass, outpostPassingState));
-    depotPassingState.addTransition(new StateTransition(
+    depotDeepState.addTransition(new StateTransition(
         fieldTriggers.enterDepotPass, depotPassingState));
     // should work
 
@@ -753,7 +753,19 @@ public class RobotContainer implements RobotModeChangeListener {
        * .whileTrue(
        * shooterSubsystem.sysIdQuasistaticReverse());
        */
+      teachShooterTriggerUnder.onTrue(new InstantCommand(() -> {
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
+            () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, 50 + distanceFt.in(Feet) * 5);
+      }));
 
+      teachShooterTriggerOver.onTrue(new InstantCommand(() -> {
+        Distance distanceFt = ShotCalculator.calculateBaseHDistanceToTarget(
+            () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
+            () -> AllianceFlipUtil.apply(swerveSubsystem.getState().Pose));
+        shooterSubsystem.learnShot(distanceFt, -(50 + distanceFt.in(Feet) * 5));
+      }));
     }
 
     if (intakeAgitatorSubsystem != null && conveyerSubsystem != null && preshooterSubsystem != null) {
