@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "WaitToStart"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -87,9 +93,22 @@
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Initialize Shot"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 5.5
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Initialize Shot"
+                      }
+                    }
+                  ]
                 }
               }
             ]

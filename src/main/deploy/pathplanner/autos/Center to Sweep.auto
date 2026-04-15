@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "WaitToStart"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
