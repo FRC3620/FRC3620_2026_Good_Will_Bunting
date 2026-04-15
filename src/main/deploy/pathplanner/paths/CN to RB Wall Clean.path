@@ -32,44 +32,44 @@
     },
     {
       "anchor": {
-        "x": 0.700884450784593,
-        "y": 2.3335663338088444
+        "x": 2.384806818177968,
+        "y": 0.61313636363309
       },
       "prevControl": {
-        "x": 0.7864790113982372,
-        "y": 2.7829377770304786
+        "x": 2.8416571669315243,
+        "y": 0.6365645866449275
       },
       "nextControl": {
-        "x": 0.6491298145506419,
-        "y": 2.0618544935805994
-      },
-      "isLocked": false,
-      "linkedName": "Wall Clean Right Start"
-    },
-    {
-      "anchor": {
-        "x": 0.4676144578313255,
-        "y": 0.6644793152639101
-      },
-      "prevControl": {
-        "x": 0.5089659090909089,
-        "y": 1.0047954545454547
-      },
-      "nextControl": {
-        "x": 0.43745902245762586,
-        "y": 0.4163046797400062
+        "x": 1.1789090909090907,
+        "y": 0.5512954545454545
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.9688730385164046,
-        "y": 0.6644793152639101
+        "x": 0.6635681818143311,
+        "y": 0.468840909087636
       },
       "prevControl": {
-        "x": 0.6533855421686747,
-        "y": 0.7020481927710843
+        "x": 0.4184230128917778,
+        "y": 0.4198118753022093
+      },
+      "nextControl": {
+        "x": 1.3335113636363638,
+        "y": 0.6028295454545458
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.4677386363597855,
+        "y": 2.4477499999967267
+      },
+      "prevControl": {
+        "x": 0.7047954545454541,
+        "y": 0.5409886363636371
       },
       "nextControl": null,
       "isLocked": false,
@@ -86,19 +86,23 @@
       "rotationDegrees": 180.0
     },
     {
-      "waypointRelativePos": 1.675906183368863,
-      "rotationDegrees": -135.0
+      "waypointRelativePos": 1.9559748427672956,
+      "rotationDegrees": -160.0
     },
     {
-      "waypointRelativePos": 2.8742004264392307,
-      "rotationDegrees": -90.0
+      "waypointRelativePos": 3.0188679245283025,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 3.6540880503144697,
+      "rotationDegrees": 119.99999999999999
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 1.5870736086175943,
-      "maxWaypointRelativePos": 3.1669658886894076,
+      "minWaypointRelativePos": 1.8743267504488346,
+      "maxWaypointRelativePos": 3.34649910233393,
       "constraints": {
         "maxVelocity": 0.75,
         "maxAcceleration": 2.5,
@@ -110,10 +114,10 @@
     },
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 3.1741472172351886,
+      "minWaypointRelativePos": 3.3536804308797112,
       "maxWaypointRelativePos": 4.0,
       "constraints": {
-        "maxVelocity": 0.5,
+        "maxVelocity": 0.75,
         "maxAcceleration": 0.5,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -134,7 +138,7 @@
   },
   "goalEndState": {
     "velocity": 0.0,
-    "rotation": -50.0
+    "rotation": 90.0
   },
   "reversed": false,
   "folder": "Right Bump Start General",
