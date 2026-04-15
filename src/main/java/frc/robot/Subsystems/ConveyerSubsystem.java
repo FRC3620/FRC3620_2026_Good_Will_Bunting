@@ -12,17 +12,15 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.hal.CANAPITypes.CANDeviceType;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.Helpers.ShotCalculator;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -33,9 +31,32 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
-import org.usfirst.frc3620.CANDeviceFinder;
 
 public class ConveyerSubsystem extends SubsystemBase {
+    private enum JamState {
+        NORMAL,
+        JAM_DETECTED,
+        REVERSING,
+        WAITING_AFTER_REVERSE
+    }
+
+    private JamState jamState = JamState.NORMAL;
+    private double jamStartTime = 0;
+    private double reverseStartTime = 0;
+    private double waitStartTime = 0;
+    private double targetSpeedBeforeJam = 0;
+    private Command currentConveyorCommand = null;
+
+    // Tunable parameters
+    private static final double JAM_CURRENT_THRESHOLD = 30.0;
+    private static final double JAM_VELOCITY_THRESHOLD_RPM = 100.0;
+    private static final double JAM_DETECTION_TIME = 0.15;
+    private static final double REVERSE_DURATION = 0.2;
+    private static final double WAIT_AFTER_REVERSE = 0.1;
+    private static final double REVERSE_DUTY_CYCLE = -0.5;
+
+    private boolean antiJamEnabled = true;
+
     int motorId = Constants.MOTORID_CONVEYER;
     String telemetryPrefix = "Conveyer";
 
@@ -80,10 +101,17 @@ public class ConveyerSubsystem extends SubsystemBase {
             setDefaultCommand(idle());
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
+        SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/AntiJamEnabled", antiJamEnabled);
+    }
+
+    public Command idle() {
+        if (flyWheel != null) {
+            return flyWheel.set(0).withName(telemetryPrefix + " Idle");
+        }
+        return Commands.none().withName(telemetryPrefix + " Idle (No Motor)");
     }
 
     public Command setSpeed(Supplier<AngularVelocity> speed) {
-
         if (flyWheel != null) {
             return flyWheel.setSpeed(speed);
         } else {
@@ -99,10 +127,23 @@ public class ConveyerSubsystem extends SubsystemBase {
         }
     }
 
+    @Override
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualSpeedRPM", flyWheel.getSpeed().in(RPM));
+
+            // Add anti-jam telemetry
+            if (motor != null) {
+                SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/StatorCurrent",
+                        motor.getStatorCurrent().getValueAsDouble());
+                SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/JamStateOrdinal",
+                        jamState.ordinal());
+                SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/AntiJamEnabled",
+                        antiJamEnabled);
+                SmartDashboard.putString("frc3620/" + telemetryPrefix + "/JamState",
+                        jamState.toString());
+            }
         }
     }
 
@@ -117,9 +158,54 @@ public class ConveyerSubsystem extends SubsystemBase {
     }
 
     public Command setDutyCycle(double dutyCycle) {
-
         if (flyWheel != null) {
-            return flyWheel.set(dutyCycle);
+            // Create a command that monitors for jams and adjusts accordingly
+            return Commands.sequence(
+                // Start the conveyor running
+                Commands.runOnce(() -> {
+                    if (currentConveyorCommand != null) {
+                        currentConveyorCommand.cancel();
+                    }
+                    currentConveyorCommand = flyWheel.set(dutyCycle);
+                    currentConveyorCommand.schedule();
+                }),
+                // Monitor for jams while running
+                Commands.run(() -> {
+                    if (antiJamEnabled && motor != null) {
+                        updateAntiJam(dutyCycle);
+                        
+                        // Handle state transitions
+                        if (jamState == JamState.REVERSING && !isCurrentlyReversing()) {
+                            // Start reversing
+                            if (currentConveyorCommand != null) {
+                                currentConveyorCommand.cancel();
+                            }
+                            currentConveyorCommand = flyWheel.set(REVERSE_DUTY_CYCLE);
+                            currentConveyorCommand.schedule();
+                        } else if (jamState == JamState.WAITING_AFTER_REVERSE && !isCurrentlyWaiting()) {
+                            // Stop during wait period
+                            if (currentConveyorCommand != null) {
+                                currentConveyorCommand.cancel();
+                            }
+                            currentConveyorCommand = flyWheel.set(0);
+                            currentConveyorCommand.schedule();
+                        } else if (jamState == JamState.NORMAL && isCurrentlyReversingOrWaiting()) {
+                            // Resume normal operation
+                            if (currentConveyorCommand != null) {
+                                currentConveyorCommand.cancel();
+                            }
+                            currentConveyorCommand = flyWheel.set(dutyCycle);
+                            currentConveyorCommand.schedule();
+                        }
+                    }
+                }, this)
+            ).finallyDo(() -> {
+                if (currentConveyorCommand != null) {
+                    currentConveyorCommand.cancel();
+                    currentConveyorCommand = null;
+                }
+                resetJamState();
+            }).withName("Conveyer with AntiJam");
         }
         return idle();
     }
@@ -130,17 +216,55 @@ public class ConveyerSubsystem extends SubsystemBase {
             BooleanSupplier turretAtTarget,
             BooleanSupplier shooterHoodAtTarget) {
         if (flyWheel != null) {
-
             BooleanSupplier readyToFeed = () -> turretAtTarget.getAsBoolean()
                     && shooterHoodAtTarget.getAsBoolean();
             
-            BooleanSupplier notReadyToFeed = () -> !turretAtTarget.getAsBoolean()
-                    || !shooterHoodAtTarget.getAsBoolean();
-
-            return Commands.either(
-                    flyWheel.set(dutyCycle),
-                    flyWheel.set(0),
-                    readyToFeed).repeatedly().withName("Conveyor Gated");
+            return Commands.sequence(
+                Commands.run(() -> {
+                    boolean shouldFeed = readyToFeed.getAsBoolean();
+                    
+                    if (shouldFeed && antiJamEnabled) {
+                        // Run with anti-jam protection
+                        if (currentConveyorCommand != null && !isCurrentlyReversingOrWaiting()) {
+                            updateAntiJam(dutyCycle);
+                            
+                            if (jamState == JamState.REVERSING && !isCurrentlyReversing()) {
+                                if (currentConveyorCommand != null) currentConveyorCommand.cancel();
+                                currentConveyorCommand = flyWheel.set(REVERSE_DUTY_CYCLE);
+                                currentConveyorCommand.schedule();
+                            } else if (jamState == JamState.WAITING_AFTER_REVERSE && !isCurrentlyWaiting()) {
+                                if (currentConveyorCommand != null) currentConveyorCommand.cancel();
+                                currentConveyorCommand = flyWheel.set(0);
+                                currentConveyorCommand.schedule();
+                            } else if (jamState == JamState.NORMAL && isCurrentlyReversingOrWaiting()) {
+                                if (currentConveyorCommand != null) currentConveyorCommand.cancel();
+                                currentConveyorCommand = flyWheel.set(dutyCycle);
+                                currentConveyorCommand.schedule();
+                            }
+                        } else if (shouldFeed && !isCurrentlyReversingOrWaiting()) {
+                            // Normal operation
+                            if (currentConveyorCommand == null || currentConveyorCommand.isScheduled() == false) {
+                                currentConveyorCommand = flyWheel.set(dutyCycle);
+                                currentConveyorCommand.schedule();
+                            }
+                        }
+                    } else if (!shouldFeed) {
+                        // Not ready to feed - stop
+                        if (currentConveyorCommand != null) {
+                            currentConveyorCommand.cancel();
+                            currentConveyorCommand = null;
+                        }
+                        resetJamState();
+                        flyWheel.set(0).schedule();
+                    }
+                }, this)
+            ).finallyDo(() -> {
+                if (currentConveyorCommand != null) {
+                    currentConveyorCommand.cancel();
+                    currentConveyorCommand = null;
+                }
+                resetJamState();
+            }).withName("Conveyor Gated with AntiJam");
         }
         return idle();
     }
@@ -150,5 +274,122 @@ public class ConveyerSubsystem extends SubsystemBase {
             return motor;
         }
         return null;
+    }
+
+    // Core anti-jam logic
+    private void updateAntiJam(double commandedDutyCycle) {
+        if (!antiJamEnabled || motor == null) {
+            return;
+        }
+
+        double currentAmps = motor.getStatorCurrent().getValueAsDouble();
+        double currentRPM = getCurrentRPM();
+        boolean isJammed = isMechanismJammed(currentAmps, currentRPM, commandedDutyCycle);
+
+        switch (jamState) {
+            case NORMAL:
+                if (isJammed && Math.abs(commandedDutyCycle) > 0.1) {
+                    if (jamStartTime == 0) {
+                        jamStartTime = Timer.getFPGATimestamp();
+                    } else if (Timer.getFPGATimestamp() - jamStartTime >= JAM_DETECTION_TIME) {
+                        jamState = JamState.JAM_DETECTED;
+                        targetSpeedBeforeJam = commandedDutyCycle;
+                    }
+                } else {
+                    jamStartTime = 0;
+                }
+                break;
+
+            case JAM_DETECTED:
+                jamState = JamState.REVERSING;
+                reverseStartTime = Timer.getFPGATimestamp();
+                break;
+
+            case REVERSING:
+                if (Timer.getFPGATimestamp() - reverseStartTime >= REVERSE_DURATION) {
+                    jamState = JamState.WAITING_AFTER_REVERSE;
+                    waitStartTime = Timer.getFPGATimestamp();
+                }
+                break;
+
+            case WAITING_AFTER_REVERSE:
+                if (Timer.getFPGATimestamp() - waitStartTime >= WAIT_AFTER_REVERSE) {
+                    jamState = JamState.NORMAL;
+                    jamStartTime = 0;
+                }
+                break;
+        }
+    }
+
+    private boolean isMechanismJammed(double currentAmps, double currentRPM, double commandedDutyCycle) {
+        if (Math.abs(commandedDutyCycle) < 0.1) {
+            return false;
+        }
+
+        boolean highCurrent = currentAmps > JAM_CURRENT_THRESHOLD;
+        boolean lowVelocity = Math.abs(currentRPM) < JAM_VELOCITY_THRESHOLD_RPM;
+        boolean directionMismatch = (commandedDutyCycle > 0 && currentRPM < -JAM_VELOCITY_THRESHOLD_RPM) ||
+                (commandedDutyCycle < 0 && currentRPM > JAM_VELOCITY_THRESHOLD_RPM);
+
+        return (highCurrent && lowVelocity) || directionMismatch;
+    }
+
+    private double getCurrentRPM() {
+        if (motor != null && flyWheel != null) {
+            return flyWheel.getSpeed().in(RPM);
+        }
+        return 0;
+    }
+
+    private void resetJamState() {
+        jamState = JamState.NORMAL;
+        jamStartTime = 0;
+        reverseStartTime = 0;
+        waitStartTime = 0;
+        targetSpeedBeforeJam = 0;
+    }
+
+    private boolean isCurrentlyReversing() {
+        return jamState == JamState.REVERSING;
+    }
+
+    private boolean isCurrentlyWaiting() {
+        return jamState == JamState.WAITING_AFTER_REVERSE;
+    }
+
+    private boolean isCurrentlyReversingOrWaiting() {
+        return isCurrentlyReversing() || isCurrentlyWaiting();
+    }
+
+    public Command manualClearJam() {
+        return Commands.runOnce(() -> {
+            resetJamState();
+            if (currentConveyorCommand != null) {
+                currentConveyorCommand.cancel();
+                currentConveyorCommand = null;
+            }
+        }).withName("Manual Clear Jam");
+    }
+
+    public Command manualReverse(double duration, double dutyCycle) {
+        return Commands.sequence(
+            Commands.runOnce(() -> {
+                if (currentConveyorCommand != null) {
+                    currentConveyorCommand.cancel();
+                }
+            }),
+            flyWheel.set(dutyCycle).withTimeout(duration),
+            Commands.runOnce(() -> resetJamState())
+        ).withName("Manual Reverse");
+    }
+
+    public Command toggleAntiJam() {
+        return Commands.runOnce(() -> {
+            antiJamEnabled = !antiJamEnabled;
+            if (!antiJamEnabled) {
+                resetJamState();
+            }
+            SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/AntiJamEnabled", antiJamEnabled);
+        }).withName("Toggle Anti-Jam");
     }
 }
