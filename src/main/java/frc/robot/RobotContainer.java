@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.Optional;
+import java.util.Set;
 
 import org.tinylog.TaggedLogger;
 import org.usfirst.frc3620.CANDeviceFinder;
@@ -122,7 +123,6 @@ public class RobotContainer implements RobotModeChangeListener {
   private FieldTriggers fieldTriggers;
   public static FMSTriggers fmsTriggers;
   private ButtonTriggers buttonTriggers;
-
 
   private Optional<Alliance> alliance;
 
@@ -296,25 +296,6 @@ public class RobotContainer implements RobotModeChangeListener {
     if (swerveSubsystem != null)
       orchestra = new OrchestraManager();
     if (swerveSubsystem != null) {
-      orchestra.addInstrument(swerveSubsystem.getModule(0).getDriveMotor(), 4); // fretless bass - most notes, low
-      orchestra.addInstrument(swerveSubsystem.getModule(1).getDriveMotor(), 4); // doubled bass
-      orchestra.addInstrument(swerveSubsystem.getModule(2).getDriveMotor(), 9); // unknown/drums - busy, low range
-      orchestra.addInstrument(swerveSubsystem.getModule(3).getDriveMotor(), 9); // doubled
-      orchestra.addInstrument(swerveSubsystem.getModule(0).getSteerMotor(), 1); // acoustic bass line
-      orchestra.addInstrument(swerveSubsystem.getModule(1).getSteerMotor(), 1); // doubled
-      orchestra.addInstrument(swerveSubsystem.getModule(2).getSteerMotor(), 3); // violin melody - shooters handle highs
-                                                                                // best
-      orchestra.addInstrument(swerveSubsystem.getModule(3).getSteerMotor(), 3); // doubled melody
-      orchestra.addInstrument(shooterSubsystem.getMotor1(), 3); // tripled melody
-      orchestra.addInstrument(shooterSubsystem.getMotor2(), 3); // quadrupled melody
-      orchestra.addInstrument(turretSubsystem.getMotor(), 10); // lead synth mid
-      orchestra.addInstrument(preshooterSubsystem.getMotor(), 10); // doubled
-      orchestra.addInstrument(intakeShoulderSubsystem.getMotor(), 6); // choir pads
-      orchestra.addInstrument(conveyerSubsystem.getMotor(), 12); // string pads
-      orchestra.addInstrument(intakeRollerSubsystem.getMotor1(), 3); // more bass
-      orchestra.addInstrument(intakeRollerSubsystem.getMotor2(), 3);
-      orchestra.addInstrument(intakeAgitatorSubsystem.getMotor(), 1); // more bass line
-      orchestra.addInstrument(shooterHoodSubsystem.getMotor(), 10); // more lead synth
       makeMusic();
     }
 
@@ -358,7 +339,7 @@ public class RobotContainer implements RobotModeChangeListener {
       OrchestraManager.OrchestraSong selected = musicChooser.getSelected();
 
       if (selected != null && selected != lastSong) {
-        orchestra.reload(selected.filename);
+        orchestra.reload(selected);
         lastSong = selected;
       }
     }
@@ -412,7 +393,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
     fmsTriggersOff = new Trigger(useFMSTriggers.negate());
     fmsTriggersOn = new Trigger(useFMSTriggers);
-     
+
     scoringState.addTransition(new StateTransition(
         fmsTriggersOn.and(fmsTriggers.isActivePeriod.and(fieldTriggers.enterDepotPass)),
         hoardingState));
@@ -520,8 +501,6 @@ public class RobotContainer implements RobotModeChangeListener {
         fmsTriggersOn.and(fieldTriggers.enterDepotPass),
         depotPassingState));
 
-        
-
     outpostPassingState.addTransition(new StateTransition(
         fmsTriggersOff.and(fieldTriggers.enterDepotPass),
         depotPassingState));
@@ -534,25 +513,24 @@ public class RobotContainer implements RobotModeChangeListener {
     depotPassingState.addTransition(new StateTransition(
         useFMSTriggers.and(fmsTriggers.aboutToBecomeActive), hoardingState));
 
-
-    //new deep state transitions
+    // new deep state transitions
     outpostPassingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepOutpost, outpostDeepState));
+        fieldTriggers.enterDeepOutpost, outpostDeepState));
     depotPassingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepDepot, depotDeepState));
+        fieldTriggers.enterDeepDepot, depotDeepState));
     hoardingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepOutpost, outpostDeepState));
+        fieldTriggers.enterDeepOutpost, outpostDeepState));
     hoardingState.addTransition(new StateTransition(
-      fieldTriggers.enterDeepDepot, depotDeepState));
+        fieldTriggers.enterDeepDepot, depotDeepState));
     depotDeepState.addTransition(new StateTransition(
-      fieldTriggers.enterDeadZone, hoardingState));
+        fieldTriggers.enterDeadZone, hoardingState));
     outpostDeepState.addTransition(new StateTransition(
-      fieldTriggers.enterDeadZone, hoardingState));
+        fieldTriggers.enterDeadZone, hoardingState));
     outpostDeepState.addTransition(new StateTransition(
-      fieldTriggers.enterOutpostPass, outpostPassingState));
+        fieldTriggers.enterOutpostPass, outpostPassingState));
     depotPassingState.addTransition(new StateTransition(
-      fieldTriggers.enterDepotPass, depotPassingState));
-    //should work
+        fieldTriggers.enterDepotPass, depotPassingState));
+    // should work
 
     /*
      * hoardingState.addTransition(new StateTransition(
@@ -681,6 +659,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void configureButtonBindings() {
 
+    SmartDashboard.putNumber("Auto/WaitToStart", 0.0);
+
     Trigger driverLeftTriggerFlySky = new Trigger(
         driverJoystick.button(OdoIdsFlySky.ButtonId.SWE, () -> false));
     Trigger driverRightTriggerFlySky = new Trigger(
@@ -781,7 +761,7 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem
-                   .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+                  .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
                       () -> shooterHoodSubsystem.atTarget())
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
@@ -954,7 +934,8 @@ public class RobotContainer implements RobotModeChangeListener {
 
     }
 
-    SmartDashboard.putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+    SmartDashboard
+        .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
   }
 
   public void setUpAutonomousCommands() {
@@ -1028,6 +1009,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     NamedCommands.registerCommand("Initialize Pass Left",
         new AutoAimShooterCommand(ShotCalculator.FieldTargets.DEPOT_CORNER.getTargetPositionSupplier()));
+
+    NamedCommands.registerCommand("WaitToStart", Commands.defer(
+        () -> Commands.waitSeconds(
+            SmartDashboard.getNumber("Auto/WaitToStart", 0.0)),
+        Set.of()));
 
     NamedCommands.registerCommand("Initialize Shot At Bump", turretSubsystem.createSetAngleToTargetCommand(
         () -> ShotCalculator.FieldTargets.BLUE_HUB.getTargetPositionSupplier().get().toTranslation2d(),
