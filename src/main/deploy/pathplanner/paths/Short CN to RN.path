@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.11701204819277,
-        "y": 1.1391566265060238
+        "x": 7.8947788873038505,
+        "y": 1.0526390870185458
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.10670523001095,
-        "y": 0.489827081051478
+        "x": 7.884472069122031,
+        "y": 0.403309541564
       },
       "isLocked": false,
       "linkedName": "Middle Short RN to CN"
@@ -53,7 +53,7 @@
   "folder": "Right Bump Start General",
   "idealStartingState": {
     "velocity": 1.0,
-    "rotation": -94.28915332881903
+    "rotation": -127.83895856308895
   },
   "useDefaultConstraints": false
 }

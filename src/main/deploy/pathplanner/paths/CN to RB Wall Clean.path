@@ -3,65 +3,118 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.11701204819277,
-        "y": 1.1391566265060238
+        "x": 7.8947788873038505,
+        "y": 1.0526390870185458
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.936819277108433,
-        "y": 0.15566265060241014
+        "x": 5.986108433734939,
+        "y": 0.953385542168675
       },
       "isLocked": false,
       "linkedName": "Middle Short RN to CN"
     },
     {
       "anchor": {
-        "x": 3.46,
-        "y": 2.5
+        "x": 3.392125534950071,
+        "y": 2.6052781740370903
       },
       "prevControl": {
-        "x": 7.1444457831325305,
-        "y": 2.9422289156626507
+        "x": 8.490457818041776,
+        "y": 2.9239239417303193
       },
       "nextControl": {
-        "x": 2.99367458167812,
-        "y": 2.444028872663968
+        "x": 1.9429957203994292,
+        "y": 2.514707560627676
       },
       "isLocked": false,
-      "linkedName": "Wall Clean Right Bump Setup"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.2923395149786017,
-        "y": 0.6774179743223976
+        "x": 0.700884450784593,
+        "y": 2.3335663338088444
       },
       "prevControl": {
-        "x": 3.5383012048192777,
-        "y": 0.9533855421686745
+        "x": 0.7864790113982372,
+        "y": 2.7829377770304786
+      },
+      "nextControl": {
+        "x": 0.6491298145506419,
+        "y": 2.0618544935805994
+      },
+      "isLocked": false,
+      "linkedName": "Wall Clean Right Start"
+    },
+    {
+      "anchor": {
+        "x": 0.4676144578313255,
+        "y": 0.6644793152639101
+      },
+      "prevControl": {
+        "x": 0.5089659090909089,
+        "y": 1.0047954545454547
+      },
+      "nextControl": {
+        "x": 0.43745902245762586,
+        "y": 0.4163046797400062
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.9688730385164046,
+        "y": 0.6644793152639101
+      },
+      "prevControl": {
+        "x": 0.6533855421686747,
+        "y": 0.7020481927710843
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Wall Clean Right Start"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.7087136929460587,
-      "rotationDegrees": 135.0
+      "waypointRelativePos": 0.8123667377398662,
+      "rotationDegrees": 180.0
     },
     {
       "waypointRelativePos": 0.9941908713693088,
-      "rotationDegrees": 135.0
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 1.675906183368863,
+      "rotationDegrees": -135.0
+    },
+    {
+      "waypointRelativePos": 2.8742004264392307,
+      "rotationDegrees": -90.0
     }
   ],
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 1.7052109181141408,
-      "maxWaypointRelativePos": 2.0,
+      "minWaypointRelativePos": 1.5870736086175943,
+      "maxWaypointRelativePos": 3.1669658886894076,
       "constraints": {
-        "maxVelocity": 1.0,
+        "maxVelocity": 0.75,
         "maxAcceleration": 2.5,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 3.1741472172351886,
+      "maxWaypointRelativePos": 4.0,
+      "constraints": {
+        "maxVelocity": 0.5,
+        "maxAcceleration": 0.5,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -72,22 +125,22 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 3.5,
+    "maxAcceleration": 3.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0.75,
-    "rotation": -156.49389929369855
+    "velocity": 0.0,
+    "rotation": -50.0
   },
   "reversed": false,
   "folder": "Right Bump Start General",
   "idealStartingState": {
     "velocity": 1.5,
-    "rotation": -94.28915332881903
+    "rotation": -127.83895856308895
   },
   "useDefaultConstraints": false
 }
