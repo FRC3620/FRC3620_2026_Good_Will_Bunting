@@ -32,12 +32,28 @@
     },
     {
       "anchor": {
-        "x": 8.11701204819277,
-        "y": 1.1391566265060238
+        "x": 8.27,
+        "y": 2.4888302425106996
       },
       "prevControl": {
-        "x": 8.45577108433735,
-        "y": 4.5048915662650595
+        "x": 8.226289156626505,
+        "y": 4.089638554216867
+      },
+      "nextControl": {
+        "x": 8.27682382721751,
+        "y": 2.2389233890990634
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.8947788873038505,
+        "y": 1.0526390870185458
+      },
+      "prevControl": {
+        "x": 8.373509272467903,
+        "y": 1.013823109843081
       },
       "nextControl": null,
       "isLocked": false,
@@ -54,7 +70,7 @@
       "rotationDegrees": 65.0
     },
     {
-      "waypointRelativePos": 1.4124481327800966,
+      "waypointRelativePos": 1.8,
       "rotationDegrees": -70.0
     }
   ],
@@ -62,7 +78,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 0.63,
+    "maxVelocity": 0.5,
     "maxAcceleration": 1.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -71,7 +87,7 @@
   },
   "goalEndState": {
     "velocity": 1.5,
-    "rotation": -94.28915332881903
+    "rotation": -127.83895856308895
   },
   "reversed": false,
   "folder": "Right Bump Start General",
