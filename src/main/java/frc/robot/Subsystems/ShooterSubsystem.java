@@ -106,10 +106,10 @@ public class ShooterSubsystem extends SubsystemBase {
     rpmCorrectionMap.put(13, 30.0);
     rpmCorrectionMap.put(14, 30.0);
     rpmCorrectionMap.put(15, 30.0);
-    rpmCorrectionMap.put(16, 40.0);
-    rpmCorrectionMap.put(17, 80.0);
-    rpmCorrectionMap.put(18, 150.0);
-    rpmCorrectionMap.put(19, 170.0);
+    rpmCorrectionMap.put(16, 60.0);
+    rpmCorrectionMap.put(17, 120.0);
+    rpmCorrectionMap.put(18, 230.0);
+    rpmCorrectionMap.put(19, 280.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();

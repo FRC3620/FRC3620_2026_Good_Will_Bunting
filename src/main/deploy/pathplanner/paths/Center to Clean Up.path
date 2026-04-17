@@ -48,16 +48,16 @@
     },
     {
       "anchor": {
-        "x": 0.43681818181818155,
-        "y": 4.808011363636364
+        "x": 0.5197432239657629,
+        "y": 4.571954350927247
       },
       "prevControl": {
-        "x": 0.9933863636363633,
-        "y": 4.746170454545455
+        "x": 1.014,
+        "y": 4.679734939759036
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Quick Center to Depot"
     }
   ],
   "rotationTargets": [
