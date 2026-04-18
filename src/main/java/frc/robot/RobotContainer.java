@@ -772,12 +772,12 @@ public class RobotContainer implements RobotModeChangeListener {
 
       driverRightTriggerFlySky
           .whileTrue(
-              (conveyerSubsystem
-                  .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
+              (conveyerSubsystem.setDutyCycle(0.8)
+                  /* .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
                       () -> shooterHoodSubsystem.atTarget())
                   .until(() -> !turretSubsystem.atTarget()).until(
                       () -> !shooterHoodSubsystem.atTarget())
-                  .repeatedly()
+                  .repeatedly() */
                   .alongWith(intakeAgitatorSubsystem.agitatorOn()))
                   .onlyIf(() -> stateMachine.getCurrentState() != hoardingState));
 
@@ -1000,10 +1000,7 @@ public class RobotContainer implements RobotModeChangeListener {
     NamedCommands.registerCommand("Preshooter Off", preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
 
     NamedCommands.registerCommand("Feed Shot", intakeAgitatorSubsystem.agitatorOn()
-        .alongWith(conveyerSubsystem.setDutyCycleGated(0.8, () -> shooterSubsystem.atRPM(),
-            () -> turretSubsystem.atTarget(), () -> shooterHoodSubsystem.atTarget())
-            .until(() -> !turretSubsystem.atTarget()).until(
-                () -> !shooterHoodSubsystem.atTarget())));
+        .alongWith(conveyerSubsystem.setDutyCycle(0.8)));
 
     NamedCommands.registerCommand("Feed Pass", intakeAgitatorSubsystem.agitatorOn()
         .alongWith(conveyerSubsystem.setDutyCycle(0.8)));

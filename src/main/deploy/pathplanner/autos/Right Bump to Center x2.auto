@@ -41,7 +41,7 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 6.0
+                                    "waitTime": 4.0
                                   }
                                 },
                                 {
@@ -85,12 +85,6 @@
                             }
                           }
                         ]
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "RB to RN close"
                       }
                     },
                     {

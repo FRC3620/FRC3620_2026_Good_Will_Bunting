@@ -107,9 +107,31 @@ public class ShooterSubsystem extends SubsystemBase {
     rpmCorrectionMap.put(14, 30.0);
     rpmCorrectionMap.put(15, 30.0);
     rpmCorrectionMap.put(16, 60.0);
-    rpmCorrectionMap.put(17, 120.0);
-    rpmCorrectionMap.put(18, 230.0);
-    rpmCorrectionMap.put(19, 280.0);
+    rpmCorrectionMap.put(17, 170.0);
+    rpmCorrectionMap.put(18, 280.0);
+    rpmCorrectionMap.put(19, 320.0);
+    rpmCorrectionMap.put(20, 320.0);
+    rpmCorrectionMap.put(21, 320.0);
+    rpmCorrectionMap.put(22, 320.0);
+    rpmCorrectionMap.put(23, 320.0);
+    rpmCorrectionMap.put(24, 320.0);
+    rpmCorrectionMap.put(25, 320.0);
+    rpmCorrectionMap.put(26, 320.0);
+    rpmCorrectionMap.put(27, 320.0);
+    rpmCorrectionMap.put(28, 320.0);
+    rpmCorrectionMap.put(29, 320.0);
+    rpmCorrectionMap.put(30, 320.0);
+    rpmCorrectionMap.put(31, 320.0);
+    rpmCorrectionMap.put(32, 320.0);
+    rpmCorrectionMap.put(33, 320.0);
+    rpmCorrectionMap.put(34, 320.0);
+    rpmCorrectionMap.put(35, 320.0);
+    rpmCorrectionMap.put(36, 320.0);
+    rpmCorrectionMap.put(37, 320.0);
+    rpmCorrectionMap.put(38, 320.0);
+    rpmCorrectionMap.put(39, 320.0);
+    rpmCorrectionMap.put(40, 320.0);
+    rpmCorrectionMap.put(41, 320.0);
 
     boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6, motorId1,
         telemetryPrefix + " #1") || RobotContainer.shouldMakeAllCANDevices();
@@ -128,7 +150,7 @@ public class ShooterSubsystem extends SubsystemBase {
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
           .withClosedLoopController(0.25, 0, 0.45, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
-          .withSimClosedLoopController(10, 0, 0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
+          .withSimClosedLoopController(2, 0, 0.0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))

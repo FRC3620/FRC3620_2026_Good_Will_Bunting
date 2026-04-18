@@ -135,11 +135,11 @@
     },
     {
       "waypointRelativePos": 4.019189765458418,
-      "rotationDegrees": -93.21580205396778
+      "rotationDegrees": -93.21580205396779
     },
     {
       "waypointRelativePos": 4.445628997867834,
-      "rotationDegrees": -83.45888173948045
+      "rotationDegrees": -83.45888173948046
     }
   ],
   "constraintZones": [
@@ -209,7 +209,7 @@
     },
     {
       "name": "Feed Pass",
-      "waypointRelativePos": 2.1201890614449774,
+      "waypointRelativePos": 2.21471978392978,
       "endWaypointRelativePos": null,
       "command": {
         "type": "deadline",
@@ -233,7 +233,7 @@
     },
     {
       "name": "No More Feed",
-      "waypointRelativePos": 4.159351789331549,
+      "waypointRelativePos": 2.7954085077650195,
       "endWaypointRelativePos": null,
       "command": {
         "type": "deadline",
