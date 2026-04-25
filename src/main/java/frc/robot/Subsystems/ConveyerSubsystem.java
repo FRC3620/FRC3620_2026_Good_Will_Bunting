@@ -46,7 +46,6 @@ public class ConveyerSubsystem extends SubsystemBase {
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
-    private boolean isJammed;
     Timer timeJammed = new Timer();
 
     public ConveyerSubsystem() {
@@ -108,10 +107,8 @@ public class ConveyerSubsystem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
-            updateJammed();
 
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualSpeedRPM", flyWheel.getSpeed().in(RPM));
-            SmartDashboard.putBoolean("frc3620/" + telemetryPrefix + "/isJammed", isJammed);
         }
     }
 
@@ -127,44 +124,10 @@ public class ConveyerSubsystem extends SubsystemBase {
 
     public Command setDutyCycle(double dutyCycle) {
         if (flyWheel != null && dutyCycle != 0) {
-            return Commands.either(
-                    Commands.sequence(
-                            jammedCommand().withTimeout(.5),
-                            Commands.waitSeconds(0.5),
-                            Commands.runOnce(() -> {
-                                isJammed = false;
-                                timeJammed.reset();
-                            })),
-                    flyWheel.set(dutyCycle),
-                    () -> isJammed)
-                    .withName(telemetryPrefix + " Set Duty Cycle");
-        }else if(dutyCycle == 0){
-            return flyWheel.set(0);
+            flyWheel.set(dutyCycle);
         }
+
         return idle();
-    }
-
-    private Command jammedCommand() {
-        return flyWheel.set(-0.5);
-    }
-
-    private void updateJammed() {
-        AngularVelocity aVelocity = flyWheel.getMotor().getMechanismVelocity();
-        Current current = flyWheel.getMotor().getStatorCurrent();
-
-        Time jammed = Milliseconds.of(500);
-
-        if (!timeJammed.isRunning())
-            timeJammed.start();
-
-        if (current.gte(Amps.of(30)) && aVelocity.lte(RotationsPerSecond.of(30))) {
-            if (timeJammed.hasElapsed(jammed) && !isJammed) {
-                isJammed = true;
-            }
-        } else {
-            timeJammed.stop();
-            timeJammed.reset();
-        }
     }
 
     /*

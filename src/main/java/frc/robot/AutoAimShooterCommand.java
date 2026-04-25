@@ -24,14 +24,20 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
         Supplier<Pose2d> robotPose = () -> AllianceFlipUtil.apply(RobotContainer.swerveSubsystem.getState().Pose);
 
-         /* if (RobotContainer.questNavSubsystem.getQuestNavConnected()
-                && RobotContainer.questNavSubsystem.getQuestNavIsTracking()) {
+        /* boolean nearWall = robotPose.get().getY() > 7.5
+                        || robotPose.get().getY() < .3
+                        || robotPose.get().getX() < .3
+                        || robotPose.get().getY() > 16;
+
+       if (RobotContainer.questNavSubsystem.getQuestNavConnected()
+                && RobotContainer.questNavSubsystem.getQuestNavIsTracking()
+                && nearWall) {
 
             robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateQuestVelocity(
                     RobotContainer.questNavSubsystem.getQuestNavVX(), RobotContainer.questNavSubsystem.getQuestNavVY(),
                     RobotContainer.questNavSubsystem.getNavQuestPose3d().getRotation().toRotation2d()));
 
-        } else {  */ 
+        } else  {*/ 
             robotVelocity = () -> AllianceFlipUtil.apply(ShotCalculator.calculateRobotVelocity(
                     RobotContainer.swerveSubsystem.getKinematics(),
                     RobotContainer.swerveSubsystem.getState(),
@@ -39,32 +45,27 @@ public class AutoAimShooterCommand extends ParallelCommandGroup {
 
         //}
 
-        Supplier<AngularVelocity> shooterExitSpeed = 
-            () -> RobotContainer.shooterSubsystem.getVelocity();
+        Supplier<AngularVelocity> shooterExitSpeed = () -> RobotContainer.shooterSubsystem.getVelocity();
         addCommands(
 
-            RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
-                () -> target.get().toTranslation2d(),
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.turretSubsystem.createSetAngleToTargetCommand(
+                        () -> target.get().toTranslation2d(),
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
-                target,
-                robotPose,
-                robotVelocity
-            ),
+                RobotContainer.shooterSubsystem.createSetSpeedToTargetCommand(
+                        target,
+                        robotPose,
+                        robotVelocity),
 
-            RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
-                target,
-                robotPose,
-                robotVelocity,
-                shooterExitSpeed
-            ),
+                RobotContainer.shooterHoodSubsystem.createAutoAngleToTargetCommand(
+                        target,
+                        robotPose,
+                        robotVelocity,
+                        shooterExitSpeed),
 
-            RobotContainer.preshooterSubsystem.createSetVelocityCommand(
-                () -> RPM.of(700)
-            )
-        );
+                        
+                RobotContainer.preshooterSubsystem.createSetVelocityCommand(
+                        () -> RPM.of(700)));
     }
 }

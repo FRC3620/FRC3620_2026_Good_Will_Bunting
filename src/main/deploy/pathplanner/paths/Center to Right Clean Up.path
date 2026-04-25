@@ -32,32 +32,48 @@
     },
     {
       "anchor": {
-        "x": 5.734522727272727,
-        "y": 5.364579545454546
+        "x": 5.755136363636364,
+        "y": 4.179295454545454
       },
       "prevControl": {
-        "x": 5.726701471023426,
-        "y": 4.871840401748589
+        "x": 5.690975892917631,
+        "y": 3.690688792918185
       },
       "nextControl": {
-        "x": 5.744829545454544,
-        "y": 6.013909090909093
+        "x": 6.023113636363637,
+        "y": 6.220045454545454
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.47804545454545433,
-        "y": 4.787397727272728
+        "x": 6.373545454545454,
+        "y": 2.695113636363636
       },
       "prevControl": {
-        "x": 0.9723022305796913,
-        "y": 4.895178316104516
+        "x": 6.723977272727272,
+        "y": 2.736340909090909
+      },
+      "nextControl": {
+        "x": 4.5920309492473095,
+        "y": 2.4855236945638537
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.405181818181818,
+        "y": 2.4889772727272725
+      },
+      "prevControl": {
+        "x": 3.7350000000000003,
+        "y": 2.4683636363636356
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Quick Center to Depot"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
@@ -68,6 +84,14 @@
     {
       "waypointRelativePos": 1.1,
       "rotationDegrees": 90.0
+    },
+    {
+      "waypointRelativePos": 1.943396226415085,
+      "rotationDegrees": 90.0
+    },
+    {
+      "waypointRelativePos": 2.660377358490562,
+      "rotationDegrees": -90.0
     }
   ],
   "constraintZones": [
@@ -86,10 +110,10 @@
     },
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 2.574506283662479,
-      "maxWaypointRelativePos": 3.0,
+      "minWaypointRelativePos": 1.2280071813285458,
+      "maxWaypointRelativePos": 2.9874326750448783,
       "constraints": {
-        "maxVelocity": 1.0,
+        "maxVelocity": 0.6,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -110,7 +134,7 @@
   },
   "goalEndState": {
     "velocity": 0.0,
-    "rotation": 90.0
+    "rotation": -87.51044707800084
   },
   "reversed": false,
   "folder": "Center Start",
