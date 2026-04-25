@@ -2,6 +2,7 @@ package frc.robot.Subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inch;
+import static edu.wpi.first.units.Units.Milliseconds;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -15,6 +16,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.hal.CANAPITypes.CANDeviceType;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -42,6 +46,7 @@ public class ConveyerSubsystem extends SubsystemBase {
     private TalonFX motor = null;
     private SmartMotorController motorController;
     private FlyWheel flyWheel;
+    Timer timeJammed = new Timer();
 
     public ConveyerSubsystem() {
         boolean makeDevices = RobotContainer.canDeviceFinder.isDevicePresent(
@@ -102,6 +107,7 @@ public class ConveyerSubsystem extends SubsystemBase {
     public void periodic() {
         if (flyWheel != null) {
             flyWheel.updateTelemetry();
+
             SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/actualSpeedRPM", flyWheel.getSpeed().in(RPM));
         }
     }
@@ -117,33 +123,35 @@ public class ConveyerSubsystem extends SubsystemBase {
     }
 
     public Command setDutyCycle(double dutyCycle) {
-
-        if (flyWheel != null) {
-            return flyWheel.set(dutyCycle);
+        if (flyWheel != null && dutyCycle != 0) {
+            flyWheel.set(dutyCycle);
         }
+
         return idle();
     }
 
-    public Command setDutyCycleGated(
-            double dutyCycle,
-            BooleanSupplier shooterAtRPM,
-            BooleanSupplier turretAtTarget,
-            BooleanSupplier shooterHoodAtTarget) {
-        if (flyWheel != null) {
-
-            BooleanSupplier readyToFeed = () -> turretAtTarget.getAsBoolean()
-                    && shooterHoodAtTarget.getAsBoolean();
-            
-            BooleanSupplier notReadyToFeed = () -> !turretAtTarget.getAsBoolean()
-                    || !shooterHoodAtTarget.getAsBoolean();
-
-            return Commands.either(
-                    flyWheel.set(dutyCycle),
-                    flyWheel.set(0),
-                    readyToFeed).repeatedly().withName("Conveyor Gated");
-        }
-        return idle();
-    }
+    /*
+     * public Command setDutyCycleGated(
+     * double dutyCycle,
+     * BooleanSupplier shooterAtRPM,
+     * BooleanSupplier turretAtTarget,
+     * BooleanSupplier shooterHoodAtTarget) {
+     * if (flyWheel != null) {
+     * 
+     * BooleanSupplier readyToFeed = () -> turretAtTarget.getAsBoolean()
+     * && shooterHoodAtTarget.getAsBoolean();
+     * 
+     * BooleanSupplier notReadyToFeed = () -> !turretAtTarget.getAsBoolean()
+     * || !shooterHoodAtTarget.getAsBoolean();
+     * 
+     * return Commands.either(
+     * flyWheel.set(dutyCycle),
+     * flyWheel.set(0),
+     * readyToFeed).repeatedly().withName("Conveyor Gated");
+     * }
+     * return idle();
+     * }
+     */
 
     public TalonFX getMotor() {
         if (motor != null) {

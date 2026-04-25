@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.088858773181169,
-        "y": 4.300242510699002
+        "x": 7.778253012048193,
+        "y": 5.95
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.3128671247693395,
-        "y": 3.8483788743353653
+        "x": 7.0022613636363635,
+        "y": 5.498136363636363
       },
       "isLocked": false,
-      "linkedName": "Left Center Neutral Collect"
+      "linkedName": "LN to CN Short"
     },
     {
       "anchor": {

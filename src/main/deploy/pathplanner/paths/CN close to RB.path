@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 6.716752440106477,
-        "y": 3.4354303460514632
+        "x": 5.800337349397592,
+        "y": 3.466759036144578
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.734771084337349,
-        "y": 3.6634578313253012
+        "x": 6.346722891566267,
+        "y": 1.499771084337349
       },
       "isLocked": false,
       "linkedName": "CN close"
@@ -20,18 +20,18 @@
         "y": 2.5
       },
       "prevControl": {
-        "x": 6.849397590361446,
-        "y": 1.9478072289156638
+        "x": 6.980530120481928,
+        "y": 2.4832650602409636
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Straight RB Start"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
     {
       "waypointRelativePos": 0.5775401069518719,
-      "rotationDegrees": 0.6789233823886232
+      "rotationDegrees": 179.32616358019447
     }
   ],
   "constraintZones": [],
@@ -47,13 +47,13 @@
   },
   "goalEndState": {
     "velocity": 0.0,
-    "rotation": 0.7223416938649584
+    "rotation": 178.4933378137479
   },
   "reversed": false,
   "folder": "Right Bump Start General",
   "idealStartingState": {
-    "velocity": 1.5,
-    "rotation": 90.0
+    "velocity": 2.5,
+    "rotation": -90.0
   },
   "useDefaultConstraints": false
 }

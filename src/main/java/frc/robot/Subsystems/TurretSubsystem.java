@@ -79,12 +79,12 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.667724609375);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.421142578125);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.084716796875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.781494140625);
 
   private Angle filteredTargetAngle = Degrees.of(0);
   private double turretTargetingOffset = 0;
-  private double turretFilterAlpha = 1;
+  private double turretFilterAlpha = .9;
 
   private boolean atTarget = false;
   
@@ -114,8 +114,8 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(600), DegreesPerSecondPerSecond.of(2500))
-          .withSimClosedLoopController(110, 0, 0, DegreesPerSecond.of(600), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(800), DegreesPerSecondPerSecond.of(2500))
+          .withSimClosedLoopController(20, 0, 0, DegreesPerSecond.of(800), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
@@ -142,7 +142,7 @@ public class TurretSubsystem extends SubsystemBase {
           // Telemetry
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
           // MOI Calculation
-          .withMOI(Meters.of(0.25), Pounds.of(2)));
+          .withMOI(Meters.of(0.25), Pounds.of(15)));
 
       setDefaultCommand(idle());
     }

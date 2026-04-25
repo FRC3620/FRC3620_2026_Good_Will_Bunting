@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.406710843373492,
-        "y": 3.1061445783132537
+        "x": 5.712915662650602,
+        "y": 2.4941927710843377
       },
       "isLocked": false,
       "linkedName": "Straight RB Start"
     },
     {
       "anchor": {
-        "x": 6.740120481927711,
-        "y": 1.9259518072289166
+        "x": 6.772903614457831,
+        "y": 2.5
       },
       "prevControl": {
-        "x": 6.047999807571012,
-        "y": 0.3244167584267874
+        "x": 5.778481927710842,
+        "y": 2.543710843373494
       },
       "nextControl": null,
       "isLocked": false,
@@ -30,7 +30,7 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 0.3243243243243252,
+      "waypointRelativePos": 0.5319502074688718,
       "rotationDegrees": 0.36278044853580665
     }
   ],

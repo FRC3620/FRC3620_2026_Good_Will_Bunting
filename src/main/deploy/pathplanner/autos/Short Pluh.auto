@@ -25,57 +25,13 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "LN to CN"
-                            }
-                          },
-                          {
-                            "type": "deadline",
-                            "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 5.0
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "Feed Pass"
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "type": "deadline",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "wait",
-                            "data": {
-                              "waitTime": 0.1
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "Conveyer Off"
+                              "pathName": "LN to CN Short"
                             }
                           }
                         ]
                       }
                     }
                   ]
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Initialize Pass Left"
                 }
               }
             ]
@@ -84,7 +40,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Far CN to LB Prep Wall Clean"
+            "pathName": "CN to LB Prep Wall Clean"
           }
         },
         {
@@ -102,7 +58,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "LB to Wall Clean"
+                              "pathName": "LB to Half Wall Clean "
                             }
                           },
                           {
@@ -112,13 +68,13 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 1.5
+                                    "waitTime": 1.25
                                   }
                                 },
                                 {
                                   "type": "named",
                                   "data": {
-                                    "name": "Feed Shot"
+                                    "name": "Feed Pass"
                                   }
                                 }
                               ]
@@ -136,28 +92,29 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "Lakeshore LB to LN"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Lakeshore LN to CN"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "Lakeshore CN to DP Init"
+                        "pathName": "LB over Bump"
                       }
                     }
                   ]
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Initialize Shot"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.75
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Initialize Shot"
+                      }
+                    }
+                  ]
                 }
               }
             ]

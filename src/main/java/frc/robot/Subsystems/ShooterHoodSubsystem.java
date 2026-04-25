@@ -96,6 +96,7 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
                     .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
+                    .withSimClosedLoopController(0.1, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
                     .withMotorInverted(true)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)

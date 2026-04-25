@@ -25,7 +25,7 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "LN to CN Short"
+                              "pathName": "LN to CN"
                             }
                           }
                         ]
@@ -40,7 +40,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "CN to LB Prep Wall Clean"
+            "pathName": "Big Pluh CN to LB Prep Wall Clean"
           }
         },
         {
@@ -68,7 +68,7 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 0.5
+                                    "waitTime": 1.25
                                   }
                                 },
                                 {
@@ -99,9 +99,22 @@
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "Initialize Shot"
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 0.75
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Initialize Shot"
+                      }
+                    }
+                  ]
                 }
               }
             ]

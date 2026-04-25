@@ -33,7 +33,7 @@
                                       {
                                         "type": "path",
                                         "data": {
-                                          "pathName": "Center to Clean Up"
+                                          "pathName": "Center to Left Clean Up to Depot"
                                         }
                                       },
                                       {
@@ -74,7 +74,7 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 6.15
+                                    "waitTime": 8.5
                                   }
                                 },
                                 {

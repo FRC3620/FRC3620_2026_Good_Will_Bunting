@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.765204545454545,
-        "y": 3.447511363636364
+        "x": 7.384855421686748,
+        "y": 2.87666265060241
       },
       "isLocked": false,
       "linkedName": "Right Bump Start"
@@ -20,8 +20,8 @@
         "y": 1.2830795454545454
       },
       "prevControl": {
-        "x": 6.105568181818181,
-        "y": 0.14932954545454513
+        "x": 6.084457831325301,
+        "y": 0.8768915662650599
       },
       "nextControl": null,
       "isLocked": false,
@@ -69,7 +69,7 @@
   ],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxAcceleration": 3.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
