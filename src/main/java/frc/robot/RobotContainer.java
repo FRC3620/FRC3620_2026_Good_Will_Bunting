@@ -773,11 +773,14 @@ public class RobotContainer implements RobotModeChangeListener {
       driverRightTriggerFlySky
           .whileTrue(
               (conveyerSubsystem.setDutyCycle(0.8)
-                  /* .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () -> turretSubsystem.atTarget(),
-                      () -> shooterHoodSubsystem.atTarget())
-                  .until(() -> !turretSubsystem.atTarget()).until(
-                      () -> !shooterHoodSubsystem.atTarget())
-                  .repeatedly() */
+                  /*
+                   * .setDutyCycleGated(.8, () -> shooterSubsystem.atRPM(), () ->
+                   * turretSubsystem.atTarget(),
+                   * () -> shooterHoodSubsystem.atTarget())
+                   * .until(() -> !turretSubsystem.atTarget()).until(
+                   * () -> !shooterHoodSubsystem.atTarget())
+                   * .repeatedly()
+                   */
                   .alongWith(intakeAgitatorSubsystem.agitatorOn()))
                   .onlyIf(() -> stateMachine.getCurrentState() != hoardingState));
 
@@ -805,7 +808,9 @@ public class RobotContainer implements RobotModeChangeListener {
       rollersOffTrigger.onTrue(
           intakeRollerSubsystem.rollersOff());
       rollersBackwardsTrigger.onTrue(
-          intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(-3000)));
+          intakeRollerSubsystem.createSetVelocityCommand(() -> RPM.of(-3000)).alongWith(
+              conveyerSubsystem.setDutyCycle(-0.5)).alongWith(
+                  intakeAgitatorSubsystem.agitatorBackwards()));
     }
 
   }

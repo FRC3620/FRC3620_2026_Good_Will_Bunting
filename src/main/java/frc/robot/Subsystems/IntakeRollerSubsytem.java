@@ -70,8 +70,8 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     HealthSubsystem.healthOptionsForYAMS.withMotorTemperatureThreshold(Celsius.of(65)));
 
             SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
-                    .withSimClosedLoopController(10, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
+                    .withClosedLoopController(20, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
+                    .withSimClosedLoopController(20, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
                     .withMotorInverted(false)
                     .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
                     .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30))) // Direct drive

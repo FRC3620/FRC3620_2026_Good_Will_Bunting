@@ -33,6 +33,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.RobotContainer;
 
 public class ShotCalculator {
 
@@ -80,10 +81,10 @@ public class ShotCalculator {
                 OP_PASS(new Translation3d(Inches.of(126), Inches.of(98.85), Inches.of(0))),
                 DEPOT_PASS(new Translation3d(Inches.of(126), Inches.of(218.838), Inches.of(0))),
                 OP_CORNER(new Translation3d(Meters.of(3.9), Meters.of(1.410), Inches.of(0))),
-                DEPOT_CORNER(new Translation3d(Meters.of(3.9), Meters.of(8.2-1.410), Inches.of(0))),
+                DEPOT_CORNER(new Translation3d(Meters.of(3.9), Meters.of(8.2 - 1.410), Inches.of(0))),
                 OP_DEEP_PASS(new Translation3d(Meters.of(5.586), Meters.of(2.404), Meters.of(0))),
-                DEPOT_DEEP_PASS(new Translation3d(Meters.of(5.586), Meters.of(8-2.404), Meters.of(0)))
-                ;
+                DEPOT_DEEP_PASS(new Translation3d(Meters.of(5.586), Meters.of(8 - 2.404), Meters.of(0)));
+
                 private Translation3d targetPosition;
 
                 FieldTargets(Translation3d targetPosition) {
@@ -151,7 +152,8 @@ public class ShotCalculator {
                 return distance;
         }
 
-        public static Angle calculateBaseFieldAngleToTarget(Supplier<Translation2d> targetPosition, Supplier<Pose2d> robotPose) {
+        public static Angle calculateBaseFieldAngleToTarget(Supplier<Translation2d> targetPosition,
+                        Supplier<Pose2d> robotPose) {
                 Translation2d turretPosition = robotPose.get().getTranslation()
                                 .plus(turretOffset.toTranslation2d().rotateBy(robotPose.get().getRotation()));
                 Translation2d delta = targetPosition.get().minus(turretPosition);
@@ -161,7 +163,8 @@ public class ShotCalculator {
                 return rotation;
         }
 
-        public static Angle calculateBaseTurretAngleToTarget(Supplier<Translation2d> targetPosition, Supplier<Pose2d> robotPose) {
+        public static Angle calculateBaseTurretAngleToTarget(Supplier<Translation2d> targetPosition,
+                        Supplier<Pose2d> robotPose) {
                 Angle fieldAngle = calculateBaseFieldAngleToTarget(targetPosition, robotPose);
                 Angle robotHeading = robotPose.get().getRotation().getMeasure();
                 Angle rotation = fieldAngle.minus(robotHeading);
@@ -172,7 +175,8 @@ public class ShotCalculator {
 
         public static LinearVelocity calculateBaseExitVelocity(Supplier<Translation3d> targetPosition,
                         Supplier<Pose2d> robotPose) {
-                Distance hDistance = calculateBaseHDistanceToTarget(() -> targetPosition.get().toTranslation2d(), robotPose);
+                Distance hDistance = calculateBaseHDistanceToTarget(() -> targetPosition.get().toTranslation2d(),
+                                robotPose);
                 Distance deltaZ = targetPosition.get().getMeasureZ().minus(turretOffset.getMeasureZ());
                 double ratio = SmartDashboard.getNumber("frc3620/ShotCalculator/Ratio Over Min Velocity",
                                 ratioOverMinVelocity); // empirically
@@ -237,8 +241,10 @@ public class ShotCalculator {
          * }
          */
 
-        public static Angle calculateHighBaseExitAngle(Supplier<Translation3d> targetPosition, Supplier<Pose2d> robotPose) {
-                Distance hDistance = calculateBaseHDistanceToTarget(() -> targetPosition.get().toTranslation2d(), robotPose);
+        public static Angle calculateHighBaseExitAngle(Supplier<Translation3d> targetPosition,
+                        Supplier<Pose2d> robotPose) {
+                Distance hDistance = calculateBaseHDistanceToTarget(() -> targetPosition.get().toTranslation2d(),
+                                robotPose);
                 Distance deltaZ = targetPosition.get().getMeasureZ().minus(turretOffset.getMeasureZ());
                 LinearVelocity exitVelocity = calculateBaseExitVelocity(targetPosition, robotPose);
                 double ratioAngle = SmartDashboard.getNumber("frc3620/ShooterHood/multiplier", 1);
@@ -304,6 +310,22 @@ public class ShotCalculator {
                                 velocity.getX().in(FeetPerSecond));
                 SmartDashboard.putNumber("frc3620/ShotCalculator/RobotVelocityYFtps",
                                 velocity.getY().in(FeetPerSecond));
+
+                if (RobotContainer.questNavSubsystem.getQuestNavConnected()
+                        && RobotContainer.questNavSubsystem.getQuestNavIsTracking()
+                        && (RobotContainer.swerveSubsystem.getState().Pose.getX() > 16
+                                || RobotContainer.swerveSubsystem.getState().Pose.getX() < .15
+                                || RobotContainer.swerveSubsystem.getState().Pose.getY() > 8.0
+                                || RobotContainer.swerveSubsystem.getState().Pose.getY() < .15)) {
+                        
+                        SmartDashboard.putString("frc3620/ShotCalculator/VelocitySource", "Quest");
+                        VelocityVector qVelo = new VelocityVector(
+                                RobotContainer.questNavSubsystem.getQuestNavVX(),
+                                RobotContainer.questNavSubsystem.getQuestNavVY());
+                        return qVelo;
+                }
+                SmartDashboard.putString("frc3620/ShotCalculator/VelocitySource", "Swerve");
+
                 return velocity;
         }
 
@@ -337,10 +359,12 @@ public class ShotCalculator {
                 return rotation;
         }
 
-        public static Angle calculateNetTurretAngleToTarget(Supplier<Translation2d> targetPosition, Supplier<Pose2d> robotPose,
+        public static Angle calculateNetTurretAngleToTarget(Supplier<Translation2d> targetPosition,
+                        Supplier<Pose2d> robotPose,
                         Supplier<VelocityVector> robotVelocity) {
                 Angle fieldAngle = calculateFieldAngle(
-                                () -> new Translation3d(targetPosition.get().getMeasureX(), targetPosition.get().getMeasureY(),
+                                () -> new Translation3d(targetPosition.get().getMeasureX(),
+                                                targetPosition.get().getMeasureY(),
                                                 Feet.zero()),
                                 robotPose,
                                 robotVelocity);
@@ -376,7 +400,8 @@ public class ShotCalculator {
 
                 LinearVelocity actualExitVelocity = calculateActualExitVelocity(actualShooterSpeed);
 
-                Angle bFieldAngle = calculateBaseFieldAngleToTarget(() -> targetPosition.get().toTranslation2d(), robotPose);
+                Angle bFieldAngle = calculateBaseFieldAngleToTarget(() -> targetPosition.get().toTranslation2d(),
+                                robotPose);
                 Angle bExitAngle = calculateHighBaseExitAngle(targetPosition, robotPose);
 
                 LinearVelocity actualHorizontalExitVelocity = actualExitVelocity
@@ -451,7 +476,8 @@ public class ShotCalculator {
         public static VelocityVector calculateNetHorizontalVelocity(Supplier<Translation3d> targetPosition,
                         Supplier<Pose2d> robotPose, Supplier<VelocityVector> robotVelocity) {
                 LinearVelocity bExitVelocity = calculateBaseExitVelocity(targetPosition, robotPose);
-                Angle bFieldAngle = calculateBaseFieldAngleToTarget(() -> targetPosition.get().toTranslation2d(), robotPose);
+                Angle bFieldAngle = calculateBaseFieldAngleToTarget(() -> targetPosition.get().toTranslation2d(),
+                                robotPose);
 
                 LinearVelocity bHorizontalExitVelocity = bExitVelocity
                                 .times(Math.cos(calculateHighBaseExitAngle(targetPosition, robotPose).in(Radians)));
@@ -489,7 +515,8 @@ public class ShotCalculator {
                 return verticalVelocity;
         }
 
-        public static LinearVelocity calculateNetShotVelocity(Supplier<Translation3d> targetPosition, Supplier<Pose2d> robotPose,
+        public static LinearVelocity calculateNetShotVelocity(Supplier<Translation3d> targetPosition,
+                        Supplier<Pose2d> robotPose,
                         Supplier<VelocityVector> robotVelocity) {
                 VelocityVector netHorizontal = calculateNetHorizontalVelocity(targetPosition, robotPose, robotVelocity);
                 LinearVelocity netVertical = calculateNetVerticalVelocity(targetPosition, robotPose, robotVelocity);

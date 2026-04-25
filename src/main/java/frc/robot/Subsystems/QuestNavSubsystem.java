@@ -177,7 +177,7 @@ public class QuestNavSubsystem extends SubsystemBase {
 
     double dt = timestamp - lastTimestamp;
 
-    if (dt < 0.01 || dt > 0.25) {
+    if (dt < 0.0075 || dt > 0.25) {
       lastPose = pose;
       lastTimestamp = timestamp;
       return;
