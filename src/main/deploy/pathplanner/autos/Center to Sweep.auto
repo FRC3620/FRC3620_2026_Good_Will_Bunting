@@ -41,13 +41,26 @@
                                 {
                                   "type": "wait",
                                   "data": {
-                                    "waitTime": 3.0
+                                    "waitTime": 3.5
                                   }
                                 },
                                 {
-                                  "type": "named",
+                                  "type": "parallel",
                                   "data": {
-                                    "name": "Feed Pass"
+                                    "commands": [
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "Feed Pass"
+                                        }
+                                      },
+                                      {
+                                        "type": "named",
+                                        "data": {
+                                          "name": "Jostle"
+                                        }
+                                      }
+                                    ]
                                   }
                                 }
                               ]

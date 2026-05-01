@@ -103,11 +103,11 @@ public class ShooterSubsystem extends SubsystemBase {
     rpmCorrectionMap.put(10, 0.0);
     rpmCorrectionMap.put(11,30.0);
     rpmCorrectionMap.put(12, 30.0);
-    rpmCorrectionMap.put(13, 30.0);
-    rpmCorrectionMap.put(14, 30.0);
-    rpmCorrectionMap.put(15, 30.0);
-    rpmCorrectionMap.put(16, 60.0);
-    rpmCorrectionMap.put(17, 170.0);
+    rpmCorrectionMap.put(13, 65.0);
+    rpmCorrectionMap.put(14, 85.0);
+    rpmCorrectionMap.put(15, 100.0);
+    rpmCorrectionMap.put(16, 125.0);
+    rpmCorrectionMap.put(17, 220.0);
     rpmCorrectionMap.put(18, 280.0);
     rpmCorrectionMap.put(19, 320.0);
     rpmCorrectionMap.put(20, 320.0);
