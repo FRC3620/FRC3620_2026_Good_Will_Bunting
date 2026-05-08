@@ -178,6 +178,7 @@ public class RobotContainer implements RobotModeChangeListener {
   // hardware here
   public static PowerDistribution powerDistribution;
   public static Trigger useFMSTriggers = new Trigger(() -> false);
+  private Trigger paradeDemoTrigger;
 
   private static SendableChooser<OrchestraManager.OrchestraSong> musicChooser;
   private static OrchestraManager.OrchestraSong lastSong = null;
@@ -680,6 +681,14 @@ public class RobotContainer implements RobotModeChangeListener {
 
     Trigger toggleStateMachineTrigger = driverJoystick.button(OdoIdsFlySky.ButtonId.SWD);
 
+    SmartDashboard.putBoolean("frc3620/ParadeDemo/active", false);
+    SmartDashboard.putNumber("frc3620/ParadeDemo/shooterRPM", 1200);
+    SmartDashboard.putNumber("frc3620/ParadeDemo/preshooterRPM", 2000);
+    SmartDashboard.putNumber("frc3620/ParadeDemo/hoodAngleDegrees", 30);
+    SmartDashboard.putNumber("frc3620/ParadeDemo/turretAngleDegrees", 180);
+    paradeDemoTrigger = new Trigger(() -> SmartDashboard.getBoolean("frc3620/ParadeDemo/active", false))
+        .or(driverJoystick.button(OdoIdsFlySky.ButtonId.SWB_DOWN, () -> false));
+
     if (swerveSubsystem != null) {
       /*
        **********************************************************************************
@@ -722,6 +731,18 @@ public class RobotContainer implements RobotModeChangeListener {
               .alongWith(shooterSubsystem.createSetVelocityCommand(() -> RPM.of(1200)))
               .alongWith(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(2000)))
               .alongWith(turretSubsystem.createSetAngleCommand(() -> Degrees.of(180))));
+
+      paradeDemoTrigger.whileTrue(
+          shooterHoodSubsystem.createSetAngleCommandGated(
+                  () -> Degrees.of(SmartDashboard.getNumber("frc3620/ParadeDemo/hoodAngleDegrees", 30)))
+              .alongWith(shooterSubsystem.createSetVelocityCommand(
+                  () -> RPM.of(SmartDashboard.getNumber("frc3620/ParadeDemo/shooterRPM", 1200))))
+              .alongWith(preshooterSubsystem.createSetVelocityCommand(
+                  () -> RPM.of(SmartDashboard.getNumber("frc3620/ParadeDemo/preshooterRPM", 2000))))
+              .alongWith(turretSubsystem.createSetAngleCommand(
+                  () -> Degrees.of(SmartDashboard.getNumber("frc3620/ParadeDemo/turretAngleDegrees", 180))))
+              .withName("ParadeDemoShoot")
+      );
 
       /*
        * ShotCalculator.FieldTargets.BLUE_HUB.getTargetPosition().toTranslation2d(),
