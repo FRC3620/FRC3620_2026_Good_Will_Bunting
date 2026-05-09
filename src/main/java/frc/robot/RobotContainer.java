@@ -21,6 +21,7 @@ import org.usfirst.frc3620.RobotModeChangeListener;
 import org.usfirst.frc3620.RobotParametersContainer;
 import org.usfirst.frc3620.Utilities;
 import org.usfirst.frc3620.logger.LoggingMaster;
+import org.usfirst.frc3620.odo.IOdoAxisId;
 import org.usfirst.frc3620.odo.OdoIdsFlySky;
 import org.usfirst.frc3620.odo.OdoIdsXBox;
 import org.usfirst.frc3620.odo.OdoJoystick;
@@ -69,6 +70,7 @@ import frc.robot.Helpers.ButtonTriggers;
 import frc.robot.Helpers.FMSTriggers;
 import frc.robot.Helpers.FieldTriggers;
 import frc.robot.Helpers.OrchestraManager;
+import frc.robot.Helpers.ParadeShotCalculator;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import frc.robot.Subsystems.BlinkyLightsSubsystem;
@@ -241,7 +243,7 @@ public class RobotContainer implements RobotModeChangeListener {
     conveyerSubsystem.setDefaultCommand(conveyerSubsystem.setDutyCycle(0));
     // shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.setAngle(() ->
     // Degrees.of(30)));
-    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(0)));
+    preshooterSubsystem.setDefaultCommand(preshooterSubsystem.createSetVelocityCommand(() -> RPM.of(600)));
     intakeAgitatorSubsystem.setDefaultCommand(intakeAgitatorSubsystem.agitatorOff());
 
     Robot.addRobotModeChangeListener(this);
@@ -300,6 +302,13 @@ public class RobotContainer implements RobotModeChangeListener {
     }
 
     // healthSubsystem.dumpDatabase();
+
+    if (shooterSubsystem != null) {
+      shooterSubsystem.setDefaultCommand(shooterSubsystem.paradeAutoAim());
+    }
+    if (shooterHoodSubsystem != null) {
+      shooterHoodSubsystem.setDefaultCommand(shooterHoodSubsystem.paradeAutoAim());
+    }
   }
 
   private SwerveSubsystem configureSwerveDrive() {
@@ -388,8 +397,8 @@ public class RobotContainer implements RobotModeChangeListener {
     fmsTriggers = new FMSTriggers();
     buttonTriggers = new ButtonTriggers(driverJoystick);
 
-    SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", true);
-    useFMSTriggers = new Trigger(() -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", true));
+    SmartDashboard.putBoolean("frc3620/StateMachine/useFMSTriggers", false);
+    useFMSTriggers = new Trigger(() -> SmartDashboard.getBoolean("frc3620/StateMachine/useFMSTriggers", false));
 
     fmsTriggersOff = new Trigger(useFMSTriggers.negate());
     fmsTriggersOn = new Trigger(useFMSTriggers);
@@ -547,6 +556,7 @@ public class RobotContainer implements RobotModeChangeListener {
 
   private void makeStateMachine() {
     stateMachine = new StateMachine(outpostPassingState);
+    stateMachine.setActive(false);
   }
 
   public static StateMachine getStateMachine() {
@@ -651,10 +661,11 @@ public class RobotContainer implements RobotModeChangeListener {
      * SysIdRoutine.Direction.kReverse));
      */
 
-    driverJoystick.button(OdoIdsFlySky.ButtonId.SWC, OdoIdsXBox.ButtonId.X)
-        .onTrue(new SetPigeonFromMegaTag1Command().withName("Reset Pigeon from MegaTag1").ignoringDisable(true)
-            .alongWith(new SetQuestNavPoseFromMegaTag1Command().withName("Reset QuestNav from MegaTag1"))
-            .ignoringDisable(true));
+
+     driverJoystick.button(OdoIdsFlySky.ButtonId.SWC, OdoIdsXBox.ButtonId.X)
+     .onTrue(swerveSubsystem.runOnce(swerveSubsystem::seedFieldCentric)
+     .ignoringDisable(true));
+
   }
 
   private void configureButtonBindings() {
@@ -679,6 +690,9 @@ public class RobotContainer implements RobotModeChangeListener {
     Trigger teachShooterTriggerOver = operatorJoystick.button(OdoIdsXBox.ButtonId.RIGHT_BUMPER);
 
     Trigger toggleStateMachineTrigger = driverJoystick.button(OdoIdsFlySky.ButtonId.SWD);
+
+    turretSubsystem.setDefaultCommand(
+        turretSubsystem.createSetDutyCycleCommand(() -> operatorJoystick.getAxis(OdoIdsXBox.AxisId.RIGHT_X)));
 
     if (swerveSubsystem != null) {
       /*
@@ -820,6 +834,7 @@ public class RobotContainer implements RobotModeChangeListener {
     if (currentRobotMode == RobotMode.TELEOP) {
       setupDriverOdo(true);
     }
+    ParadeShotCalculator.resetSmoothing();
   }
 
   boolean weSawFlySky = false;
@@ -953,6 +968,11 @@ public class RobotContainer implements RobotModeChangeListener {
 
     SmartDashboard
         .putData(Commands.runOnce(() -> setupDriverOdo(true)).withName("Check for Flysky").ignoringDisable(true));
+
+    SmartDashboard.putData("frc3620/Parade/ParadeShootCommand",
+        shooterSubsystem.paradeAutoAim()
+            .alongWith(shooterHoodSubsystem.paradeAutoAim())
+            .withName("ParadeShootCommand"));
   }
 
   public void setUpAutonomousCommands() {

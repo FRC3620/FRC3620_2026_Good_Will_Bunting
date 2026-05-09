@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pound;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Volts;
@@ -40,6 +41,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.ParadeShotCalculator;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import yams.gearing.GearBox;
@@ -184,6 +186,25 @@ public class ShooterHoodSubsystem extends SubsystemBase {
 
     }
 
+    public Command paradeAutoAim() {
+        if (pivot == null)
+            return idle();
+
+        return Commands.waitUntil(() -> isCalibrated)
+                .andThen(pivot.setAngle(() -> {
+                    var dist = RobotContainer.limelightSubsystem.getDistanceToTag22();
+                    if (dist.isEmpty()) {
+                        SmartDashboard.putString("frc3620/ShooterHood/ParadeStatus", "No Tag");
+                        return targetAngle; // hold last known angle
+                    }
+                    Angle hood = ParadeShotCalculator.calculateHoodAngle(Meters.of(dist.get()));
+                    targetAngle = hood;
+                    SmartDashboard.putString("frc3620/ShooterHood/ParadeStatus", "Tracking");
+                    return hood;
+                }))
+                .withName(telemetryPrefix + " paradeAutoAim");
+    }
+
     public Command createSetAngleCommandGated(Supplier<Angle> angle) {
         Command rv;
         if (pivot != null) {
@@ -211,7 +232,8 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                 .withName("Shooter Hood setAngle Dashboard");
     }
 
-    public Command createAutoAngleToTargetCommand(Supplier<Translation3d> targetPosition, Supplier<Pose2d> robotPosition,
+    public Command createAutoAngleToTargetCommand(Supplier<Translation3d> targetPosition,
+            Supplier<Pose2d> robotPosition,
             Supplier<VelocityVector> robotVelocity, Supplier<AngularVelocity> shooterSpeed) {
         if (pivot == null)
             return idle();

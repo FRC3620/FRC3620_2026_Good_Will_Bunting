@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.AllianceFlipUtil;
+import frc.robot.Helpers.ParadeShotCalculator;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import yams.gearing.GearBox;
@@ -101,7 +102,7 @@ public class ShooterSubsystem extends SubsystemBase {
     rpmCorrectionMap.put(8, -35.0);
     rpmCorrectionMap.put(9, -20.0);
     rpmCorrectionMap.put(10, 0.0);
-    rpmCorrectionMap.put(11,30.0);
+    rpmCorrectionMap.put(11, 30.0);
     rpmCorrectionMap.put(12, 30.0);
     rpmCorrectionMap.put(13, 30.0);
     rpmCorrectionMap.put(14, 30.0);
@@ -253,7 +254,7 @@ public class ShooterSubsystem extends SubsystemBase {
         () -> {
           AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
 
-          Distance distanceFeet = getDistanceToTarget(() ->targetPosition.get().toTranslation2d(), robotPosition);
+          Distance distanceFeet = getDistanceToTarget(() -> targetPosition.get().toTranslation2d(), robotPosition);
 
           double correctionRPM = getRPMCorrection(distanceFeet);
 
@@ -263,6 +264,23 @@ public class ShooterSubsystem extends SubsystemBase {
           SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
           return corrected;
         });
+  }
+
+  public Command paradeAutoAim() {
+    if (flywheel == null)
+      return idle();
+
+    return flywheel.setSpeed(() -> {
+      var dist = RobotContainer.limelightSubsystem.getDistanceToTag22();
+      if (dist.isEmpty()) {
+        SmartDashboard.putString("frc3620/Shooter/ParadeStatus", "No Tag");
+        return filteredRPM; // hold last known speed
+      }
+      AngularVelocity speed = ParadeShotCalculator.calculateShooterSpeed(Meters.of(dist.get()));
+      filteredRPM = speed; // keep filteredRPM updated so atRPM() stays meaningful
+      SmartDashboard.putString("frc3620/Shooter/ParadeStatus", "Tracking");
+      return speed;
+    }).withName(telemetryPrefix + " paradeAutoAim");
   }
 
   /**
@@ -284,7 +302,6 @@ public class ShooterSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
 
-    
     // This method will be called once per scheduler run
     if (flywheel != null) {
       flywheel.updateTelemetry();
@@ -425,7 +442,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public BooleanSupplier shotFired() {
-    
-    return ()-> shotJustFired;
+
+    return () -> shotJustFired;
   }
 }

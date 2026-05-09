@@ -414,4 +414,32 @@ public class LimelightSubsystem extends SubsystemBase {
     }
   }
 
+  public Optional<Double> getDistanceToTag22() {
+    for (CameraData cameraData : allCameraDataAsSet) {
+      PoseEstimate pe = cameraData.megaTag1.getPoseEstimate();
+      if (pe == null || pe.rawFiducials == null)
+        continue;
+      for (var fiducial : pe.rawFiducials) {
+        if (fiducial.id == 22) {
+          return Optional.of(fiducial.distToRobot);
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
+  public Optional<Double> getTxToTag22() {
+    for (CameraData cameraData : allCameraDataAsSet) {
+      PoseEstimate pe = cameraData.megaTag1.getPoseEstimate();
+      if (pe == null || pe.rawFiducials == null)
+        continue;
+      for (var fiducial : pe.rawFiducials) {
+        if (fiducial.id == 22) {
+          return Optional.of(fiducial.txnc);
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
 }

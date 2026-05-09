@@ -15,6 +15,7 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import java.nio.file.ClosedWatchServiceException;
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import org.usfirst.frc3620.CANDeviceType;
@@ -32,9 +33,11 @@ import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Helpers.ParadeShotCalculator;
 import frc.robot.Helpers.ShotCalculator;
 import frc.robot.Helpers.VelocityVector;
 import yams.gearing.GearBox;
@@ -79,16 +82,17 @@ public class TurretSubsystem extends SubsystemBase {
   private SmartMotorController smartMotorController = null;
   private Pivot pivot = null;
 
-  private static final Angle absAEncoderOffset = Rotations.of(-0.084716796875);
-  private static final Angle absBEncoderOffset = Rotations.of(-0.781494140625);
+  private static final Angle absAEncoderOffset = Rotations.of(-0.1044921875);
+  private static final Angle absBEncoderOffset = Rotations.of(-0.781982421875);
 
   private Angle filteredTargetAngle = Degrees.of(0);
+  private Angle paradeSetpoint = Degrees.of(0);
   private double turretTargetingOffset = 0;
   private double turretFilterAlpha = .9;
 
   private boolean atTarget = false;
-  
-  private Angle targetAngle = Degrees.of(0); 
+
+  private Angle targetAngle = Degrees.of(0);
   private static final double MIN_ANGLE = -280;
   private static final double MAX_ANGLE = 105;
 
@@ -96,7 +100,6 @@ public class TurretSubsystem extends SubsystemBase {
   private Angle reallyCloseToRightWrappingAngle = Degrees.of(MIN_ANGLE + 30);
   private Angle nearLeftWrappingAngle = Degrees.of(MAX_ANGLE - 70);
   private Angle reallyCloseTOLeftWrappingAngle = Degrees.of(MAX_ANGLE - 30);
-
 
   private static boolean turretInitialized = false;
 
@@ -114,7 +117,7 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(800), DegreesPerSecondPerSecond.of(2500))
+          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(800))
           .withSimClosedLoopController(20, 0, 0, DegreesPerSecond.of(800), DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
@@ -176,6 +179,17 @@ public class TurretSubsystem extends SubsystemBase {
       rv = pivot.setAngle(setpt);
     }
     return rv.withName(telemetryPrefix + " setAngle");
+  }
+
+  public Command createSetDutyCycleCommand(Supplier<Double> dutyCycle) {
+    Supplier<Double> newD = () -> {
+      if (getAngle().gt(Degrees.of(MAX_ANGLE)) || getAngle().lt(Degrees.of(MIN_ANGLE))) {
+        return 0.0;
+      } else {
+        return dutyCycle.get() * 0.2;
+      }
+    };
+    return pivot.set(newD);  
   }
 
   public Angle getAngle() {
@@ -264,6 +278,7 @@ public class TurretSubsystem extends SubsystemBase {
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }
+
 
   public static Angle wrapToSafeRange(Angle target, Angle current) {
 
@@ -456,22 +471,21 @@ public class TurretSubsystem extends SubsystemBase {
   private static record AbsSensorRead(boolean ok, double absA, double absB, String status) {
   }
 
-   public boolean isNearRightWrapping() {
-  return getAngle().isNear(nearRightWrappingAngle, Degrees.of(8));
-}
+  public boolean isNearRightWrapping() {
+    return getAngle().isNear(nearRightWrappingAngle, Degrees.of(8));
+  }
 
-public boolean isReallyCloseToRightWrapping() {
-  return getAngle().isNear(reallyCloseToRightWrappingAngle, Degrees.of(7));
-}
+  public boolean isReallyCloseToRightWrapping() {
+    return getAngle().isNear(reallyCloseToRightWrappingAngle, Degrees.of(7));
+  }
 
-public boolean isNearLeftWrapping() {
-  return getAngle().isNear(nearLeftWrappingAngle, Degrees.of(8));
-}
+  public boolean isNearLeftWrapping() {
+    return getAngle().isNear(nearLeftWrappingAngle, Degrees.of(8));
+  }
 
-public boolean isReallyCloseToLeftWrapping() {
-  return getAngle().isNear(reallyCloseTOLeftWrappingAngle, Degrees.of(7));
-}
-
+  public boolean isReallyCloseToLeftWrapping() {
+    return getAngle().isNear(reallyCloseTOLeftWrappingAngle, Degrees.of(7));
+  }
 
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
