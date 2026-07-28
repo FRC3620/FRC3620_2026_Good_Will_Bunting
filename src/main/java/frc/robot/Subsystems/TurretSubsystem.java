@@ -189,7 +189,7 @@ public class TurretSubsystem extends SubsystemBase {
         return dutyCycle.get() * 0.2;
       }
     };
-    return pivot.set(newD);  
+    return pivot.set(newD);
   }
 
   public Angle getAngle() {
@@ -278,7 +278,6 @@ public class TurretSubsystem extends SubsystemBase {
     }
     return rv.withName(telemetryPrefix + " setAngleToTarget");
   }
-
 
   public static Angle wrapToSafeRange(Angle target, Angle current) {
 

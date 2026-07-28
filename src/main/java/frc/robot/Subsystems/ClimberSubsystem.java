@@ -48,7 +48,7 @@ public class ClimberSubsystem extends SubsystemBase {
   public ClimberSubsystem() {
 
     boolean makeDevice = RobotContainer.canDeviceFinder.isDevicePresent(CANDeviceType.TALON_PHOENIX6,
-        motorId,telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
+        motorId, telemetryPrefix) || RobotContainer.shouldMakeAllCANDevices();
     if (makeDevice) {
       motor = new TalonFX(motorId);
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
@@ -62,8 +62,9 @@ public class ClimberSubsystem extends SubsystemBase {
               Inches.of(Math.PI * 0.25))
 
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
-          .withSimClosedLoopController(4, 0, 0, MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+          .withClosedLoopController(4, 0, 0)
+          .withTrapezoidalProfile(MetersPerSecond.of(0.5), MetersPerSecondPerSecond.of(0.5))
+          .withSimClosedLoopController(4, 0, 0)
           // Feedforward Constants
           .withFeedforward(new ElevatorFeedforward(0, 0, 0))
           .withSimFeedforward(new ElevatorFeedforward(0, 0, 0))
@@ -84,7 +85,7 @@ public class ClimberSubsystem extends SubsystemBase {
           DCMotor.getKrakenX60(1),
           motorConfig);
 
-      elevator = new Elevator(new ElevatorConfig(motorController)
+      elevator = new Elevator(new ElevatorConfig()
           .withStartingHeight(Meters.of(0.5))
           .withHardLimits(Meters.of(0), Meters.of(3))
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)

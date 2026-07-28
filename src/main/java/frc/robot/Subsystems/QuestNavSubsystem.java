@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Microseconds;
 import static edu.wpi.first.units.Units.Seconds;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -32,6 +34,7 @@ import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import gg.questnav.questnav.protos.wpilib.FrameDataProto;
 
 public class QuestNavSubsystem extends SubsystemBase {
@@ -46,16 +49,6 @@ public class QuestNavSubsystem extends SubsystemBase {
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR = 180;
   private final double QUEST_NAV_LEFT_OFFSET_RAPTOR = -6.45;
 
-  private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
-  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(5);
-
-  private Pose3d lastPose = null;
-  private double lastTimestamp = -1;
-
-  private LinearVelocity vx = MetersPerSecond.of(0.0);
-  private LinearVelocity vy = MetersPerSecond.of(0.0);
-  private AngularVelocity omega = RotationsPerSecond.of(0.0);
-
   private Transform3d QUEST_TO_ROBOT_CHUD = new Transform3d(Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_CHUD),
       0,
       Units.inchesToMeters(QUEST_NAV_HEIGHT_CHUD),
@@ -65,6 +58,29 @@ public class QuestNavSubsystem extends SubsystemBase {
       Units.inchesToMeters(QUEST_NAV_FORWARD_CENTER_OFFSET_RAPTOR), Units.inchesToMeters(QUEST_NAV_LEFT_OFFSET_RAPTOR),
       Units.inchesToMeters(QUEST_NAV_HEIGHT_RAPTOR),
       new Rotation3d(Units.degreesToRadians(0), 0, Units.degreesToRadians(QUEST_NAV_DEGREE_YAW_OFFSET_RAPTOR)));
+
+  private final Matrix<N3, N1> QUESTNAV_STD_DEVS = VecBuilder.fill(
+      0.02, // X position trust (20mm)
+      0.02, // Y position trust (20mm)
+      0.0872665); // Rotation trust (5 degrees)
+
+  private static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+
+  private static final double CONNECTION_TIMEOUT = 5.0;
+  private static final int LOW_BATTERY_THRESHOLD = 20;
+
+  private final RollingAveragePose3d rollingAvgPose = new RollingAveragePose3d(5);
+  private final RollingAverageVelocity rollingAvgVelo = new RollingAverageVelocity(5);
+
+  private final Timer disconnectedTimer = new Timer();
+  private final Timer notTrackingTimer = new Timer();
+
+  private Pose3d lastPose = null;
+  private double lastTimestamp = -1;
+
+  private LinearVelocity vx = MetersPerSecond.of(0.0);
+  private LinearVelocity vy = MetersPerSecond.of(0.0);
+  private AngularVelocity omega = RotationsPerSecond.of(0.0);
 
   private SwerveSubsystem swerveSubsystem;
   Pose3d roboPose = new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0));
@@ -80,12 +96,12 @@ public class QuestNavSubsystem extends SubsystemBase {
       "QuestNav/Pose2d",
       Pose2d.struct);
 
-
   /** Creates a new QuestNav. */
   public QuestNavSubsystem(SwerveSubsystem swerveSubsystem,
       Pose3d initialQuestNavPose) {
 
-    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavConnectedLongTimeQuestionMark(), "Questnav is not connected",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isRecentlyConnected(),
+        "Questnav is not connected",
         new HealthOptions().withShowAlertWhenBad(true));
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "Questnav is not tracking",
         new HealthOptions().withShowAlertWhenBad(true));
@@ -94,6 +110,8 @@ public class QuestNavSubsystem extends SubsystemBase {
         new HealthOptions().withShowAlertWhenBad(true));
 
     this.swerveSubsystem = swerveSubsystem;
+
+    registerLifecycleCallbacks();
 
     // Set intial Position -- Right now, this assumes we're sitting in front of
     // AprilTag 10 on the red side of the field
@@ -105,6 +123,38 @@ public class QuestNavSubsystem extends SubsystemBase {
      */
 
     questNav.setPose(initialQuestNavPose);
+  }
+
+  /**
+   * Registers the QuestNav library's built-in lifecycle callbacks. These fire
+   * once per state transition (not every loop), so they replace the old
+   * homegrown Timer-based debounce logic for logging/alerting purposes. The
+   * health-check getters below are still used for HealthSubsystem's
+   * "has it been bad for N seconds" logic, since that needs a duration check
+   * rather than an edge-triggered callback.
+   */
+  private void registerLifecycleCallbacks() {
+    /*
+     * questNav.onConnected(() -> DataLogManager.log("QuestNav connected"));
+     * questNav.onDisconnected(() ->
+     * DriverStation.reportWarning("QuestNav disconnected!", false));
+     * 
+     * questNav.onTrackingAcquired(() ->
+     * DataLogManager.log("QuestNav tracking acquired"));
+     * questNav.onTrackingLost(() ->
+     * DriverStation.reportWarning("QuestNav tracking lost!", false));
+     * 
+     * questNav.onLowBattery(LOW_BATTERY_THRESHOLD,
+     * level -> DriverStation.reportWarning("QuestNav battery low: " + level + "%",
+     * false));
+     * 
+     * questNav
+     * .onCommandSuccess(response ->
+     * DataLogManager.log("QuestNav pose reset succeeded: " +
+     * response.getCommandId()));
+     * questNav.onCommandFailure(response -> DriverStation.reportError(
+     * "QuestNav pose reset failed: " + response.getErrorMessage(), false));
+     */
   }
 
   public void updateAverageRobotPose(Pose3d questPose) {
@@ -119,50 +169,62 @@ public class QuestNavSubsystem extends SubsystemBase {
     return rollingAvgVelo.getAverageVelocity();
   }
 
-  public void updateVisionMeasurement() {
+  private boolean shouldReject(Pose3d rpose) {
+    return rpose.getX() < 0.0
+        || rpose.getX() > FIELD_LAYOUT.getFieldLength()
+        || rpose.getY() < 0.0
+        || rpose.getY() > FIELD_LAYOUT.getFieldWidth();
+  }
 
-    Matrix<N3, N1> QUESTNAV_STD_DEVS = VecBuilder.fill(0.02, 0.02, 0.035);
+  public void updateVisionMeasurement() {
 
     SmartDashboard.putBoolean("QuestNav/isConnected", questNav.isConnected());
     SmartDashboard.putBoolean("QuestNav/isTracking", questNav.isTracking());
-    SmartDashboard.putNumber("QuestNav/batteryPercent", getQuestNavPower());
 
-    if (questNav.isConnected() && questNav.isTracking()) {
+    questNav.getBatteryPercent().ifPresent(b -> SmartDashboard.putNumber("QuestNav/batteryPercent", b));
 
-      PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
+    if (!questNav.isConnected()) {
+      return;
+    }
+    PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
 
-      // Loop over the pose data frames nd send them to the pose estimatior
+    // Loop over the pose data frames nd send them to the pose estimatior
 
-      for (PoseFrame questFrame : questFrames) {
-        // Get the Pose of the Quest
-        Pose3d questPose = questFrame.questPose3d();
+    for (PoseFrame questFrame : questFrames) {
+      if (!questFrame.isTracking())
+        continue;
+      // Get the Pose of the Quest
+      Pose3d questPose = questFrame.questPose3d();
 
-        // get the timestamp for when the data was sent
-        double timestamp = questFrame.dataTimestamp();
+      // get the timestamp for when the data was sent
+      double timestamp = questFrame.dataTimestamp();
 
-        // Transform by the mount pose to get the robot pose
-        Pose3d robotPose = questPose.transformBy(QUEST_TO_ROBOT_RAPTOR.inverse());
+      // Transform by the mount pose to get the robot pose
+      Pose3d robotPose = questPose.transformBy(QUEST_TO_ROBOT_RAPTOR.inverse());
 
-        // adds to a queue array of 5 and averages the 5 values
-        updateAverageRobotPose(robotPose);
+      if (shouldReject(robotPose))
+        continue;
 
-        if (rollingAvgPose.isFilled()) {
-          // Add the mesaurement to the pose Estimator
-          if (swerveSubsystem != null) {
-            swerveSubsystem.addVisionMeasurement(rollingAvgPose.getAveragePose().toPose2d(), timestamp,
-                QUESTNAV_STD_DEVS);
-            roboPose = rollingAvgPose.getAveragePose();
-            updateVelocity(roboPose, timestamp);
-          }
-        } else {
-          if (swerveSubsystem != null) {
-            updateVelocity(robotPose, timestamp);
-            swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-            roboPose = robotPose;
-            
-          }
-        }
-      
+      // adds to a queue array of 5 and averages the 5 values
+      updateAverageRobotPose(robotPose);
+
+      if (swerveSubsystem == null)
+        continue;
+
+      if (rollingAvgPose.isFilled()) {
+        // Add the mesaurement to the pose Estimator
+
+        swerveSubsystem.addVisionMeasurement(rollingAvgPose.getAveragePose().toPose2d(), timestamp,
+            QUESTNAV_STD_DEVS);
+        roboPose = rollingAvgPose.getAveragePose();
+        updateVelocity(roboPose, timestamp);
+
+      } else {
+
+        swerveSubsystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+        roboPose = robotPose;
+        updateVelocity(robotPose, timestamp);
+
       }
     }
   }
@@ -191,7 +253,7 @@ public class QuestNavSubsystem extends SubsystemBase {
     vxVal = Math.max(-maxVel, Math.min(maxVel, vxVal));
     vyVal = Math.max(-maxVel, Math.min(maxVel, vyVal));
 
-    double maxAccel = 10; // m/s^2 (tune this)
+    double maxAccel = 6; // m/s^2 (tune this)
     double maxDelta = maxAccel * dt;
 
     double prevVX = vx.in(MetersPerSecond);
@@ -240,11 +302,7 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public boolean isQuestnavSufficientlyCharged() {
-    if (getQuestNavPower() < 6.5)
-      return false;
-    else {
-      return true;
-    }
+    return questNav.getBatteryPercent().orElse(-1) >= 6.5;
   }
 
   public void resetQuestNavPoseRollingAvg() {
@@ -272,35 +330,31 @@ public class QuestNavSubsystem extends SubsystemBase {
     return questNav.isConnected();
   }
 
-  public boolean getQuestNavConnectedLongTimeQuestionMark() {
-
-    Timer timer = new Timer();
-
+  public boolean isRecentlyConnected() {
     if (questNav.isConnected()) {
-      timer.reset();
-      timer.start();
-    } else {
-      if (timer.hasElapsed(Seconds.of(5))) {
-        return false;
-      }
+      disconnectedTimer.stop();
+      disconnectedTimer.reset();
+      return true;
     }
 
-    return true;
+    if (!disconnectedTimer.isRunning())
+      disconnectedTimer.start();
+
+    return !disconnectedTimer.hasElapsed(CONNECTION_TIMEOUT);
   }
 
-  public boolean getQuestNavIsTrackingLongTimeQuestionMark() {
-    Timer timer = new Timer();
-
+  public boolean isTecentlyTracking() {
     if (questNav.isTracking()) {
-      timer.reset();
-      timer.start();
-    } else {
-      if (timer.hasElapsed(Seconds.of(5))) {
-        return false;
-      }
+      notTrackingTimer.stop();
+      notTrackingTimer.reset();
+      return true;
     }
 
-    return true;
+    if (!notTrackingTimer.isRunning()) {
+      notTrackingTimer.start();
+    }
+
+    return !notTrackingTimer.hasElapsed(CONNECTION_TIMEOUT);
   }
 
   public boolean getQuestNavIsTracking() {
@@ -308,21 +362,21 @@ public class QuestNavSubsystem extends SubsystemBase {
   }
 
   public int getQuestNavPower() {
-    return questNav.getBatteryPercent().getAsInt();
+    return questNav.getBatteryPercent().orElse(-1);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-
+    questNav.commandPeriodic();
     if (questNav.isConnected() && questNav.isTracking()) {
       SmartDashboard.putNumber("QuestNav/XVelocity", getQuestNavVX().in(MetersPerSecond));
       SmartDashboard.putNumber("QuestNav/YVelocity", getQuestNavVY().in(MetersPerSecond));
-      
+
       posePub3d.append(roboPose);
       posePub2d.append(roboPose.toPose2d());
     }
-    questNav.commandPeriodic();
+
     updateVisionMeasurement();
   }
 }

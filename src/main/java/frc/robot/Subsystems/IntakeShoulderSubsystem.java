@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.ClosedLoopSlot;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -106,7 +107,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-          .withClosedLoopController(200.0, 0, 0, DegreesPerSecond.of(720), DegreesPerSecondPerSecond.of(720))
+          .withClosedLoopController(200.0, 0.0, 0.0)
+          .withTrapezoidalProfile(DegreesPerSecond.of(720), DegreesPerSecondPerSecond.of(720))
           .withFeedforward(new ArmFeedforward(0, 0.5, 0))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(27.0 / 1.0, 34.0 / 22.0)))
           .withIdleMode(MotorMode.COAST)
@@ -215,7 +217,8 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
     Time DOWN_HOLD_TIME = Seconds.of(0.25);
 
     return Commands.sequence(
-        createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle()).withTimeout(DOWN_HOLD_TIME),
+        createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_BOTTOM.getAngle())
+            .withTimeout(DOWN_HOLD_TIME),
         createSetPositionCommandGated(() -> IntakeShoulderPositions.JOSTLE_TOP.getAngle()).withTimeout(UP_HOLD_TIME))
         .repeatedly().withName("Jostle Command");
   }
@@ -311,11 +314,11 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
         .withName("Intake Shoulder Calibration");
   }
 
-    public TalonFX getMotor() {
-        if (motor != null) {
-            return motor;
-        }
-        return null;
+  public TalonFX getMotor() {
+    if (motor != null) {
+      return motor;
     }
+    return null;
+  }
 
 }

@@ -73,7 +73,7 @@ public class RollingAveragePose3d {
   }
 
   public boolean isFilled() {
-    return poses.size() < 5;
+    return poses.size() >= windowSize;
   }
 
   public void reset() {
