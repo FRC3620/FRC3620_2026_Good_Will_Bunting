@@ -97,8 +97,10 @@ public class ShooterHoodSubsystem extends SubsystemBase {
                     HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig hoodConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
-                    .withSimClosedLoopController(0.1, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(200))
+                    // .withClosedLoopController(150, 0, 0, DegreesPerSecond.of(200),
+                    // DegreesPerSecondPerSecond.of(200))
+                    // .withSimClosedLoopController(0.1, 0, 0, DegreesPerSecond.of(200),
+                    // DegreesPerSecondPerSecond.of(200))
                     .withMotorInverted(true)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(115.625)))
                     .withIdleMode(MotorMode.BRAKE)
@@ -157,12 +159,14 @@ public class ShooterHoodSubsystem extends SubsystemBase {
     }
 
     private void createPivot(Angle startingAngle) {
-        pivot = new Pivot(new PivotConfig(motorController)
-                .withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
-                .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
-                .withStartingPosition(startingAngle)
-                .withMOI(Inches.of(55.7), Pound.of(1))
-                .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+        /*
+         * pivot = new Pivot(new PivotConfig(motorController)
+         * .withHardLimit(HOOD_CALIBRATED_POS, MAXPOSITION)
+         * .withSoftLimits(HOOD_CALIBRATED_POS, MAXPOSITION)
+         * .withStartingPosition(startingAngle)
+         * .withMOI(Inches.of(55.7), Pound.of(1))
+         * .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+         */
     }
 
     @Override

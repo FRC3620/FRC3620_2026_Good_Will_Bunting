@@ -10,13 +10,12 @@ import org.usfirst.frc3620.logger.LoggingMaster;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.LimelightHelpers.PoseEstimate;
-import frc.robot.Subsystems.QuestNavSubsystem;
+import frc.robot.Subsystems.Vision.QuestNavSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class SetQuestNavPoseFromMegaTag1Command extends Command {
   boolean resetQN;
   TaggedLogger logger = LoggingMaster.getLogger(getClass());
-
 
   /** Creates a new SetQuestNavPoseFromMegaTag1Command. */
   public SetQuestNavPoseFromMegaTag1Command() {
@@ -33,13 +32,13 @@ public class SetQuestNavPoseFromMegaTag1Command extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    int mostTargets = 0; 
-    Pose2d pose = null; 
-    String used = null; 
+    int mostTargets = 0;
+    Pose2d pose = null;
+    String used = null;
     for (var cameraData : RobotContainer.limelightSubsystem.getAllCameraData()) {
       if (cameraData.shouldUseThisCamera()) {
         PoseEstimate pe = cameraData.megaTag1.getPoseEstimate();
-        if (pe !=null && pe.tagCount > mostTargets){
+        if (pe != null && pe.tagCount > mostTargets) {
           mostTargets = pe.tagCount;
           pose = pe.pose;
           used = cameraData.getLimelightName();
@@ -47,7 +46,7 @@ public class SetQuestNavPoseFromMegaTag1Command extends Command {
       }
     }
     if (pose != null) {
-      if (RobotContainer.questNavSubsystem != null){
+      if (RobotContainer.questNavSubsystem != null) {
         QuestNavSubsystem qn = RobotContainer.questNavSubsystem;
         qn.setQuestNavPose(pose);
         resetQN = true;
@@ -69,7 +68,7 @@ public class SetQuestNavPoseFromMegaTag1Command extends Command {
   }
 
   @Override
-  public boolean runsWhenDisabled(){
+  public boolean runsWhenDisabled() {
     return true;
   }
 }

@@ -27,6 +27,7 @@ import org.usfirst.frc3620.CANDeviceType;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.mechanisms.swerve.LegacySwerveRequest.Idle;
 import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkMax;
 
@@ -150,8 +151,10 @@ public class ShooterSubsystem extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
           // Feedback Constants (PID Constants)
-          .withClosedLoopController(0.25, 0, 0.45, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
-          .withSimClosedLoopController(2, 0, 0.0, RPM.of(3500), RotationsPerSecondPerSecond.of(58.3))
+          // .withClosedLoopController(0.25, 0, 0.45, RPM.of(3500),
+          // RotationsPerSecondPerSecond.of(58.3))
+          // .withSimClosedLoopController(2, 0, 0.0, RPM.of(3500),
+          // RotationsPerSecondPerSecond.of(58.3))
           // Feedforward Constants
           .withFeedforward(new SimpleMotorFeedforward(0.30179, 0.24115, 0.016414))
           .withSimFeedforward(new SimpleMotorFeedforward(0, 0, 0))
@@ -171,16 +174,18 @@ public class ShooterSubsystem extends SubsystemBase {
 
       smartMotorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), smcConfig1);
 
-      FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
-          // Diameter of the flywheel.
-          .withDiameter(Inches.of(4))
-          // Mass of the flywheel.
-          .withMass(Pounds.of(1.5))
-          // Maximum speed of the flywheel.
-          .withUpperSoftLimit(RPM.of(5000))
-          // Telemetry name and verbosity for the arm.
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW);
-      flywheel = new FlyWheel(Config);
+      /*
+       * FlyWheelConfig Config = new FlyWheelConfig(smartMotorController)
+       * // Diameter of the flywheel.
+       * .withDiameter(Inches.of(4))
+       * // Mass of the flywheel.
+       * .withMass(Pounds.of(1.5))
+       * // Maximum speed of the flywheel.
+       * .withUpperSoftLimit(RPM.of(5000))
+       * // Telemetry name and verbosity for the arm.
+       * .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW);
+       */
+      // flywheel = new FlyWheel(Config);
 
       sysIdRoutine = new SysIdRoutine(
           new SysIdRoutine.Config(
@@ -233,7 +238,7 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(speed).withName(telemetryPrefix + " SetVelocity");
+    return idle();// flywheel.setSpeed(speed).withName(telemetryPrefix + " SetVelocity");
   }
 
   public Command setVelocityDashboardCommand() {
@@ -250,37 +255,46 @@ public class ShooterSubsystem extends SubsystemBase {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(
-        () -> {
-          AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition, robotPosition, robotVelocity);
-
-          Distance distanceFeet = getDistanceToTarget(() -> targetPosition.get().toTranslation2d(), robotPosition);
-
-          double correctionRPM = getRPMCorrection(distanceFeet);
-
-          AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
-
-          SmartDashboard.putNumber("frc3620/Shooter/DistanceFeet", distanceFeet.in(Feet));
-          SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
-          return corrected;
-        });
+    return idle();/*
+                   * flywheel.setSpeed(
+                   * () -> {
+                   * AngularVelocity raw = ShotCalculator.calculateShooterSpeed(targetPosition,
+                   * robotPosition, robotVelocity);
+                   * 
+                   * Distance distanceFeet = getDistanceToTarget(() ->
+                   * targetPosition.get().toTranslation2d(), robotPosition);
+                   * 
+                   * double correctionRPM = getRPMCorrection(distanceFeet);
+                   * 
+                   * AngularVelocity corrected = raw.plus(RPM.of(correctionRPM));
+                   * 
+                   * SmartDashboard.putNumber("frc3620/Shooter/DistanceFeet",
+                   * distanceFeet.in(Feet));
+                   * SmartDashboard.putNumber("frc3620/Shooter/RPMCorrection", correctionRPM);
+                   * return corrected;
+                   * });
+                   */
   }
 
   public Command paradeAutoAim() {
     if (flywheel == null)
       return idle();
 
-    return flywheel.setSpeed(() -> {
-      var dist = RobotContainer.limelightSubsystem.getDistanceToTag22();
-      if (dist.isEmpty()) {
-        SmartDashboard.putString("frc3620/Shooter/ParadeStatus", "No Tag");
-        return filteredRPM; // hold last known speed
-      }
-      AngularVelocity speed = ParadeShotCalculator.calculateShooterSpeed(Meters.of(dist.get()));
-      filteredRPM = speed; // keep filteredRPM updated so atRPM() stays meaningful
-      SmartDashboard.putString("frc3620/Shooter/ParadeStatus", "Tracking");
-      return speed;
-    }).withName(telemetryPrefix + " paradeAutoAim");
+    /*
+     * return flywheel.setSpeed(() -> {
+     * var dist = RobotContainer.limelightSubsystem.getDistanceToTag22();
+     * if (dist.isEmpty()) {
+     * SmartDashboard.putString("frc3620/Shooter/ParadeStatus", "No Tag");
+     * return filteredRPM; // hold last known speed
+     * }
+     * AngularVelocity speed =
+     * ParadeShotCalculator.calculateShooterSpeed(Meters.of(dist.get()));
+     * filteredRPM = speed; // keep filteredRPM updated so atRPM() stays meaningful
+     * SmartDashboard.putString("frc3620/Shooter/ParadeStatus", "Tracking");
+     * return speed;
+     * }).withName(telemetryPrefix + " paradeAutoAim");
+     */
+    return idle();
   }
 
   /**

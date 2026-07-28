@@ -117,8 +117,10 @@ public class TurretSubsystem extends SubsystemBase {
 
       SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(200), DegreesPerSecondPerSecond.of(800))
-          .withSimClosedLoopController(20, 0, 0, DegreesPerSecond.of(800), DegreesPerSecondPerSecond.of(2500))
+          // .withClosedLoopController(110, 0, 0, DegreesPerSecond.of(200),
+          // DegreesPerSecondPerSecond.of(800))
+          // .withSimClosedLoopController(20, 0, 0, DegreesPerSecond.of(800),
+          // DegreesPerSecondPerSecond.of(2500))
           // Configure Motor and Mechanism properties
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(50.0 / 14.0, 140.0 / 18.0)))
           // .withContinuousWrapping(Rotations.of(-.806), Rotations.of(.306))
@@ -135,17 +137,19 @@ public class TurretSubsystem extends SubsystemBase {
           DCMotor.getKrakenX60(1),
           motorConfig);
 
-      pivot = new Pivot(new PivotConfig(smartMotorController)
-          // Starting position of the Pivot
-          .withStartingPosition(Degrees.of(0))
-          // .withWrapping(Degrees.of(0), Degrees.of(360))
-          // Hard limit bc wiring prevents infinite spinning
-          .withHardLimit(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
-          .withSoftLimits(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
-          // Telemetry
-          .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
-          // MOI Calculation
-          .withMOI(Meters.of(0.25), Pounds.of(15)));
+      /*
+       * pivot = new Pivot(new PivotConfig(smartMotorController)
+       * // Starting position of the Pivot
+       * .withStartingPosition(Degrees.of(0))
+       * // .withWrapping(Degrees.of(0), Degrees.of(360))
+       * // Hard limit bc wiring prevents infinite spinning
+       * .withHardLimit(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
+       * .withSoftLimits(Degrees.of(MIN_ANGLE), Degrees.of(MAX_ANGLE))
+       * // Telemetry
+       * .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW)
+       * // MOI Calculation
+       * .withMOI(Meters.of(0.25), Pounds.of(15)));
+       */
 
       setDefaultCommand(idle());
     }

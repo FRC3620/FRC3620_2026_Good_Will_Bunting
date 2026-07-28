@@ -86,15 +86,16 @@ public class ClimberSubsystem extends SubsystemBase {
           motorConfig);
 
       elevator = new Elevator(new ElevatorConfig()
-          .withStartingHeight(Meters.of(0.5))
+          // .withStartingHeight(Meters.of(0.5))
           .withHardLimits(Meters.of(0), Meters.of(3))
           .withTelemetry(telemetryPrefix, TelemetryVerbosity.HIGH)
           .withMechanismPositionConfig(
               new MechanismPositionConfig()
                   .withMaxRobotHeight(Inches.of(30))
                   .withMaxRobotLength(Inches.of(34))
-                  .withRelativePosition(new Translation3d(Inches.of(0), Inches.of(0), Inches.of(0))))
-          .withMass(Pounds.of(16)));
+                  .withRelativePosition(new Translation3d(Inches.of(0), Inches.of(0), Inches.of(0)))),
+          motorController);
+      // .withMass(Pounds.of(16)));
     }
   }
 

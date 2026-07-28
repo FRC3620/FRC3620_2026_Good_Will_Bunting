@@ -1,11 +1,8 @@
-package frc.robot.Subsystems;
+package frc.robot.Subsystems.Vision;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-
-import static edu.wpi.first.units.Units.Microseconds;
-import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -20,26 +17,27 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.datalog.StructLogEntry;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.util.datalog.StructLogEntry;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 import frc.robot.Helpers.RollingAveragePose3d;
 import frc.robot.Helpers.RollingAverageVelocity;
+import frc.robot.Subsystems.HealthSubsystem;
+import frc.robot.Subsystems.SwerveSubsystem;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
 import gg.questnav.questnav.PoseFrame;
 import gg.questnav.questnav.QuestNav;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import gg.questnav.questnav.protos.wpilib.FrameDataProto;
 
 public class QuestNavSubsystem extends SubsystemBase {
 
   public QuestNav questNav = new QuestNav();
+  private final QuestNavADBWatcher adbWatcher = new QuestNavADBWatcher();
+
   private final double QUEST_NAV_HEIGHT_CHUD = 23.5;
   private final double QUEST_NAV_FORWARD_CENTER_OFFSET_CHUD = -11.25;
   private final double QUEST_NAV_DEGREE_YAW_OFFSET_CHUD = 180;
@@ -103,7 +101,7 @@ public class QuestNavSubsystem extends SubsystemBase {
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isRecentlyConnected(),
         "Questnav is not connected",
         new HealthOptions().withShowAlertWhenBad(true));
-    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> getQuestNavIsTracking(), "Questnav is not tracking",
+    RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isRecentlyTracking(), "Questnav is not tracking",
         new HealthOptions().withShowAlertWhenBad(true));
     RobotContainer.healthSubsystem.addHealthyBooleanSupplier(() -> isQuestnavSufficientlyCharged(),
         "Questnav is not sufficiently charged",
@@ -112,6 +110,7 @@ public class QuestNavSubsystem extends SubsystemBase {
     this.swerveSubsystem = swerveSubsystem;
 
     registerLifecycleCallbacks();
+    adbWatcher.start();
 
     // Set intial Position -- Right now, this assumes we're sitting in front of
     // AprilTag 10 on the red side of the field
@@ -134,27 +133,23 @@ public class QuestNavSubsystem extends SubsystemBase {
    * rather than an edge-triggered callback.
    */
   private void registerLifecycleCallbacks() {
-    /*
-     * questNav.onConnected(() -> DataLogManager.log("QuestNav connected"));
-     * questNav.onDisconnected(() ->
-     * DriverStation.reportWarning("QuestNav disconnected!", false));
-     * 
-     * questNav.onTrackingAcquired(() ->
-     * DataLogManager.log("QuestNav tracking acquired"));
-     * questNav.onTrackingLost(() ->
-     * DriverStation.reportWarning("QuestNav tracking lost!", false));
-     * 
-     * questNav.onLowBattery(LOW_BATTERY_THRESHOLD,
-     * level -> DriverStation.reportWarning("QuestNav battery low: " + level + "%",
-     * false));
-     * 
-     * questNav
-     * .onCommandSuccess(response ->
-     * DataLogManager.log("QuestNav pose reset succeeded: " +
-     * response.getCommandId()));
-     * questNav.onCommandFailure(response -> DriverStation.reportError(
-     * "QuestNav pose reset failed: " + response.getErrorMessage(), false));
-     */
+
+    questNav.onConnected(() -> DataLogManager.log("QuestNav connected"));
+    questNav.onDisconnected(() -> DriverStation.reportWarning("QuestNav disconnected!", false));
+
+    questNav.onTrackingAcquired(() -> DataLogManager.log("QuestNav tracking acquired"));
+    questNav.onTrackingLost(() -> DriverStation.reportWarning("QuestNav tracking lost!", false));
+
+    questNav.onLowBattery(LOW_BATTERY_THRESHOLD,
+        level -> DriverStation.reportWarning("QuestNav battery low: " + level + "%",
+            false));
+
+    questNav
+        .onCommandSuccess(response -> DataLogManager.log("QuestNav pose reset succeeded: " +
+            response.getCommandId()));
+    questNav.onCommandFailure(response -> DriverStation.reportError(
+        "QuestNav pose reset failed: " + response.getErrorMessage(), false));
+
   }
 
   public void updateAverageRobotPose(Pose3d questPose) {
@@ -343,7 +338,7 @@ public class QuestNavSubsystem extends SubsystemBase {
     return !disconnectedTimer.hasElapsed(CONNECTION_TIMEOUT);
   }
 
-  public boolean isTecentlyTracking() {
+  public boolean isRecentlyTracking() {
     if (questNav.isTracking()) {
       notTrackingTimer.stop();
       notTrackingTimer.reset();
@@ -369,6 +364,8 @@ public class QuestNavSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     questNav.commandPeriodic();
+    adbWatcher.reportQuestNavHealth(isRecentlyConnected() && isRecentlyTracking());
+
     if (questNav.isConnected() && questNav.isTracking()) {
       SmartDashboard.putNumber("QuestNav/XVelocity", getQuestNavVX().in(MetersPerSecond));
       SmartDashboard.putNumber("QuestNav/YVelocity", getQuestNavVY().in(MetersPerSecond));

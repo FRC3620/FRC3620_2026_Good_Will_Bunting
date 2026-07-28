@@ -70,11 +70,13 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     HealthSubsystem.healthOptionsForYAMS.withMotorTemperatureThreshold(Celsius.of(65)));
 
             SmartMotorControllerConfig config = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(20, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
-                    .withSimClosedLoopController(20, 0, 0, RPM.of(6000), RotationsPerSecondPerSecond.of(100))
+                    // .withClosedLoopController(20, 0, 0, RPM.of(6000),
+                    // RotationsPerSecondPerSecond.of(100))
+                    // .withSimClosedLoopController(20, 0, 0, RPM.of(6000),
+                    // RotationsPerSecondPerSecond.of(100))
                     .withMotorInverted(false)
                     .withFollowers(Pair.of(motor2, true)) // motor2 follows motor1, inverted
-                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30))) // Direct drive
+                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18, 30))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry(telemetryPrefix + " Motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
@@ -82,31 +84,36 @@ public class IntakeRollerSubsytem extends SubsystemBase {
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
             motorController = new TalonFXWrapper(motor1, DCMotor.getKrakenX60(1), config);
-            FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(4))
-                    .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(7000))
-                    .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.LOW);
+            /*
+             * FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
+             * .withDiameter(Inch.of(4))
+             * .withMass(Pound.of(0.5))
+             * .withUpperSoftLimit(RPM.of(7000))
+             * .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.LOW);
+             */
 
             // Create the FlyWheel
-            flyWheel = new FlyWheel(rollerConfig);
-
+            /*
+             * flyWheel = new FlyWheel(rollerConfig);
+             */
             setDefaultCommand(idle());
 
             SmartDashboard.putNumber("frc3620/IntakeRollers/Flywheel RPM Dashboard Control", 0);
         }
     }
 
-    /* public Command rollersOn() {
-        // Only use YAMS control, not manual rollers.set()
-        Command rv;
-        if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(1000)); // need to test this
-        } else {
-            rv = idle();
-        }
-        return rv.withName(telemetryPrefix + " On");
-    } */
+    /*
+     * public Command rollersOn() {
+     * // Only use YAMS control, not manual rollers.set()
+     * Command rv;
+     * if (flyWheel != null) {
+     * rv = flyWheel.setSpeed(RPM.of(1000)); // need to test this
+     * } else {
+     * rv = idle();
+     * }
+     * return rv.withName(telemetryPrefix + " On");
+     * }
+     */
 
     public Command rollersOff() {
         Command rv;
@@ -118,31 +125,35 @@ public class IntakeRollerSubsytem extends SubsystemBase {
         return rv.withName(telemetryPrefix + " Off");
     }
 
-   /*  public Command rollersBackwards() {
-        Command rv;
-        if (flyWheel != null) {
-            rv = flyWheel.setSpeed(RPM.of(-1000));
-        } else {
-            rv = idle();
-        }
-        return rv.withName(telemetryPrefix + " Backwards");
-    } */
+    /*
+     * public Command rollersBackwards() {
+     * Command rv;
+     * if (flyWheel != null) {
+     * rv = flyWheel.setSpeed(RPM.of(-1000));
+     * } else {
+     * rv = idle();
+     * }
+     * return rv.withName(telemetryPrefix + " Backwards");
+     * }
+     */
 
     public Command createSetVelocityCommand(Supplier<AngularVelocity> velocity) {
-        if (flyWheel != null) {
-            return flyWheel.setSpeed(velocity);
-        }
+        /*
+         * if (flyWheel != null) {
+         * return flyWheel.setSpeed(velocity);
+         * }
+         */
         return idle();
     }
 
     public Command setVelocityDashboardCommand() {
-    if (flyWheel == null)
-      return idle();
+        if (flyWheel == null)
+            return idle();
 
-    return createSetVelocityCommand(
-        () -> RPM.of(SmartDashboard.getNumber("frc3620/IntakeRollers/Flywheel RPM Dashboard Control", 0)));
+        return createSetVelocityCommand(
+                () -> RPM.of(SmartDashboard.getNumber("frc3620/IntakeRollers/Flywheel RPM Dashboard Control", 0)));
 
-  }
+    }
 
     @Override
     public void periodic() {

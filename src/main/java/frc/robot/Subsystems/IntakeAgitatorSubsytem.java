@@ -42,10 +42,11 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
 
         if (makeDevices) {
             motor = new TalonFX(motorId);
-            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix, HealthSubsystem.healthOptionsForYAMS);
+            RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
+                    HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18,30)))// need to verify gearing here
+                    .withGearing(new MechanismGearing(GearBox.fromTeeth(18, 30)))// need to verify gearing here
                     .withIdleMode(MotorMode.BRAKE)
                     .withTelemetry("motor", TelemetryVerbosity.LOW)
                     .withStatorCurrentLimit(Amps.of(40))
@@ -56,11 +57,13 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
             // Create the FlyWheel
-            flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(1.5))
-                    .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(2000))
-                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+            /*
+             * flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
+             * .withDiameter(Inch.of(1.5))
+             * .withMass(Pound.of(0.5))
+             * .withUpperSoftLimit(RPM.of(2000))
+             * .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+             */
         }
     }
 
@@ -102,7 +105,6 @@ public class IntakeAgitatorSubsytem extends SubsystemBase {
             SmartDashboard.putNumber(telemetryPrefix + "agitator Velocity", flyWheel.getSpeed().in(RPM));
         }
     }
-
 
     @Override
     public void simulationPeriodic() {

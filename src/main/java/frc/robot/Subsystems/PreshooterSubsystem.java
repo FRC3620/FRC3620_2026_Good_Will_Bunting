@@ -54,12 +54,13 @@ public class PreshooterSubsystem extends SubsystemBase {
                     HealthSubsystem.healthOptionsForYAMS);
 
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(
-                            10.0, // kP - tune this
-                            0.0, // kI
-                            0.0, // kD
-                            DegreesPerSecond.of(28800000), DegreesPerSecondPerSecond.of(28800))
-                    .withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
+                    /*
+                     * .withClosedLoopController(
+                     * 10.0, // kP - tune this
+                     * 0.0, // kI
+                     * 0.0, // kD
+                     * DegreesPerSecond.of(28800000), DegreesPerSecondPerSecond.of(28800))
+                     */.withGearing(new MechanismGearing(GearBox.fromReductionStages(2))) // Direct drive
                     .withIdleMode(MotorMode.COAST)
                     .withMotorInverted(true)
                     .withTelemetry("motor", TelemetryVerbosity.LOW)
@@ -72,12 +73,13 @@ public class PreshooterSubsystem extends SubsystemBase {
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
 
             // Create the FlyWheel
-            flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
-                    .withDiameter(Inch.of(2))
-                    .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(100000))
-                    .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
-
+            /*
+             * flyWheel = new FlyWheel(new FlyWheelConfig(motorController)
+             * .withDiameter(Inch.of(2))
+             * .withMass(Pound.of(0.5))
+             * .withUpperSoftLimit(RPM.of(100000))
+             * .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+             */
             setDefaultCommand(idle());
         }
         SmartDashboard.putNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0);
@@ -91,12 +93,15 @@ public class PreshooterSubsystem extends SubsystemBase {
      */
     public Command createSetVelocityCommand(Supplier<AngularVelocity> speed) {
         Command rv;
-        if (flyWheel == null) {
-            rv = idle();
-        } else {
-            rv = flyWheel.setSpeed(speed);
-        }
-        return rv.withName(telemetryPrefix + " SetVelocity");
+        /*
+         * if (flyWheel == null) {
+         * rv = idle();
+         * } else {
+         * rv = flyWheel.setSpeed(speed);
+         * }
+         * return rv.withName(telemetryPrefix + " SetVelocity");
+         */
+        return idle();
     }
 
     public Command setVelocityDashboardCommand() {
@@ -104,7 +109,8 @@ public class PreshooterSubsystem extends SubsystemBase {
         if (flyWheel == null) {
             rv = idle();
         } else {
-            rv = createSetVelocityCommand(()-> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)));
+            rv = createSetVelocityCommand(
+                    () -> RPM.of(SmartDashboard.getNumber("frc3620/" + telemetryPrefix + "/RPM Dashboard Control", 0)));
         }
         return rv.withName(telemetryPrefix + " SetVelocityDashboard");
     }
@@ -140,7 +146,7 @@ public class PreshooterSubsystem extends SubsystemBase {
         }
     }
 
-    public AngularVelocity getVelocity(){
+    public AngularVelocity getVelocity() {
         return flyWheel.getSpeed();
     }
 

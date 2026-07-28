@@ -53,12 +53,14 @@ public class ConveyerSubsystem extends SubsystemBase {
             RobotContainer.healthSubsystem.addMotorToWatch(motor, telemetryPrefix,
                     HealthSubsystem.healthOptionsForYAMS);
             SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-                    .withClosedLoopController(
-                            0.1, // kP - tune this
-                            0.0, // kI
-                            0.0, // kD
-                            RotationsPerSecond.of(100),
-                            RotationsPerSecondPerSecond.of(200))
+                    /*
+                     * .withClosedLoopController(
+                     * 0.1, // kP - tune this
+                     * 0.0, // kI
+                     * 0.0, // kD
+                     * RotationsPerSecond.of(100),
+                     * RotationsPerSecondPerSecond.of(200))
+                     */
                     .withMotorInverted(false)
                     .withGearing(new MechanismGearing(GearBox.fromReductionStages(1, 1))) // Direct drive
                     .withIdleMode(MotorMode.BRAKE)
@@ -68,14 +70,14 @@ public class ConveyerSubsystem extends SubsystemBase {
                     .withControlMode(ControlMode.CLOSED_LOOP);
 
             motorController = new TalonFXWrapper(motor, DCMotor.getKrakenX60(1), motorConfig);
-            FlyWheelConfig rollerConfig = new FlyWheelConfig(motorController)
+            FlyWheelConfig rollerConfig = new FlyWheelConfig()
                     .withDiameter(Inch.of(4))
-                    .withMass(Pound.of(0.5))
-                    .withUpperSoftLimit(RPM.of(7000))
+                    // .withMass(Pound.of(0.5))
+                    // .withUpperSoftLimit(RPM.of(7000))
                     .withTelemetry(telemetryPrefix + " Roller", TelemetryVerbosity.LOW);
 
             // Create the FlyWheel
-            flyWheel = new FlyWheel(rollerConfig);
+            // flyWheel = new FlyWheel(rollerConfig);
 
             setDefaultCommand(idle());
         }
@@ -84,11 +86,15 @@ public class ConveyerSubsystem extends SubsystemBase {
 
     public Command setSpeed(Supplier<AngularVelocity> speed) {
 
-        if (flyWheel != null) {
-            return flyWheel.setSpeed(speed);
-        } else {
-            return idle();
-        }
+        /*
+         * if (flyWheel != null) {
+         * return flyWheel.setSpeed(speed);
+         * } else {
+         * return idle();
+         * }
+         */
+
+        return idle();
     }
 
     @Override
@@ -124,26 +130,28 @@ public class ConveyerSubsystem extends SubsystemBase {
         return idle();
     }
 
-/*     public Command setDutyCycleGated(
-            double dutyCycle,
-            BooleanSupplier shooterAtRPM,
-            BooleanSupplier turretAtTarget,
-            BooleanSupplier shooterHoodAtTarget) {
-        if (flyWheel != null) {
-
-            BooleanSupplier readyToFeed = () -> turretAtTarget.getAsBoolean()
-                    && shooterHoodAtTarget.getAsBoolean();
-
-            BooleanSupplier notReadyToFeed = () -> !turretAtTarget.getAsBoolean()
-                    || !shooterHoodAtTarget.getAsBoolean();
-
-            return Commands.either(
-                    flyWheel.set(dutyCycle),
-                    flyWheel.set(0),
-                    readyToFeed).repeatedly().withName("Conveyor Gated");
-        }
-        return idle();
-    } */
+    /*
+     * public Command setDutyCycleGated(
+     * double dutyCycle,
+     * BooleanSupplier shooterAtRPM,
+     * BooleanSupplier turretAtTarget,
+     * BooleanSupplier shooterHoodAtTarget) {
+     * if (flyWheel != null) {
+     * 
+     * BooleanSupplier readyToFeed = () -> turretAtTarget.getAsBoolean()
+     * && shooterHoodAtTarget.getAsBoolean();
+     * 
+     * BooleanSupplier notReadyToFeed = () -> !turretAtTarget.getAsBoolean()
+     * || !shooterHoodAtTarget.getAsBoolean();
+     * 
+     * return Commands.either(
+     * flyWheel.set(dutyCycle),
+     * flyWheel.set(0),
+     * readyToFeed).repeatedly().withName("Conveyor Gated");
+     * }
+     * return idle();
+     * }
+     */
 
     public TalonFX getMotor() {
         if (motor != null) {

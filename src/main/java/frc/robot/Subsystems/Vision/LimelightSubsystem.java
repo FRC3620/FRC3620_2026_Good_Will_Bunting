@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems;
+package frc.robot.Subsystems.Vision;
 
 import static edu.wpi.first.units.Units.Meters;
 
@@ -39,8 +39,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.RobotContainer;
+import frc.robot.Subsystems.HealthSubsystem;
 import frc.robot.Subsystems.HealthSubsystem.HealthOptions;
-import frc.robot.Subsystems.LimelightSubsystem.CameraData.MegaTagData;
+import frc.robot.Subsystems.SwerveSubsystem;
+import frc.robot.Subsystems.Vision.LimelightSubsystem.CameraData.MegaTagData;
 
 public class LimelightSubsystem extends SubsystemBase {
 

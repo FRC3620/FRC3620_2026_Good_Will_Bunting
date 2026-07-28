@@ -134,16 +134,18 @@ public class IntakeShoulderSubsystem extends SubsystemBase {
       softLimit = Degrees.of(0.0);
     }
 
-    pivot = new Pivot(new PivotConfig(motorController)
-        // Starting position of the Pivot
-        .withStartingPosition(IntakeShoulderPositions.IN.angle)
-        // .withWrapping(Degrees.of(0), Degrees.of(360))
-        // Hard limit bc wiring prevents infinite spinning
-        .withSoftLimits(softLimit, softLimit.plus(Degrees.of(369)))
-        .withHardLimit(softLimit, softLimit.plus(Degrees.of(369)))
-        .withMOI(Inches.of(25), Pound.of(1))
-        // Telemetry
-        .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+    /*
+     * pivot = new Pivot(new PivotConfig(motorController)
+     * // Starting position of the Pivot
+     * .withStartingPosition(IntakeShoulderPositions.IN.angle)
+     * // .withWrapping(Degrees.of(0), Degrees.of(360))
+     * // Hard limit bc wiring prevents infinite spinning
+     * .withSoftLimits(softLimit, softLimit.plus(Degrees.of(369)))
+     * .withHardLimit(softLimit, softLimit.plus(Degrees.of(369)))
+     * .withMOI(Inches.of(25), Pound.of(1))
+     * // Telemetry
+     * .withTelemetry(telemetryPrefix, TelemetryVerbosity.LOW));
+     */
   }
 
   @Override
