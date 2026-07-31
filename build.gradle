@@ -79,13 +79,16 @@ wpi.java.debugJni = false
 
 // Set this to true to enable desktop support.
 def includeDesktopSupport = true
-
+repositories {
+    maven { url 'https://frc3620.github.io/FRC3620_AverageUtilities/repo' }
+}
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
 // Also defines JUnit 5.
 dependencies {
     annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
+    implementation 'com.frc3620:robotlib-java:2026.1.0'
 
     // if using tinylog, you need to either set the duplicatesStrategy to false, or
     // use a plugin to consolidate the META-INF/services files. otherwise it's a crap 
